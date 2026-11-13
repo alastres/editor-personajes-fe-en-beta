@@ -2,6 +2,8 @@
 
 Qué falta para que la herramienta cubra un short de Fe en Beta de principio a fin sin pasar por código ni por otros programas.
 
+> **Estado (13 nov 2026): todo el roadmap está hecho** (P1, P2, P3 y los errores conocidos). Lo nuevo que vaya saliendo se apunta aquí con la misma prioridad.
+
 **Prioridad**
 - **P1:** hace falta para producir los shorts del canal con la herramienta.
 - **P2:** mejora mucho la calidad o la rapidez.
