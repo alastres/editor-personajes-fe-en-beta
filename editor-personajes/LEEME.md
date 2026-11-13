@@ -332,3 +332,14 @@ El usuario pidió «control de espacio 3D para profundidad y separar capas en el
 - **Vista de planta** (arriba a la izquierda del lienzo, plegable): la escena vista desde arriba, con x a lo ancho y la profundidad hacia arriba. Los personajes son círculos con hacia dónde miran, el atrezo son cuadrados y el triángulo es lo que ve la cámara a cada profundidad. Arrastrar un punto lo mueve en x y en profundidad (en los personajes, con clave en el cabezal).
 - **Decorados de escena entera** (`alFondo: true`): se dibujan detrás de todos los personajes y reciben el horizonte de la escena. El primero es el **Mar Rojo** (`marRojo`, control «Se abre»): orilla de arena, mar hasta el horizonte y, al abrirse, un camino seco entre dos muros de agua con cresta de espuma, salpicaduras, peces y un frente curvo junto a la orilla.
 - **Recoger del suelo** (acción común): se dobla por la cintura, la mano baja al suelo, coge y se levanta con ello. Al agacharse, el bajo de la falda ya no se hunde en el suelo (se apoya y se abre), y por debajo de la cadera la tela no se inclina con el torso.
+
+## Grafismo de la serie, profundidad de campo y transiciones (13 nov 2026)
+- **Rótulos con estilo** (`textos[].estilo` en la escena):
+  - `"titulo"`: título grande de la marca (Bricolage Grotesque). Entra palabra a palabra con rebote, y `*palabra*` sale en naranja. Si empieza en el segundo 0, ya está entero en el primer fotograma, que hace de miniatura.
+  - `"cita"`: versículo en itálica (Newsreader) que se va revelando palabra a palabra, con la referencia debajo en letra de máquina (`ref: "LUCAS 16:31 · RVR1960"`).
+  - Los dos llevan un velo oscuro detrás, y mientras están en pantalla el montaje oculta los subtítulos (`sinSubtitulos: false` lo evita).
+- **Distintivo de la serie** en todo el short: `marca: { serie: "¿Y si…?" }` en el JSON del short (punto rojo y texto en letra de máquina, arriba a la izquierda).
+- **Profundidad de campo:** con zoom a partir de unos 1,6×, el fondo se desenfoca, más cuanto más cerrado es el plano (`desenfoque: false` en la escena lo quita; un número lo gradúa).
+- **Transiciones nuevas** en Montaje: Latigazo (barrido muy rápido con estela) y Golpe de zoom (la escena anterior se acerca y se funde mientras entra la nueva).
+- **Montaje** ofrece ya todos los fondos (luna, atardecer, desierto, mar, tormenta…), no solo cuatro.
+- Las fuentes de la marca están en `comun/vendor/` y se copian al exportar.

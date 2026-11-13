@@ -32,7 +32,15 @@
     return out.map((ws) => ({ texto: ws.map((w) => w.word).join(" "), start: ws[0].start, end: ws[ws.length - 1].end, palabras: ws })); }
 
   function crear(svg, sh, ESC, PJ) { [ANCHO, ALTO] = Escena.formato(sh.formato);
-    const raiz = el("g", {}, svg), capaClips = el("g", {}, raiz), capaSub = el("g", {}, raiz);
+    const raiz = el("g", {}, svg), capaClips = el("g", {}, raiz), capaMarca = el("g", {}, raiz), capaSub = el("g", {}, raiz);
+    // distintivo de la serie arriba a la izquierda (sh.marca = { serie: "¿Y SI…?" }), como en el short 1 de «¿Y si…?»
+    if (sh.marca?.serie) { const g = el("g", { transform: `translate(${ALTO === 1920 ? 56 : 48} ${ALTO === 1920 ? 86 : 56})` }, capaMarca), txt = String(sh.marca.serie).toUpperCase();
+      el("rect", { x: -18, y: -30, width: 64 + txt.length * 19, height: 48, rx: 10, fill: "#14171e", opacity: 0.72 }, g); el("circle", { cx: 6, cy: -6, r: 8, fill: "#e8553a" }, g);
+      const tx = el("text", { x: 26, y: 4, "font-size": 28, "font-family": '"JetBrains Mono", Consolas, monospace', "letter-spacing": "0.08em", fill: "#f7f1e5" }, g); tx.textContent = txt; }
+    // transiciones: corte, fundido, barrido, golpe de zoom («zoom») y latigazo (barrido muy rápido con estela)
+    const durTR = (tr) => (tr === "latigo" ? 0.28 : tr === "zoom" ? 0.35 : TR);
+    const defs0 = (svg.ownerSVGElement || svg).querySelector("defs") || el("defs", {}, svg.ownerSVGElement || svg);
+    const filtroLatigo = el("filter", { id: "mt-latigo", x: "-20%", y: "0%", width: "140%", height: "100%" }, defs0), blurL = el("feGaussianBlur", { stdDeviation: "0 0" }, filtroLatigo);
     const clips = [...(sh.clips || [])].sort((a, b) => a.t - b.t).map((c, i) => ({ c, i, g: el("g", { display: "none" }, capaClips), motor: null }));
     const env = sh.voz && sh.voz.envolvente, lns = sh.subtitulos?.activos === false ? [] : lineas(sh.voz?.palabras), resaltar = new Set((sh.subtitulos?.resaltar || []).map(limpia));
     function motor(C) { if (C.motor !== null) return C.motor; const esc = ESC[C.c.escena];
@@ -43,13 +51,20 @@
       const act = clips.findIndex((C) => dentro(C, t)), C = clips[act], prev = act > 0 ? clips[act - 1] : null;
       for (const X of clips) if (X !== C && X !== prev) X.g.setAttribute("display", "none");
       if (!C) { if (prev) prev.g.setAttribute("display", "none"); pintarSub(t); return; }
-      const tr = C.c.transicion || "corte", k = prev && tr !== "corte" ? (t - C.c.t) / TR : 1;
+      const tr = C.c.transicion || "corte", k = prev && tr !== "corte" ? (t - C.c.t) / durTR(tr) : 1;
       const pinta = (X, transf, op) => { const m = motor(X); X.g.setAttribute("display", "inline"); X.g.setAttribute("transform", transf); X.g.setAttribute("opacity", op); if (m) m.dibujar(Math.max(0, t - X.c.t + (X.c.desde || 0))); };
       if (k < 1) { const s = suave(k);   // transición: la escena anterior sigue un instante mientras entra la nueva
         if (tr === "barrido") { pinta(prev, `translate(${(-ANCHO * s).toFixed(1)} 0)`, 1); pinta(C, `translate(${(ANCHO * (1 - s)).toFixed(1)} 0)`, 1); }
+        else if (tr === "latigo") { const b = Math.sin(Math.PI * k) * 60; blurL.setAttribute("stdDeviation", `${b.toFixed(1)} 0`);
+          pinta(prev, `translate(${(-ANCHO * s).toFixed(1)} 0)`, 1); pinta(C, `translate(${(ANCHO * (1 - s)).toFixed(1)} 0)`, 1); prev.g.setAttribute("filter", "url(#mt-latigo)"); C.g.setAttribute("filter", "url(#mt-latigo)"); }
+        else if (tr === "zoom") { const cx = ANCHO / 2, cy = ALTO / 2, zi = 1 + 0.5 * s, zo = 0.82 + 0.18 * s;
+          pinta(prev, `translate(${cx} ${cy}) scale(${zi.toFixed(3)}) translate(${-cx} ${-cy})`, (1 - s).toFixed(3)); pinta(C, `translate(${cx} ${cy}) scale(${zo.toFixed(3)}) translate(${-cx} ${-cy})`, Math.min(1, s * 1.6).toFixed(3)); }
         else { pinta(prev, "", 1); pinta(C, "", s.toFixed(3)); }
         capaClips.appendChild(C.g); }
       else { if (prev) prev.g.setAttribute("display", "none"); pinta(C, "", 1); }
+      if (!(k < 1 && tr === "latigo")) { C.g.removeAttribute("filter"); if (prev) prev.g.removeAttribute("filter"); }
+      // un título o una cita en pantalla ocultan los subtítulos (dicen lo mismo, más grande)
+      const m = C.motor; capaSub.setAttribute("display", m && m.tapaSubtitulos && m.tapaSubtitulos(Math.max(0, t - C.c.t + (C.c.desde || 0))) ? "none" : "inline");
       pintarSub(t); }
     // subtítulos con el estilo de la marca: cápsula oscura, texto claro, la palabra que suena en naranja (las de «resaltar», siempre en naranja)
     let subKey = null;

@@ -1,3 +1,5 @@
+@font-face { font-family: "Bricolage Grotesque"; src: url("/comun/vendor/bricolage-grotesque.woff2") format("woff2"); font-weight: 200 800; }
+@font-face { font-family: "Newsreader"; src: url("/comun/vendor/newsreader-italic.woff2") format("woff2"); font-weight: 200 800; font-style: italic; }
 :root {
   --fondo: #13111f; --panel: #1b1829; --panel2: #232036; --borde: #322e4a; --texto: #f2ece2; --tenue: #a69fbd; --acento: #f0a33a; --acento2: #be3f1c;
   --ok: #7ccf9a; --radio: 10px; font-family: "Inter", "Segoe UI", system-ui, sans-serif; color-scheme: dark;

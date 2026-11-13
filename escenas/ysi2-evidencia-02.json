@@ -16,14 +16,14 @@
     {
       "id": "mata",
       "tipo": "arbusto",
-      "x": -620,
+      "x": -400,
       "p": -0.55,
       "escala": 1.2
     },
     {
       "id": "roca",
       "tipo": "roca",
-      "x": 640,
+      "x": 420,
       "p": -0.4,
       "escala": 0.9
     }

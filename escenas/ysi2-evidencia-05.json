@@ -29,7 +29,7 @@
     {
       "id": "roca",
       "tipo": "roca",
-      "x": 520,
+      "x": 360,
       "p": -0.5,
       "escala": 1,
       "params": {
@@ -39,7 +39,7 @@
     {
       "id": "cantaro",
       "tipo": "cantaro",
-      "x": -520,
+      "x": -360,
       "p": -0.35,
       "escala": 1
     }

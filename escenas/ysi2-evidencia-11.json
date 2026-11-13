@@ -3,10 +3,11 @@
   "duracion": 2.96,
   "textos": [
     {
-      "t": 0.3,
-      "dur": 2.4,
-      "texto": "Juan 20:29",
-      "arriba": true
+      "t": 0.05,
+      "dur": 2.91,
+      "texto": "Bienaventurados los que no vieron, y creyeron",
+      "estilo": "cita",
+      "ref": "JUAN 20:29 · RVR1960"
     }
   ],
   "audios": [],

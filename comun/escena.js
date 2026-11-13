@@ -259,6 +259,7 @@
 
   // op.voz = { envolvente, desfase, habla }: voz que viene de fuera (el montaje de un short). desfase = segundo del short en el que empieza
   // la escena menos el punto de la escena desde el que se ve; habla = id del actor cuya boca la sigue (o "auto": el primer actor)
+  let contadorDof = 0;
   function crear(svg, esc, PJ, op = {}) { formato(op.formato || esc.formato);
     const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), mundo = el("g", {}, raiz), gDelante = el("g", {}, raiz), gAmb = el("g", { "pointer-events": "none" }, raiz), gTextos = el("g", {}, raiz);
     let fondoKey = null;
@@ -294,6 +295,9 @@
       // el fondo (cielo, montes, suelo) se coloca con el horizonte a la altura de la cámara; en un interior, la pared del fondo está cerca
       const hz = horizonte((esc.fondo?.tipo || "noche") === "interior" ? Z_P * 1.15 : 18000);
       fondo.setAttribute("transform", tr + ` translate(0 ${f1(hz)})`); mundo.setAttribute("transform", tr);
+      // PROFUNDIDAD DE CAMPO: en los planos cerrados el fondo se desenfoca (más cuanto más zoom); esc.desenfoque = false lo quita
+      const dof = esc.desenfoque === false ? 0 : cl((z - 1.55) / 1.5) * (esc.desenfoque || 1) * 8;
+      if (dof > 0.3) { dofStd.setAttribute("stdDeviation", (dof / z).toFixed(2)); fondo.setAttribute("filter", `url(#${dofId})`); } else fondo.removeAttribute("filter");
       if ((esc.fondo?.tipo || "noche") !== "color") vivo(fondo, gDelante, esc.fondo, t, c.x, z);
       Titere25D.camara({ tilt: c.tilt ?? 0.18 });
       const orden = [];
@@ -309,6 +313,8 @@
       pintarTextos(t);
     }
     let tAnterior = -1;
+    const dofId = "esc-dof-" + (++contadorDof), defsD = (svg.ownerSVGElement || svg).querySelector("defs") || el("defs", {}, svg.ownerSVGElement || svg);
+    const dofF = el("filter", { id: dofId, x: "-5%", y: "-5%", width: "110%", height: "110%", filterUnits: "objectBoundingBox" }, defsD), dofStd = el("feGaussianBlur", { stdDeviation: 0 }, dofF);
     function actor(A, t) { const a = A.a;
         const q = claves(a.recorrido, t, ["x", "p", "giro"]) || { x: 0, p: 0, giro: 20 }, pr = proy(q.x, q.p), esc0 = (a.escala || 1) * pr.s, X0 = pr.x, Y0 = pr.y;
         A.g.setAttribute("transform", `translate(${f1(X0)} ${f1(Y0)}) scale(${esc0.toFixed(3)})`);
@@ -392,15 +398,40 @@
     // quién habla en t (otro actor con un audio sonando, o el de la voz del montaje)
     function quienHabla(t, yo) { for (const au of esc.audios || []) if (au.habla && au.habla !== yo && t >= (au.t || 0) && t < (au.t || 0) + (au.dur || 1e9)) return au.habla;
       if (op.voz && op.voz.habla && op.voz.habla !== yo && op.voz.habla !== "auto") return op.voz.habla; return null; }
+    // GRAFISMO (en pantalla, no se mueve con la cámara). Tres estilos de rótulo:
+    //   (sin estilo)  cápsula oscura con texto (una etiqueta o una referencia: «Lucas 16:31»); arriba: true lo sube lejos de los subtítulos
+    //   "titulo"      título grande de la marca (Bricolage), entra palabra a palabra con rebote; *palabra* va en naranja (el gancho)
+    //   "cita"        versículo en itálica (Newsreader) que se va revelando, con la referencia debajo (ref: "LUCAS 16:31 · RVR1960")
+    // Detrás del título y de la cita hay un velo oscuro para que se lean; mientras están, el montaje oculta los subtítulos.
+    const svgRaiz = svg.ownerSVGElement || svg;
+    const FUENTE_T = '"Bricolage Grotesque", Figtree, Inter, sans-serif', FUENTE_C = 'Newsreader, Georgia, serif', FUENTE_M = '"JetBrains Mono", Consolas, monospace';
+    function partir(txt, porLinea) { const ls = []; let l = []; let n = 0;
+      for (const w of String(txt).split(/\s+/).filter(Boolean)) { const m = w.replace(/\*/g, "").length; if (l.length && n + 1 + m > porLinea) { ls.push(l); l = []; n = 0; } l.push(w); n += (l.length > 1 ? 1 : 0) + m; }
+      if (l.length) ls.push(l); return ls; }
+    function velo(k, arriba) { const id = "esc-velo"; if (!svgRaiz.querySelector("#" + id)) { const defs = svgRaiz.querySelector("defs") || el("defs", {}, svgRaiz);
+        const gr = el("linearGradient", { id, x1: 0, y1: 0, x2: 0, y2: 1 }, defs); el("stop", { offset: 0, "stop-color": "#14171e", "stop-opacity": 0.85 }, gr); el("stop", { offset: 0.42, "stop-color": "#14171e", "stop-opacity": 0.55 }, gr); el("stop", { offset: 0.7, "stop-color": "#14171e", "stop-opacity": 0 }, gr); }
+      el("rect", { x: 0, y: 0, width: ANCHO, height: ALTO, fill: "url(#esc-velo)", opacity: k.toFixed(3) }, gTextos); }
+    function tapaSubtitulos(t) { return (esc.textos || []).some((tx) => (tx.estilo === "titulo" || tx.estilo === "cita") && tx.sinSubtitulos !== false && t >= tx.t && t <= tx.t + (tx.dur || 2)); }
     function pintarTextos(t) {
-      // rótulos (en pantalla, no se mueven con la cámara)
       gTextos.replaceChildren();
-      for (const tx of esc.textos || []) { if (t < tx.t || t > tx.t + (tx.dur || 2)) continue; const k2 = cl((t - tx.t) / 0.25) * cl((tx.t + (tx.dur || 2) - t) / 0.25);
+      for (const tx of esc.textos || []) { const d = tx.dur || 2; if (t < tx.t || t > tx.t + d) continue; const u = t - tx.t, k2 = cl(u / 0.25) * cl((tx.t + d - t) / 0.25);
+        if (tx.estilo === "titulo") { const tam = tx.tam || (ALTO === 1920 ? 104 : 88), ls = partir(tx.texto, Math.floor((ANCHO - 140) / (tam * 0.5))), y0 = tx.y ?? (ALTO === 1920 ? 360 : 200), sale = cl((tx.t + d - t) / 0.3);
+          velo(0.9 * (tx.t <= 0.01 && tx.entra !== true ? 1 : cl(u / 0.3)) * sale); let iw = 0;   // en el segundo 0 el título ya está entero: es la miniatura
+          ls.forEach((linea, li) => { const tt = el("text", { x: ANCHO / 2, y: f1(y0 + li * tam * 0.98), "text-anchor": "middle", "font-size": tam, "font-weight": 800, "font-family": FUENTE_T, "letter-spacing": "-0.03em", fill: "#f7f1e5" }, gTextos);
+            linea.forEach((w, wi) => { const a = tx.t <= 0.01 && tx.entra !== true ? 1 : cl((u - 0.08 * iw++) / 0.28), rb = a < 1 ? 1 + 0.18 * Math.sin(a * Math.PI) : 1, luz = /\*/.test(w);
+              const ts = el("tspan", { fill: luz ? "#f2a33a" : "#f7f1e5", opacity: (a * sale).toFixed(3), dy: wi === 0 ? 0 : 0, "font-size": f1(tam * (0.7 + 0.3 * a) * rb) }, tt); ts.textContent = (wi ? " " : "") + w.replace(/\*/g, ""); }); });
+          continue; }
+        if (tx.estilo === "cita") { const tam = tx.tam || (ALTO === 1920 ? 66 : 56), ls = partir("«" + String(tx.texto).replace(/^«|»$/g, "") + "»", Math.floor((ANCHO - 160) / (tam * 0.44))), y0 = tx.y ?? (tx.arriba === false ? ALTO * 0.42 : (ALTO === 1920 ? 330 : 160)), sale = cl((tx.t + d - t) / 0.35);
+          velo(0.95 * cl(u / 0.35) * sale); const total = ls.reduce((n, l) => n + l.length, 0), ritmo = Math.max(0.12, Math.min(0.32, (d * 0.6) / total)); let iw = 0;
+          ls.forEach((linea, li) => { const tt = el("text", { x: ANCHO / 2, y: f1(y0 + li * tam * 1.2), "text-anchor": "middle", "font-size": tam, "font-style": "italic", "font-family": FUENTE_C, fill: "#f7f1e5" }, gTextos);
+            linea.forEach((w, wi) => { const a = cl((u - 0.15 - ritmo * iw++) / 0.35); const ts = el("tspan", { opacity: ((0.15 + 0.85 * a) * cl(u / 0.3) * sale).toFixed(3) }, tt); ts.textContent = (wi ? " " : "") + w; }); });
+          if (tx.ref) { const r = el("text", { x: ANCHO / 2, y: f1(y0 + ls.length * tam * 1.2 + 26), "text-anchor": "middle", "font-size": 30, "font-family": FUENTE_M, "letter-spacing": "0.08em", fill: "#f3c9b6", opacity: (cl((u - 0.5) / 0.4) * sale).toFixed(3) }, gTextos); r.textContent = tx.ref; }
+          continue; }
         const w = 40 + String(tx.texto).length * 30, yR = tx.arriba ? (ALTO === 1920 ? 300 : 90) : (ALTO === 1920 ? 1400 : ALTO - 210);   // arriba: lejos de los subtítulos
         el("rect", { x: ANCHO / 2 - w / 2, y: yR, width: w, height: 92, rx: 16, fill: "#14171e", opacity: (0.88 * k2).toFixed(2) }, gTextos);
         const tt = el("text", { x: ANCHO / 2, y: yR + 62, "text-anchor": "middle", fill: "#f7f1e5", "font-size": 52, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif", opacity: k2.toFixed(2) }, gTextos); tt.textContent = tx.texto; }
     }
-    return { dibujar, actores, objetos, camara, raiz };
+    return { dibujar, actores, objetos, camara, raiz, tapaSubtitulos };
   }
   window.Escena = { crear, claves, PLANTILLAS, aplicarPlantilla, FONDOS, fondoDe, PARTICULAS, ESTILOS_ANDAR, formato, get ANCHO() { return ANCHO; }, get ALTO() { return ALTO; } };
 })();

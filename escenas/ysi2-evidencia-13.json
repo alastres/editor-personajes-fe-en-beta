@@ -28,14 +28,14 @@
     {
       "id": "roca",
       "tipo": "roca",
-      "x": -560,
+      "x": -380,
       "p": -0.5,
       "escala": 1
     },
     {
       "id": "mata",
       "tipo": "arbusto",
-      "x": 760,
+      "x": 560,
       "p": -0.6,
       "escala": 1.2
     }

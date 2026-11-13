@@ -1,7 +1,14 @@
 {
   "nombre": "¿Y si…? evidencia · 1 · ¿Y si tuvieras toda la evidencia de que ",
   "duracion": 4.05,
-  "textos": [],
+  "textos": [
+    {
+      "t": 0,
+      "dur": 2.36,
+      "texto": "¿Y si tuvieras *toda* la *evidencia*?",
+      "estilo": "titulo"
+    }
+  ],
   "audios": [],
   "origen": "montaje:ysi2-evidencia",
   "texto": "¿Y si tuvieras toda la evidencia de que Dios es real… le creerías?",

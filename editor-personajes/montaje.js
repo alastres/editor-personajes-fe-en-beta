@@ -8,7 +8,7 @@
   const fmtT = (t) => t.toFixed(2).replace(".", ",") + " s", cl = (x, a, b) => Math.max(a, Math.min(b, x));
   const aviso = (txt) => { const a = $("#aviso"); a.textContent = txt; a.classList.add("ver"); clearTimeout(aviso.t); aviso.t = setTimeout(() => a.classList.remove("ver"), 3200); };
   const estado = (txt, cls = "") => { const e = $("#estado"); e.textContent = txt; e.className = "estado " + cls; };
-  const FONDOS = { noche: "Noche", alba: "Amanecer", dia: "Día", interior: "Interior" }, TRANS = { corte: "Corte", fundido: "Fundido", barrido: "Barrido" };
+  const FONDOS = { noche: "Noche", luna: "Luna", alba: "Amanecer", dia: "Día", atardecer: "Atardecer", desierto: "Desierto", mar: "Mar", tormenta: "Tormenta", interior: "Interior" }, TRANS = { corte: "Corte", fundido: "Fundido", barrido: "Barrido", latigo: "Latigazo", zoom: "Golpe de zoom" };
 
   let lista = [], actual = null, sh = null, guardadoTxt = "", historia = [], futuro = [], tGuardar = null, PJ = {}, ESC = {}, todasEsc = [], audios = [];
   let motor = null, tiempo = 0, play = false, tAnt = null, selClip = null, selSub = null, gen = { personaje: "", fondo: "alba", trans: "corte" };

@@ -3,10 +3,11 @@
   "duracion": 5.85,
   "textos": [
     {
-      "t": 1.97,
-      "dur": 2.4,
-      "texto": "Lucas 16:31",
-      "arriba": true
+      "t": 1.8699999999999999,
+      "dur": 3.98,
+      "texto": "Tampoco se persuadirán aunque alguno se levantare de los muertos",
+      "estilo": "cita",
+      "ref": "LUCAS 16:31 · RVR1960"
     }
   ],
   "audios": [],
