@@ -2,7 +2,7 @@
 
 Qué falta para que la herramienta cubra un short de Fe en Beta de principio a fin sin pasar por código ni por otros programas.
 
-> **Estado (13 nov 2026): todo el roadmap está hecho** (P1, P2, P3 y los errores conocidos). Lo nuevo que vaya saliendo se apunta aquí con la misma prioridad.
+> **Estado (13 nov 2026):** P1, P2, P3 y los errores conocidos están hechos. Lo siguiente es la **Fase 2 · Máximo potencial** (al final): primero producir un short real con el editor y, mientras, el «director» automático.
 
 **Prioridad**
 - **P1:** hace falta para producir los shorts del canal con la herramienta.
@@ -101,3 +101,45 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 - [x] *(13 nov 2026)* Las etiquetas de la hoja de giro se ven pequeñas.
 - [x] *(13 nov 2026: arcos → curvas Bézier exactas)* El taller convierte los arcos de los SVG (comando `A`) como rectas.
 - [x] *(13 nov 2026)* Las asas de IK solo movían brazos, cabeza y pecho: ya hay asas en los pies y en la cadera.
+
+---
+
+## Fase 2 · Máximo potencial (apuntado el 13 nov 2026)
+
+Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. Orden por impacto.
+
+### 1 · Validar con un short real (primero)
+- [ ] Producir un short del canal («¿Y si…?» o «Preguntas sobre Dios») de principio a fin **solo con el editor**, sin código ni otros programas.
+- [ ] Apuntar aquí cada fricción que salga y reordenar el resto de la fase según lo que haga falta de verdad.
+
+### 2 · Director automático (lo que más tiempo quita por vídeo)
+- [ ] **Actuación propuesta desde el guion:** cada frase elige acción por el verbo («se arrodilló» → arrodillarse), emoción y a quién mira; luego se retoca.
+- [ ] **Planos automáticos** cada 2–3,5 s, con variedad de cámara: cenital, por detrás, sobre el hombro, contrapicado (cambio por corte, nunca morfando).
+- [ ] **Revisor de puesta en escena** que avise de:
+  - brazos que se cruzan con otro personaje;
+  - algo importante bajo la zona del subtítulo (y ≈ 1300);
+  - un personaje que tapa a otro;
+  - un plano estático: falta el movimiento principal o los dos secundarios.
+
+### 3 · Calidad visual al nivel aprobado
+- [ ] Comparar el títere con `lab-barca` (estilo Kurzgesagt aprobado) y cerrar la diferencia: textura de cápsulas, filo de luz en el contorno, sombra violeta / luz cálida, sombra de contacto.
+- [ ] **Transformar sin cortar:** un parámetro de estado 0..1 por escena (tormenta → calma, noche → día) que mueve a la vez cielo, mar, color y cara de los personajes.
+
+### 4 · Interacción entre personajes
+- [ ] Contacto entre dos personajes: abrazar, cargar a alguien, mano en el hombro (IK hacia el cuerpo del otro, no solo a su mano).
+- [ ] Orden delante/detrás automático cuando dos personajes se cruzan.
+- [ ] Figurantes y multitudes rápidas, con variaciones automáticas de ropa, pelo y complexión.
+
+### 5 · Material de partida
+- [ ] Reparto bíblico listo: Pedro, Jesús, María, fariseos, soldados romanos (sin mantos; mujeres con vestido hasta los tobillos).
+- [ ] Más fondos: templo, interiores con lámpara, ciudad y Roma (pasar los de «¿Y si…?» al editor).
+- [ ] Atrezo: de 12 a unos 40 objetos.
+
+### 6 · Sonido que sigue a la acción
+- [ ] Pasos con cada pie que toca el suelo, roce de ropa y golpes al agarrar, colocados solos.
+- [ ] Masterizado del audio dentro del botón de render.
+
+### 7 · Lo que quedó a medias
+- [ ] Capas y faldas del torso que se doblan con el cuerpo (hoy rígidas, con física).
+- [ ] Unión booleana real de formas en el taller (hoy se agrupan).
+- [ ] Texto convertido en curvas.
