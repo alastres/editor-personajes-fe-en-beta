@@ -1,17 +1,98 @@
 {
-  "id": "encuentro",
-  "nombre": "Encuentro (ejemplo)",
   "duracion": 6,
-  "fondo": { "tipo": "alba" },
-  "camara": [ { "t": 0, "x": 0, "y": -380, "zoom": 0.85 }, { "t": 6, "x": 60, "y": -420, "zoom": 1.2 } ],
-  "actores": [
-    { "id": "demo-piezas", "personaje": "demo-piezas", "escala": 1,
-      "recorrido": [ { "t": 0, "x": -220, "p": 0.1, "giro": 30 } ],
-      "bloques": [ { "t": 2.6, "accion": "accion-1-ffj", "dur": 3.4 } ] },
-    { "id": "pedro", "personaje": "pedro", "escala": 1,
-      "recorrido": [ { "t": 0, "x": 900, "p": 0.3, "giro": -60 }, { "t": 2.6, "x": 260, "p": 0.05, "giro": -60 }, { "t": 3.4, "x": 260, "p": 0.05, "giro": -30 } ],
-      "bloques": [] }
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -380,
+      "zoom": 0.85
+    },
+    {
+      "t": 0.4,
+      "x": -260,
+      "y": -390,
+      "zoom": 0.8
+    },
+    {
+      "t": 6,
+      "x": 60,
+      "y": -420,
+      "zoom": 1.2
+    }
   ],
-  "textos": [ { "t": 0.4, "dur": 2, "texto": "Domingo por la mañana" } ],
-  "audios": []
+  "actores": [
+    {
+      "id": "demo-piezas",
+      "personaje": "demo-piezas",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -220,
+          "p": 0.1,
+          "giro": 30
+        }
+      ],
+      "bloques": [
+        {
+          "t": 2.6,
+          "accion": "accion-1-ffj",
+          "dur": 3.4
+        }
+      ]
+    },
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 900,
+          "p": 0.3,
+          "giro": -60
+        },
+        {
+          "t": 2.6,
+          "x": 260,
+          "p": 0.05,
+          "giro": -60
+        },
+        {
+          "t": 3.4,
+          "x": 260,
+          "p": 0.05,
+          "giro": -30
+        }
+      ],
+      "bloques": []
+    },
+    {
+      "id": "lolo",
+      "personaje": "lolo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -260,
+          "p": 0,
+          "giro": 25
+        }
+      ],
+      "bloques": []
+    }
+  ],
+  "textos": [
+    {
+      "t": 0.4,
+      "dur": 2,
+      "texto": "Domingo por la mañana"
+    }
+  ],
+  "audios": [],
+  "id": "encuentro",
+  "nombre": "Encuentro (ejemplo)"
 }

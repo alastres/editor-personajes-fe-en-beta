@@ -223,7 +223,7 @@
   $("#form-nuevo").addEventListener("submit", (ev) => { ev.preventDefault(); const f = ev.target, n = $("#nombre-nuevo").value.trim(); f.hidden = true; nuevo(!!f.dataset.base, n); });
   $("#b-cancelar-nuevo").addEventListener("click", () => { $("#form-nuevo").hidden = true; }); $("#b-papelera").addEventListener("click", papelera);
   $("#b-copiar").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#codigo").textContent); aviso("Copiado"); } catch { aviso("No se pudo copiar"); } });
-  document.addEventListener("keydown", (ev) => { if (!(ev.ctrlKey || ev.metaKey) || ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName) && document.activeElement.type === "text") return;
+  document.addEventListener("keydown", (ev) => { if (document.body.classList.contains("con-taller")) return; if (!(ev.ctrlKey || ev.metaKey) || ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName) && document.activeElement.type === "text") return;
     if (ev.key.toLowerCase() === "z" && !ev.shiftKey) { ev.preventDefault(); deshacer(); } else if (ev.key.toLowerCase() === "y" || (ev.key.toLowerCase() === "z" && ev.shiftKey)) { ev.preventDefault(); rehacer(); } });
   window.addEventListener("beforeunload", () => { if (j && JSON.stringify(j) !== guardadoTxt) navigator.sendBeacon && fetch(`/api/personajes/${actual}`, { method: "PUT", body: JSON.stringify(j), keepalive: true }); });
 
@@ -282,6 +282,9 @@
       [["x", 0, (v) => Math.round(v)], ["y", 0, (v) => Math.round(v)], ["escala", 1, (v) => Math.round(v * 100) + "%"], ["rot", 0, (v) => Math.round(v) + "°"], ["prof", prof0, (v) => Math.round(v)]]
         .forEach(([k, def, fmt]) => { const inp = $("#pz-" + k), v = pz[k] ?? def; inp.value = v; inp.nextElementSibling.textContent = fmt(v); });
       for (const v of ["perfil", "espaldas"]) { const tiene = !!pz["svg" + v[0].toUpperCase() + v.slice(1)]; $("#pz-tiene-" + v).textContent = tiene ? "sí" : "no"; $("#pz-quita-" + v).disabled = !tiene; }
+      const F = pz.fisica && pz.fisica.activa !== false ? pz.fisica : null; $("#pz-fis").checked = !!F; $("#pz-fis-det").hidden = !F;
+      if (F) [["rig", F.rigidez ?? 0.4, (v) => Math.round(v * 100) + "%"], ["amo", F.amortiguacion ?? 0.35, (v) => Math.round(v * 100) + "%"], ["peso", F.peso ?? 1, (v) => v.toFixed(2)], ["px", (F.pivote || [0, 0])[0], (v) => Math.round(v)], ["py", (F.pivote || [0, 0])[1], (v) => Math.round(v)]]
+        .forEach(([k, v, fmt]) => { const inp = $("#pz-fis-" + k); if (document.activeElement !== inp) inp.value = v; inp.nextElementSibling.textContent = fmt(v); });
       ["melena", "cinto"].forEach((k) => { $("#pz-oc-" + k).checked = (pz.oculta || []).includes(k); });
       $("#pz-prof").parentElement.hidden = !/^(pecho|cintura)$/.test(pz.hueso) && !(pz.hueso === "cabeza" && pz.modo === "superficie");
     }
@@ -296,6 +299,9 @@
     $("#pz-quita-" + v).addEventListener("click", () => cambioPz((q) => { delete q[campo]; })); }
   $("#archivo-vista").addEventListener("change", async (ev) => { const f = ev.target.files[0]; ev.target.value = ""; if (!f || !vistaImp) return;
     try { const svg = limpiarSVG(await f.text()), campo = vistaImp; cambioPz((q) => { q[campo] = svg; }); aviso("Dibujo de " + (campo === "svgPerfil" ? "perfil" : "espaldas") + " importado"); } catch (e) { aviso(`${f.name}: ${e.message}`); } });
+  $("#pz-fis").addEventListener("change", (ev) => cambioPz((q) => { if (ev.target.checked) q.fisica = Object.assign({ rigidez: 0.4, amortiguacion: 0.35, peso: 1, pivote: [0, 0] }, q.fisica || {}, { activa: true }); else if (q.fisica) q.fisica.activa = false; }));
+  for (const [k, campo] of [["rig", "rigidez"], ["amo", "amortiguacion"], ["peso", "peso"], ["px", 0], ["py", 1]])
+    $("#pz-fis-" + k).addEventListener("input", (ev) => cambioPz((q) => { q.fisica = q.fisica || { activa: true }; const v = Number(ev.target.value); if (typeof campo === "number") { q.fisica.pivote = [...(q.fisica.pivote || [0, 0])]; q.fisica.pivote[campo] = v; } else q.fisica[campo] = v; }, "fis-" + k + sel));
   $("#pz-nombre").addEventListener("input", (ev) => cambioPz((q) => { q.nombre = ev.target.value; }, "pz-nombre" + sel));
   const slugGrupo = (t) => t.trim().toLowerCase().slice(0, 30);
   $("#pz-grupo").addEventListener("change", (ev) => cambioPz((q, x) => { const g = slugGrupo(ev.target.value); q.grupo = g; if (g && !x.variantes[g]) x.variantes[g] = q.id; }));
@@ -303,6 +309,34 @@
   $("#pz-duplicar").addEventListener("click", () => { const pz = pieza(); if (pz) anadirPieza(Object.assign({}, pz, { nombre: pz.nombre + " 2", x: (pz.x || 0) + 20 })); });
   const mover = (d) => { const pz = pieza(); if (!pz) return; cambio((x) => { const i = x.piezas.findIndex((y) => y.id === pz.id), k = i + d; if (k < 0 || k >= x.piezas.length) return; [x.piezas[i], x.piezas[k]] = [x.piezas[k], x.piezas[i]]; }); };
   $("#pz-arriba").addEventListener("click", () => mover(1)); $("#pz-abajo").addEventListener("click", () => mover(-1));
+
+  // ---- taller de dibujo: dibujar una pieza nueva o editar los vectores de una existente (también las importadas o de la biblioteca)
+  const VISTAS_DIB = { frente: "De frente", perfil: "De perfil (mirando a la derecha)", espaldas: "De espaldas" };
+  const CAMPO = { frente: ["svg", "dibujo"], perfil: ["svgPerfil", "dibujoPerfil"], espaldas: ["svgEspaldas", "dibujoEspaldas"] };
+  function referencia(hueso) { return (g, vista) => {
+    const NSs = "http://www.w3.org/2000/svg", gg = document.createElementNS(NSs, "g"); gg.setAttribute("opacity", "0.4"); g.append(gg);
+    if (/^(cabeza|pecho|cintura)$/.test(hueso)) {
+      const m2 = P.crear(gg, j, { id: "ref-taller", piezas: [] }), a = rad({ frente: 0, perfil: 90, espaldas: 180 }[vista] || 0); T.camara({ tilt: 0.16 });
+      m2.dibujar({ torso: a, cabeza: a, ojos: a, brazos: a }); const q = m2.puntos[hueso], kh = hueso === "cabeza" ? (j.opciones.cabezaK ?? (TIPOS[j.opciones.proporciones] || TIPOS.normal).m[2]) : 1;
+      gg.setAttribute("transform", `scale(${1 / kh}) translate(${-q[0]} ${-q[1]})`); return; }
+    // manos, brazos y pies: un esquema del hueso (x positivo a lo largo del hueso)
+    const piel = P.colores(j).piel || "#c98a5e", forma = /^mano/.test(hueso) ? `<rect x="-6" y="-12" width="30" height="26" rx="12" fill="${piel}"/><rect x="18" y="-11" width="18" height="8" rx="4" fill="${piel}"/><rect x="18" y="-2" width="20" height="8" rx="4" fill="${piel}"/><rect x="18" y="7" width="16" height="7" rx="3.5" fill="${piel}"/><rect x="4" y="-22" width="8" height="16" rx="4" fill="${piel}"/>`
+      : /^pie/.test(hueso) ? `<rect x="-20" y="-60" width="40" height="70" rx="12" fill="${piel}"/><ellipse cx="0" cy="10" rx="18" ry="10" fill="#5a3424"/>`
+      : `<rect x="0" y="-14" width="${/^ante/.test(hueso) ? 75 : 90}" height="28" rx="14" fill="${piel}"/>`;
+    gg.innerHTML = forma; }; }
+  function abrirTaller(pz) {
+    const hueso = pz ? pz.hueso : "cabeza", dibujos = {}, svgs = {};
+    if (pz) for (const [v, [cs, cd]] of Object.entries(CAMPO)) { if (pz[cd]) dibujos[v] = pz[cd]; else if (pz[cs]) svgs[v] = pz[cs]; }
+    Taller.abrir({ titulo: pz ? `Editar «${pz.nombre}» · ${HUESOS[hueso]}` : "Dibujar pieza nueva · Cabeza (cambia el hueso después en la pieza)", vistas: /^(mano|brazo|antebrazo)/.test(hueso) ? null : VISTAS_DIB, vista: "frente",
+      dibujos, svgs, colores: P.colores(j), referencia: referencia(hueso),
+      alGuardar: (out) => {
+        const campos = {}; for (const [v, o] of Object.entries(out)) { const [cs, cd] = CAMPO[v]; if (o.dibujo.formas.length) { campos[cs] = o.svg; campos[cd] = o.dibujo; } else if (v !== "frente") { campos[cs] = undefined; campos[cd] = undefined; } }
+        if (!campos.svg && !pz) return aviso("La pieza está vacía: no se guarda");
+        if (pz) { cambio((x) => { const q = x.piezas.find((y) => y.id === pz.id); for (const k in campos) { if (campos[k] === undefined) delete q[k]; else q[k] = campos[k]; } }); aviso("Dibujo guardado"); }
+        else anadirPieza(Object.assign({ nombre: "Dibujo " + (j.piezas.length + 1), hueso: "cabeza", modo: "silueta", capa: "delante", vista: "siempre" }, campos)); } });
+  }
+  $("#b-dibujar").addEventListener("click", () => abrirTaller(null));
+  $("#pz-editar").addEventListener("click", () => { const pz = pieza(); if (pz) abrirTaller(pz); });
 
   function pintarVariantes() {
     const grupos = {}; for (const pz of j?.piezas || []) if (pz.grupo) (grupos[pz.grupo] = grupos[pz.grupo] || []).push(pz);

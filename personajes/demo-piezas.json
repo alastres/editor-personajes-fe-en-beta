@@ -57,7 +57,17 @@
       "activo": true,
       "nombre": "Colgante",
       "svg": "<path d=\"M-26 -30 Q 0 20 26 -30\" stroke=\"#5a3a2a\" stroke-width=\"3\" fill=\"none\"/>\n<path d=\"M-4 0 L 4 0 L 4 10 L 12 10 L 12 18 L 4 18 L 4 34 L -4 34 L -4 18 L -12 18 L -12 10 L -4 10 Z\" fill=\"#d8b060\" stroke=\"#8a6a30\" stroke-width=\"2\"/>",
-      "id": "colgante"
+      "id": "colgante",
+      "fisica": {
+        "activa": true,
+        "rigidez": 0.3,
+        "amortiguacion": 0.3,
+        "peso": 1.2,
+        "pivote": [
+          0,
+          -30
+        ]
+      }
     },
     {
       "hueso": "cintura",
@@ -72,7 +82,17 @@
       "activo": true,
       "nombre": "Zurrón",
       "svg": "<path d=\"M-60 -150 L 10 -10\" stroke=\"#6a4630\" stroke-width=\"9\" stroke-linecap=\"round\"/>\n<path d=\"M-6 -6 L 42 -6 C 48 -6 50 0 50 6 L 48 46 C 48 54 42 58 36 58 L 2 58 C -4 58 -10 54 -10 46 L -12 6 C -12 0 -10 -6 -6 -6 Z\" fill=\"#8a5a3a\"/>\n<path d=\"M-12 6 C -12 -2 -6 -8 2 -8 L 40 -8 C 46 -8 50 -2 50 6 L 50 22 C 30 30 8 30 -12 22 Z\" fill=\"#a8744a\"/>\n<circle cx=\"19\" cy=\"22\" r=\"4\" fill=\"#e6c27a\"/>",
-      "id": "zurron"
+      "id": "zurron",
+      "fisica": {
+        "activa": true,
+        "rigidez": 0.25,
+        "amortiguacion": 0.25,
+        "peso": 1.4,
+        "pivote": [
+          -60,
+          -150
+        ]
+      }
     },
     {
       "hueso": "manoDer",
@@ -145,6 +165,78 @@
       "svg": "<ellipse cx=\"0\" cy=\"10\" rx=\"20\" ry=\"11\" fill=\"#b8302a\"/><ellipse cx=\"-4\" cy=\"6\" rx=\"10\" ry=\"4\" fill=\"#e86a5a\" opacity=\".8\"/>",
       "id": "zapatos-rojos-der",
       "activo": true
+    },
+    {
+      "hueso": "cabeza",
+      "modo": "silueta",
+      "capa": "delante",
+      "vista": "siempre",
+      "x": 0,
+      "y": 0,
+      "escala": 1,
+      "rot": 0,
+      "grupo": "",
+      "activo": true,
+      "nombre": "Corona (dibujada)",
+      "svg": "<path d=\"M-50 -88 C -50 -88 -30 -125 -30 -125 C -30 -125 0 -100 0 -100 C 0 -100 30 -125 30 -125 C 30 -125 50 -88 50 -88 C 50 -88 -50 -88 -50 -88 Z\" fill=\"#d8b060\"/>",
+      "dibujo": {
+        "formas": [
+          {
+            "puntos": [
+              {
+                "x": -50,
+                "y": -88,
+                "ix": -50,
+                "iy": -88,
+                "ox": -50,
+                "oy": -88,
+                "esquina": true
+              },
+              {
+                "x": -29.999990463256836,
+                "y": -125,
+                "ix": -29.999990463256836,
+                "iy": -125,
+                "ox": -29.999990463256836,
+                "oy": -125,
+                "esquina": true
+              },
+              {
+                "x": -2.842170943040401e-14,
+                "y": -100,
+                "ix": -2.842170943040401e-14,
+                "iy": -100,
+                "ox": -2.842170943040401e-14,
+                "oy": -100,
+                "esquina": true
+              },
+              {
+                "x": 29.999990463256836,
+                "y": -125,
+                "ix": 29.999990463256836,
+                "iy": -125,
+                "ox": 29.999990463256836,
+                "oy": -125,
+                "esquina": true
+              },
+              {
+                "x": 50,
+                "y": -88,
+                "ix": 50,
+                "iy": -88,
+                "ox": 50,
+                "oy": -88,
+                "esquina": true
+              }
+            ],
+            "cerrada": true,
+            "relleno": "#d8b060",
+            "trazo": "{tinta}",
+            "grosor": 0
+          }
+        ]
+      },
+      "id": "dibujo-9"
     }
   ],
   "variantes": {

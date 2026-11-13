@@ -1,0 +1,46 @@
+{
+  "nombre": "Física: frenazo",
+  "duracion": 3.4,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -380,
+      "zoom": 1.15
+    }
+  ],
+  "actores": [
+    {
+      "id": "demo-piezas",
+      "personaje": "demo-piezas",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -900,
+          "p": 0.05,
+          "giro": 70,
+          "curva": "lineal"
+        },
+        {
+          "t": 1.2,
+          "x": 0,
+          "p": 0.05,
+          "giro": 70
+        },
+        {
+          "t": 1.4,
+          "x": 0,
+          "p": 0.05,
+          "giro": 30
+        }
+      ],
+      "bloques": []
+    }
+  ],
+  "textos": [],
+  "audios": []
+}

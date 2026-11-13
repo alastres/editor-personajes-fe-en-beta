@@ -77,7 +77,17 @@
       fondo.setAttribute("transform", tr); mundo.setAttribute("transform", tr);
       Titere25D.camara({ tilt: 0.18 });
       const orden = [];
-      for (const A of actores) { if (!A.m) continue; const a = A.a;
+      const conFisica = actores.some((A) => A.j && (A.j.piezas || []).some((pz) => pz.fisica && pz.fisica.activa !== false));
+      // física de las piezas: si el tiempo salta (vídeo renderizado por trozos, cabezal movido), se simula el segundo anterior para llegar
+      // a t con la pieza en el mismo estado que si se hubiera reproducido seguido
+      if (conFisica && !(t > tAnterior && t - tAnterior <= 0.25)) { for (let u = Math.max(0, t - 1); u < t - 1e-6; u += 1 / 30) for (const A of actores) if (A.m) actor(A, u); }
+      tAnterior = t;
+      for (const A of actores) { if (!A.m) continue; const q = actor(A, t); orden.push({ g: A.g, p: q.p || 0 }); }
+      orden.sort((x, y) => y.p - x.p).forEach((o) => mundo.appendChild(o.g));
+      pintarTextos(t);
+    }
+    let tAnterior = -1;
+    function actor(A, t) { const a = A.a;
         const q = claves(a.recorrido, t, ["x", "p", "giro"]) || { x: 0, p: 0, giro: 20 }, esc0 = (a.escala || 1) * (1 - 0.38 * (q.p || 0));
         A.g.setAttribute("transform", `translate(${f1(q.x)} ${f1(-170 * (q.p || 0))}) scale(${esc0.toFixed(3)})`);
         // velocidad: anda o corre sola si el recorrido la desplaza
@@ -98,8 +108,9 @@
         for (const au of esc.audios || []) { if (au.habla !== a.id || !au.envolvente) continue; const u = t - (au.t || 0), i = Math.floor(u * 30);
           if (i < 0 || i >= au.envolvente.length) continue; const v = au.envolvente[i] + (au.envolvente[i + 1] ?? 0) * 0.5 + (au.envolvente[i - 1] ?? 0) * 0.5;
           e.boca = cl(v / 2 * 1.15); e.bocaAncho = Math.sin(u * 11.3) * Math.sin(u * 4.1); }
-        A.m.dibujar(e); orden.push({ g: A.g, p: q.p || 0 }); }
-      orden.sort((x, y) => y.p - x.p).forEach((o) => mundo.appendChild(o.g));
+        e.t = t; e.mundo = [q.x / esc0, -170 * (q.p || 0) / esc0];
+        A.m.dibujar(e); return q; }
+    function pintarTextos(t) {
       // rótulos (en pantalla, no se mueven con la cámara)
       gTextos.replaceChildren();
       for (const tx of esc.textos || []) { if (t < tx.t || t > tx.t + (tx.dur || 2)) continue; const k2 = cl((t - tx.t) / 0.25) * cl((tx.t + (tx.dur || 2) - t) / 0.25);

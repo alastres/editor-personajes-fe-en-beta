@@ -130,3 +130,37 @@ La página está en **http://localhost:3170/escenas.html**; se llega con el enla
    - rótulos;
    - voz con quién habla (boca sincronizada) y música.
 4. **«Renderizar vídeo»:** el MP4 queda en `../escena-<id>/out/`.
+
+### Taller de dibujo con vectores editables (fase 8)
+En Personajes → Diseño → Piezas propias, el botón «✎ Dibujar…» crea una pieza; «✎ Editar el dibujo» abre una existente.
+- **Conversión:** las piezas de la biblioteca y los SVG importados también se abren, convertidos en vectores editables (path, circle, ellipse, rect, line y polygon con sus transformaciones).
+- **Herramientas** (atajo entre paréntesis):
+  - **Seleccionar (V)** para editar;
+  - **Pincel (B)** para trazos a mano que se simplifican y suavizan al soltar;
+  - **Lazo (L)** para formas rellenas a mano;
+  - **Pluma (P)**: clic pone esquina, arrastrar hace curva; clic en el primer punto o Intro termina;
+  - **Elipse (E)**, **Rectángulo redondeado (R)** y **Cápsula (C)**.
+- **Editar vectores** (con Seleccionar):
+  - arrastrar la forma la mueve;
+  - los cuadrados son puntos y los círculos tiradores (simétricos; Alt rompe la simetría);
+  - doble clic en un punto cambia entre esquina y curva;
+  - doble clic en el trazo añade un punto;
+  - Alt + clic en un punto lo quita.
+- **Por forma:** duplicar, reflejar, encoger, agrandar, girar, subir, bajar, ocultar y borrar. Ctrl+Z deshace dentro del taller; la rueda hace zoom; espacio + arrastrar mueve la vista.
+- **Colores:** los colores del personaje (`{piel}`, `{ropa}`, `{pelo}`…) o libres, para relleno y contorno, con grosor y opacidad.
+- **Dibujos por giro:** de frente, de perfil y de espaldas, con el personaje de referencia girado debajo y el origen del hueso marcado en rojo.
+- **Archivo:** la pieza guarda el SVG (`svg`, `svgPerfil`, `svgEspaldas`) y los vectores editables (`dibujo`, `dibujoPerfil`, `dibujoEspaldas`). Ejemplo: «Corona (dibujada)» en Demo piezas.
+
+### Física por pieza (fase 9)
+- **Activarla:** en el detalle de una pieza, casilla «Física», con rigidez, amortiguación, peso y punto de giro (dónde cuelga, en coordenadas del dibujo).
+- **Cómo se mueve:** se balancea con la aceleración de su hueso y del personaje por la escena (péndulo amortiguado).
+- **En el vídeo:** cuando el tiempo salta, las escenas simulan el segundo anterior, así que el render sale igual aunque se haga por trozos.
+- **Ejemplo:** el zurrón y el colgante de Demo piezas y la escena `fisica-frenazo` (corre, frena y el zurrón se balancea).
+
+### Control del rig con asas (fase 10)
+En Personajes → Animación, parado, aparecen asas sobre el personaje:
+- **Manos:** arrastrarlas mueve el brazo entero con cinemática inversa (resuelve abrir, adelantar y doblar el codo; prefiere el brazo por delante).
+- **Cabeza:** ← → gira; ↑ ↓ mira arriba o abajo.
+- **Pecho:** ← → gira el torso; ↑ ↓ lo inclina.
+
+Igual que los deslizadores de Posar, crean o tocan la clave del cabezal.

@@ -323,12 +323,29 @@
     });
     const PROF0 = { cabeza: 58, pecho: 47, cintura: 52 };
     const activa = (pz, ve) => { const vari = Object.assign({}, op.variantes || {}, ve || {}); return pz.grupo ? vari[pz.grupo] === pz.id : pz.activo !== false; };
+    // FÍSICA por pieza (pz.fisica = { rigidez 0…1, amortiguacion 0…1, peso, pivote: [x, y] en el dibujo }): la pieza se balancea sobre su punto
+    // de giro según la aceleración horizontal de ese punto (péndulo amortiguado). El tiempo llega en e.t; si salta hacia atrás o más de
+    // 0,25 s, la pieza vuelve al reposo (las escenas precalculan el segundo anterior para que el vídeo salga igual en cualquier orden).
+    let TT = 0, MUNDO = [0, 0];
+    function fisica(P, ox, oy) {
+      const F = P.pz.fisica, st = P.fis, K = 20 + 380 * (F.rigidez ?? 0.4), C = 1 + 14 * (F.amortiguacion ?? 0.35), S = 0.006 * (F.peso ?? 1), x = ox + MUNDO[0], y = oy + MUNDO[1];
+      if (st && TT === st.t) return st.th;   // el mismo instante dibujado dos veces: no se reinicia
+      if (!st || !(TT > st.t) || TT - st.t > 0.25) { P.fis = { t: TT, x, y, vx: 0, th: 0, w: 0 }; return 0; }
+      const dt = TT - st.t, vx = (x - st.x) / dt, ax = Math.max(-25000, Math.min(25000, (vx - st.vx) / dt)), n = Math.ceil(dt * 240), hh = dt / n;
+      for (let i = 0; i < n; i++) { st.w += (-K * st.th - C * st.w - S * ax) * hh; st.th = Math.max(-1.2, Math.min(1.2, st.th + st.w * hh)); }
+      Object.assign(st, { t: TT, x, y, vx }); return st.th;
+    }
     function ponerPieza(P, mat, ve, detrasForzado, ang) {
       const pz = P.pz, act = activa(pz, ve);
       if (!act || !mat) { P.g.setAttribute("display", "none"); return; }
       P.g.setAttribute("display", "inline");
       P.g.setAttribute("transform", `matrix(${mat.map((v) => v.toFixed(4)).join(" ")})`);
-      P.dentro.setAttribute("transform", `translate(${f1(pz.x || 0)} ${f1(pz.y || 0)}) rotate(${f1(pz.rot || 0)}) scale(${(pz.escala ?? 1).toFixed(3)})`);
+      let fis = "";
+      if (pz.fisica && pz.fisica.activa !== false) { const pv = pz.fisica.pivote || [0, 0], sc = pz.escala ?? 1, a0 = ((pz.rot || 0) * Math.PI) / 180;
+        const px = (pz.x || 0) + sc * (pv[0] * Math.cos(a0) - pv[1] * Math.sin(a0)), py = (pz.y || 0) + sc * (pv[0] * Math.sin(a0) + pv[1] * Math.cos(a0));
+        const th = fisica(P, mat[0] * px + mat[2] * py + mat[4], mat[1] * px + mat[3] * py + mat[5]);
+        if (Math.abs(th) > 1e-4) fis = ` translate(${f1(pv[0])} ${f1(pv[1])}) rotate(${(th * 180 / Math.PI).toFixed(2)}) translate(${f1(-pv[0])} ${f1(-pv[1])})`; }
+      P.dentro.setAttribute("transform", `translate(${f1(pz.x || 0)} ${f1(pz.y || 0)}) rotate(${f1(pz.rot || 0)}) scale(${(pz.escala ?? 1).toFixed(3)})${fis}`);
       // dibujo según el giro: de espaldas a partir de ~115°, de perfil entre ~55° y ~115° (reflejado si mira a la izquierda)
       if (ang !== undefined && (P.vis.perfil || P.vis.espaldas)) { const an = Math.atan2(Math.sin(ang), Math.cos(ang)), ab = Math.abs(an);
         const cual = ab > 2.0 && P.vis.espaldas ? "espaldas" : ab > 0.95 && P.vis.perfil && (ab <= 2.0 || !P.vis.espaldas) ? "perfil" : "frente";
@@ -371,6 +388,7 @@
 
     // ---------------------------------------------------------------- dibujar un fotograma
     function dibujar(e = {}) {
+      TT = e.t ?? (typeof performance !== "undefined" ? performance.now() / 1000 : 0); MUNDO = e.mundo || [0, 0];
       const A = e.amp || 0, p = e.fase || 0, aT = e.torso || 0;
       const aH = e.cabeza ?? aT, aOjo = e.ojos ?? aH, aA = e.brazos ?? aT;
       const aPie = { 1: e.pieIzq ?? aT, [-1]: e.pieDer ?? aT }, alzaGiro = { 1: e.alzaIzq || 0, [-1]: e.alzaDer || 0 };
