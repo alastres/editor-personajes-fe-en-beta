@@ -25,11 +25,16 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 
 ## P1 · Imprescindible para producir shorts
 
+> El bloque «Del guion al short» está hecho (página **Montaje**). Detalles que quedan de él:
+> - [ ] Subtítulos: editar a mano una palabra o un corte de línea (ahora salen de la transcripción y del guion).
+> - [ ] Mover o reordenar escenas en la pista arrastrando el bloque entero (ahora se mueven los cortes entre escenas).
+> - [ ] Opciones de la música (`outro`, `fin`…) desde la interfaz (ahora en el JSON: `musica.opciones`).
+
 ### Del guion al short
-- [ ] **Short de varias escenas.** Encadenar escenas en un short completo, con cortes y transiciones (corte, barrido, fundido) y una sola voz y música de principio a fin.
-- [ ] **Importar el guion.** A partir del texto y de la voz grabada, crear el esqueleto de escenas con sus tiempos (frases ancladas a palabras, como `at()` en los shorts hechos a código).
-- [ ] **Subtítulos automáticos con el estilo de la marca.** Sacados de la voz (transcripción con tiempos por palabra) y con la palabra clave resaltada, como en los shorts actuales.
-- [ ] **Música y efectos de sonido.** Biblioteca de efectos (whoosh, golpe, campana…) que se colocan en la línea de tiempo, y la música montada con `montar-musica.py` (reglas del canal: una sola campana al final).
+- [x] *(13 nov 2026, página Montaje)* **Short de varias escenas.** Encadenar escenas en un short completo, con cortes y transiciones (corte, barrido, fundido) y una sola voz y música de principio a fin.
+- [x] *(13 nov 2026)* **Importar el guion.** A partir del texto y de la voz grabada, crear el esqueleto de escenas con sus tiempos (frases ancladas a palabras, como `at()` en los shorts hechos a código).
+- [x] *(13 nov 2026)* **Subtítulos automáticos con el estilo de la marca.** Sacados de la voz (transcripción con tiempos por palabra) y con la palabra clave resaltada, como en los shorts actuales.
+- [x] *(13 nov 2026)* **Música y efectos de sonido.** Biblioteca de efectos (whoosh, golpe, campana…) que se colocan en la línea de tiempo, y la música montada con `montar-musica.py` (reglas del canal: una sola campana al final).
 
 ### Boca y voz
 - [ ] **Labios por fonemas (visemas).** Usar los tiempos de palabras de la transcripción para formar vocales y consonantes (A, E, O, M/B/P…), no solo abrir y cerrar.

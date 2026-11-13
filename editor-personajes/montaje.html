@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Montaje · Fe en Beta</title>
+  <link rel="stylesheet" href="editor.css" />
+  <link rel="stylesheet" href="escenas.css" />
+  <link rel="stylesheet" href="montaje.css" />
+</head>
+<body>
+  <header class="barra">
+    <div class="marca"><i></i><b>Montaje</b><span>Fe en Beta</span></div>
+    <a class="enlace-pagina" href="/">Personajes</a>
+    <a class="enlace-pagina" href="escenas.html">Escenas</a>
+    <div class="acciones">
+      <button id="b-deshacer" title="Deshacer (Ctrl+Z)">↶ Deshacer</button>
+      <button id="b-rehacer" title="Rehacer (Ctrl+Y)">↷ Rehacer</button>
+      <span id="estado" class="estado">—</span>
+    </div>
+  </header>
+
+  <main class="area">
+    <aside class="reparto">
+      <div class="cab">Shorts</div>
+      <ul id="lista"></ul>
+      <form id="form-nuevo" class="form-nuevo" hidden>
+        <input id="nombre-nuevo" type="text" maxlength="60" />
+        <div><button type="submit" class="primario">Crear</button><button type="button" id="b-cancelar">Cancelar</button></div>
+      </form>
+      <div class="pie">
+        <button id="b-nuevo" class="primario">+ Nuevo short</button>
+        <button id="b-duplicar">Duplicar</button>
+        <button id="b-papelera" class="peligro">Papelera</button>
+      </div>
+    </aside>
+
+    <section class="escenario esc">
+      <div class="marco-cont"><svg id="lienzo" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid meet"><defs></defs><g id="capa"></g></svg></div>
+      <div class="linea">
+        <div class="ctl">
+          <button id="t-play" class="primario" title="Reproducir / parar (espacio)">▶</button>
+          <button id="t-inicio" title="Al principio">⏮</button>
+          <output id="t-tiempo">0,00 s</output>
+          <span id="t-ayuda" class="tenue"></span>
+        </div>
+        <div id="pistas" class="pistas"></div>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel">
+      <section>
+        <h3>Short</h3>
+        <div class="campo"><label>Nombre</label><input id="s-nombre" type="text" /></div>
+        <div class="deslizador"><label>Duración</label><input type="range" id="s-dur" min="2" max="180" step="0.1" /><output></output></div>
+      </section>
+      <section>
+        <h3>1 · Voz y guion</h3>
+        <div class="campo"><label>Voz (narración)</label><select id="v-archivo"></select></div>
+        <div class="campo"><label>Guion <span class="tenue">(opcional: corrige el texto de los subtítulos y sirve si VoiceStudio está cerrado)</span></label><textarea id="v-guion" rows="4" placeholder="Pega aquí el texto de la locución…"></textarea></div>
+        <button id="b-transcribir" class="primario ancho">Transcribir la voz</button>
+        <p id="v-estado" class="ayuda"></p>
+      </section>
+      <section>
+        <h3>2 · Escenas desde la voz</h3>
+        <p class="ayuda">Crea una escena por frase, con su duración exacta, el personaje que narra (su boca sigue la voz) y el fondo. Luego cada escena se retoca en Escenas.</p>
+        <div class="campo"><label>Quién narra</label><select id="g-personaje"></select></div>
+        <div class="campo"><label>Fondo</label><div class="seg pequeno" id="g-fondo"></div></div>
+        <div class="campo"><label>Transiciones</label><div class="seg pequeno" id="g-trans"></div></div>
+        <button id="b-generar" class="primario ancho">Crear escenas desde las frases</button>
+      </section>
+      <section>
+        <h3>Escena elegida</h3>
+        <div id="c-vacio" class="ayuda">Haz clic en una escena de la pista «Escenas».</div>
+        <div id="c-det" hidden>
+          <div class="campo"><label>Escena</label><select id="c-escena"></select></div>
+          <div class="campo"><label>Entrada</label><div class="seg pequeno" id="c-trans"></div></div>
+          <div class="campo"><label>Quién habla (su boca sigue la voz)</label><select id="c-habla"></select></div>
+          <div class="deslizador"><label>Empezar la escena desde el segundo</label><input type="range" id="c-desde" min="0" max="30" step="0.1" /><output></output></div>
+          <div class="fila-botones tres"><button id="c-editar" class="primario">Editar escena</button><button id="c-partir" title="Parte la escena en dos en el cabezal">Partir aquí</button><button id="c-quitar" class="peligro">Quitar</button></div>
+        </div>
+      </section>
+      <section>
+        <h3>Subtítulos</h3>
+        <label class="chk-grande"><input type="checkbox" id="u-activos" /> Subtítulos con el estilo de la marca</label>
+        <div class="campo"><label>Palabras clave en naranja <span class="tenue">(separadas por comas)</span></label><input id="u-resaltar" type="text" placeholder="resucitado, tumba, domingo" /></div>
+      </section>
+      <section>
+        <h3>Música</h3>
+        <div class="campo"><select id="m-archivo"></select></div>
+        <div class="deslizador"><label>Volumen</label><input type="range" id="m-vol" min="0" max="1.5" step="0.05" /><output></output></div>
+        <p class="ayuda">Al renderizar se monta con <code>montar-musica.py</code> (AUDIO-DE-FONDO.md): se ajusta a la duración, conserva su final y baja cuando se habla. Aquí suena tal cual, a volumen bajo.</p>
+      </section>
+      <section>
+        <h3>Efectos de sonido</h3>
+        <div class="fila-anadir"><select id="x-archivo"></select><button id="b-add-sfx">Añadir</button></div>
+        <ul id="sfx" class="piezas"></ul>
+      </section>
+      <section>
+        <h3>Vídeo</h3>
+        <button id="b-render" class="primario ancho">Renderizar el short</button>
+        <div id="render-estado" class="ayuda"></div>
+        <video id="render-video" controls hidden></video>
+      </section>
+    </aside>
+  </main>
+  <div id="aviso" class="aviso"></div>
+
+  <script src="/comun/titere25d.js"></script>
+  <script src="/comun/personajes.js"></script>
+  <script src="/acciones/todas.js"></script>
+  <script src="/comun/escena.js"></script>
+  <script src="/comun/montaje.js"></script>
+  <script src="montaje.js"></script>
+</body>
+</html>

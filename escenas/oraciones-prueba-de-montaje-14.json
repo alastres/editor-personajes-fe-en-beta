@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 14 · Lo prometió: «No te desampararé, ni te d",
+  "duracion": 4.24,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -480,
+      "zoom": 1.6
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": -18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 4.24,
+          "capa": "brazos",
+          "desde": 0.9000000000000021
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Lo prometió: «No te desampararé, ni te dejaré».",
+  "id": "oraciones-prueba-de-montaje-14"
+}

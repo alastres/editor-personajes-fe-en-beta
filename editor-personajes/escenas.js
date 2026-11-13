@@ -208,10 +208,10 @@
   // ---- render
   let sondeo = null;
   async function consultar() { const r = await (await fetch(`/api/escenas/${actual}/render`)).json(), e = $("#render-estado"), b = $("#b-render");
-    if (r.estado === "renderizando") { e.textContent = `Renderizando… ${r.progreso || ""} (${r.segundos} s)`; b.disabled = true; sondeo = setTimeout(consultar, 1500); return; }
-    b.disabled = false; if (r.estado === "listo") { e.textContent = `Listo en ${r.segundos} s · Videos/shorts-flow/escena-${actual}/out/${actual}.mp4`; const v = $("#render-video"); v.hidden = false; v.src = r.archivo; }
+    if (r.estado === "renderizando" || r.estado === "preparando") { e.textContent = `${r.estado === "preparando" ? "Preparando" : "Renderizando"}… ${r.progreso || ""} (${r.segundos} s)`; b.disabled = true; sondeo = setTimeout(consultar, 1500); return; }
+    b.disabled = false; if (r.estado === "listo") { e.textContent = `Listo en ${r.segundos} s · Videos/shorts-flow/${r.ruta || "escena-" + actual + "/out"}`; const v = $("#render-video"); v.hidden = false; v.src = r.archivo; }
     else if (r.estado === "error") e.textContent = "Error al renderizar:\n" + r.log; else e.textContent = ""; }
-  $("#b-render").addEventListener("click", async () => { if (!esc) return; await guardar(); clearTimeout(sondeo); $("#render-video").hidden = true; await fetch(`/api/escenas/${actual}/render`, { method: "POST" }); consultar(); });
+  $("#b-render").addEventListener("click", async () => { if (!esc) return; await guardar(); clearTimeout(sondeo); { const v = $("#render-video"); v.pause(); v.removeAttribute("src"); v.load(); v.hidden = true; }   // suelta el MP4 anterior (Windows lo bloquea mientras está abierto) await fetch(`/api/escenas/${actual}/render`, { method: "POST" }); consultar(); });
   $("#b-exportar").addEventListener("click", async () => { await guardar(); const r = await (await fetch(`/api/escenas/${actual}/exportar`, { method: "POST" })).json(); aviso("Proyecto en Videos/shorts-flow/" + r.dir); });
 
   $("#b-png").addEventListener("click", async () => { if (!esc) return; const svg = $("#lienzo"), copia = svg.cloneNode(true); copia.setAttribute("width", 1080); copia.setAttribute("height", 1920); copia.querySelector("#guias")?.remove();
@@ -227,6 +227,6 @@
 
   // ---- arranque
   (async () => { await cargarPersonajes(); await cargarLista(); cargarAudios(); escuchar();
-    let ini = null; try { ini = localStorage.getItem("es-actual"); } catch {} const id = lista.find((x) => x.id === ini) ? ini : lista[0]?.id; if (id) await abrir(id); else pintarPistas();
+    let ini = new URLSearchParams(location.search).get("escena"); if (!ini) try { ini = localStorage.getItem("es-actual"); } catch {} const id = lista.find((x) => x.id === ini) ? ini : lista[0]?.id; if (id) await abrir(id); else pintarPistas();
     if (actual) consultar(); })();
 })();

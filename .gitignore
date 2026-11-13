@@ -9,6 +9,7 @@
 !/personajes/
 !/acciones/
 !/escenas/
+!/shorts/
 
 # del motor común, solo lo que usa el editor
 !/comun/
@@ -16,6 +17,7 @@
 !/comun/titere25d.js
 !/comun/personajes.js
 !/comun/escena.js
+!/comun/montaje.js
 !/comun/vendor/
 
 # generados o temporales

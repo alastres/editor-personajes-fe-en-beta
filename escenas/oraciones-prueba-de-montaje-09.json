@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 9 · Tres: mira a Jesús.",
+  "duracion": 2.33,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -400,
+      "zoom": 1.25
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": 18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 2.33,
+          "capa": "brazos",
+          "desde": 2.4000000000000004
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Tres: mira a Jesús.",
+  "id": "oraciones-prueba-de-montaje-09"
+}

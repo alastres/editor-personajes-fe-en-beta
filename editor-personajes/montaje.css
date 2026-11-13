@@ -1,0 +1,18 @@
+.carril .onda { position: absolute; inset: 2px 0; display: flex; align-items: center; pointer-events: none; }
+.carril .onda i { flex: 1; background: #5a8aa8; margin: 0 0.5px; border-radius: 1px; min-height: 1px; opacity: .8; }
+.carril .frase { position: absolute; top: 0; bottom: 0; border-left: 1px solid #ffffff22; pointer-events: none; }
+.carril .bloque.sub { background: #3a3456; border-color: #6a5f96; font-size: 10px; }
+.carril .bloque.clip { background: #4a3f78; border-color: #7a6ab8; }
+.carril .bloque.clip.activo { background: #5a4a98; }
+.carril .bloque.musica { background: #2f4a3a; border-color: #5a9a6a; }
+.carril .borde { position: absolute; top: 0; bottom: 0; width: 8px; margin-left: -4px; cursor: ew-resize; z-index: 2; }
+.carril .borde:hover { background: #f0a33a66; }
+.carril .rombo.sfx { background: #e8907a; }
+.pista-fila.alta .carril { height: 38px; }
+#v-estado { white-space: pre-wrap; }
+#v-estado.ok { color: var(--ok); }
+#v-estado.mal { color: #ffb09a; }
+select { font: inherit; }
+.campo select, .campo textarea { width: 100%; font: inherit; color: var(--texto); background: var(--fondo); border: 1px solid var(--borde); border-radius: 8px; padding: 7px 8px; }
+.piezas li.fila-sfx { grid-template-columns: 16px 1fr 60px 62px 22px; }
+.piezas li.fila-sfx input[type=number] { width: 60px; font: inherit; font-size: 12px; color: var(--texto); background: var(--panel2); border: 1px solid var(--borde); border-radius: 6px; padding: 2px 4px; }

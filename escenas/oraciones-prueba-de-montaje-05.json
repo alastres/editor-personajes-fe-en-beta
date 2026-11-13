@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 5 · Por eso Dios responde de tres formas: sí",
+  "duracion": 4.84,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -480,
+      "zoom": 1.6
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": 18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 4.84,
+          "capa": "brazos",
+          "desde": 1.2000000000000002
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Por eso Dios responde de tres formas: sí, espera o no.",
+  "id": "oraciones-prueba-de-montaje-05"
+}

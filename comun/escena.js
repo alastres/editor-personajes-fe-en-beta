@@ -28,7 +28,7 @@
   // ---- fondos (siluetas planas por capas, como los del short ¿Y si…?)
   const FONDOS = {
     noche: { cielo: ["#141a34", "#2c3658", "#4a5476"], montes: ["#4a4b66", "#3a3b55", "#2e2e46"], suelo: ["#2a2a3c", "#3a3a50"], astro: { c: "#d8dcee", r: 60, x: 300, y: -1300, halo: "#8a90c0" }, estrellas: true },
-    alba: { cielo: ["#3a3a6a", "#c08a92", "#ffd6a0"], montes: ["#c08a92", "#9a6a7e", "#7a5068"], suelo: ["#9a7a6a", "#b0906a"], astro: { c: "#fff1c8", r: 110, x: 0, y: -520, halo: "#ffc890" } },
+    alba: { cielo: ["#3a3a6a", "#c08a92", "#ffd6a0"], montes: ["#c08a92", "#9a6a7e", "#7a5068"], suelo: ["#9a7a6a", "#b0906a"], astro: { c: "#fff1c8", r: 110, x: 330, y: -560, halo: "#ffc890" } },   // el sol a un lado: centrado detrás de la cabeza parecía una aureola
     dia: { cielo: ["#4a8ac8", "#8ac0e0", "#d8eef0"], montes: ["#8ab0b8", "#6a9aa0", "#5a8088"], suelo: ["#c8b080", "#d8c090"], astro: { c: "#fff8d8", r: 80, x: -320, y: -1300, halo: "#ffe8a0" } },
     interior: { pared: ["#3a2a30", "#44323a"], suelo: ["#241a20", "#4a3438"] },
   };
@@ -63,7 +63,9 @@
       else el("rect", { x: f1(x - 40 * k), y: f1(y), width: f1(80 * k), height: f1(7 * k), rx: f1(3.5 * k), fill: tex, opacity: 0.55 }, g); }
   }
 
-  function crear(svg, esc, PJ) {
+  // op.voz = { envolvente, desfase, habla }: voz que viene de fuera (el montaje de un short). desfase = segundo del short en el que empieza
+  // la escena menos el punto de la escena desde el que se ve; habla = id del actor cuya boca la sigue (o "auto": el primer actor)
+  function crear(svg, esc, PJ, op = {}) {
     const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), mundo = el("g", {}, raiz), gTextos = el("g", {}, raiz);
     let fondoKey = null;
     const actores = (esc.actores || []).map((a) => { const j = PJ[a.personaje]; const g = el("g", { "data-actor": a.id }, mundo);
@@ -97,7 +99,7 @@
         const activos = (a.bloques || []).filter((b) => t >= b.t && t < b.t + (b.dur || 2)).sort((x, y) => (x.capa === "brazos") - (y.capa === "brazos") || x.t - y.t);
         const base = { giro: q.giro ?? 20 }; let pz = Personajes.completa({}), ctrl = {}, loco = null;
         for (const b of activos) { const ac = Personajes.buscarAccion(A.j, b.accion); if (!ac) continue;
-          pz = Personajes.enCapas(pz, Personajes.accionPose(ac, t - b.t), b.capa || "todo"); Object.assign(ctrl, b.controles || {});
+          pz = Personajes.enCapas(pz, Personajes.accionPose(ac, t - b.t + (b.desde || 0)), b.capa || "todo"); Object.assign(ctrl, b.controles || {});
           if ((b.capa || "todo") !== "brazos" && ac.locomocion?.amp) loco = { ac, t0: b.t }; }
         const e = Personajes.pose(Personajes.conControles(pz, A.j.controles, ctrl), base);
         if (loco) { const lo = loco.ac.locomocion; Object.assign(e, { amp: lo.amp, correr: lo.correr || 0, fase: (t - loco.t0) * (lo.cad || (lo.correr ? 1.45 : 0.95)) }); }
@@ -105,7 +107,8 @@
         // los brazos de una capa «brazos» mandan sobre el braceo de andar; sin ella, al andar los brazos bracean
         e.parpadeo = Math.max(0.1, Math.min(1, Math.abs(((t + a.id.length * 0.7) % 3.4) - 3.3) / 0.08));
         // hablar: si un audio de la escena es de este actor, su boca sigue la envolvente (30 valores por segundo, 0…1)
-        for (const au of esc.audios || []) { if (au.habla !== a.id || !au.envolvente) continue; const u = t - (au.t || 0), i = Math.floor(u * 30);
+        const vozFuera = op.voz && op.voz.envolvente && (op.voz.habla === a.id || (op.voz.habla === "auto" && A === actores.find((x) => x.m))) ? [{ habla: a.id, envolvente: op.voz.envolvente, t: -(op.voz.desfase || 0) }] : [];
+        for (const au of [...(esc.audios || []), ...vozFuera]) { if (au.habla !== a.id || !au.envolvente) continue; const u = t - (au.t || 0), i = Math.floor(u * 30);
           if (i < 0 || i >= au.envolvente.length) continue; const v = au.envolvente[i] + (au.envolvente[i + 1] ?? 0) * 0.5 + (au.envolvente[i - 1] ?? 0) * 0.5;
           e.boca = cl(v / 2 * 1.15); e.bocaAncho = Math.sin(u * 11.3) * Math.sin(u * 4.1); }
         e.t = t; e.mundo = [q.x / esc0, -170 * (q.p || 0) / esc0];

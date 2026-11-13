@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 6 · Y un «no» también es una respuesta.",
+  "duracion": 2.28,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -400,
+      "zoom": 1.25
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": -18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 2.28,
+          "capa": "brazos",
+          "desde": 2.5
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Y un «no» también es una respuesta.",
+  "id": "oraciones-prueba-de-montaje-06"
+}

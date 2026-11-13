@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 12 · El «no» más duro de la historia fue tamb",
+  "duracion": 4.31,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -400,
+      "zoom": 1.25
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": -18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 4.31,
+          "capa": "brazos",
+          "desde": 2.3000000000000007
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "El «no» más duro de la historia fue también el más lleno de amor.",
+  "id": "oraciones-prueba-de-montaje-12"
+}

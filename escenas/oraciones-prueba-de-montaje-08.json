@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 8 · Santiago es directo: «Pedís, y no recibí",
+  "duracion": 4.93,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -480,
+      "zoom": 1.6
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": -18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 4.93,
+          "capa": "brazos",
+          "desde": 1.0999999999999996
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Santiago es directo: «Pedís, y no recibís, porque pedís mal».",
+  "id": "oraciones-prueba-de-montaje-08"
+}

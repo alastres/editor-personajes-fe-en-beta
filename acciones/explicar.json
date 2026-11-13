@@ -1,0 +1,99 @@
+{
+  "id": "explicar",
+  "nombre": "Explicar (gestos al hablar)",
+  "duracion": 4,
+  "bucle": true,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "editor (montaje)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.45,
+        "bDerFrente": 0.55,
+        "bDerCodo": 1.35,
+        "bDerHacia": -0.2,
+        "mDer": {
+          "relajada": 0.4,
+          "abierta": 0.6
+        },
+        "pDer": "arriba",
+        "ladeo": 2,
+        "cara": {
+          "alegre": 0.25
+        }
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.6,
+        "bDerFrente": 0.75,
+        "bDerCodo": 1.1,
+        "bDerHacia": -0.2,
+        "mDer": {
+          "abierta": 1
+        },
+        "pDer": "arriba",
+        "ladeo": -2,
+        "cabeza": 6,
+        "cara": {
+          "alegre": 0.35
+        }
+      }
+    },
+    {
+      "t": 2,
+      "pose": {
+        "bDerK": 0.6,
+        "bDerLado": 0.4,
+        "bDerFrente": 0.45,
+        "bDerCodo": 1.4,
+        "bDerHacia": -0.2,
+        "mDer": {
+          "relajada": 1
+        },
+        "bIzqK": 0.7,
+        "bIzqLado": 0.45,
+        "bIzqFrente": 0.6,
+        "bIzqCodo": 1.3,
+        "bIzqHacia": -0.2,
+        "mIzq": {
+          "abierta": 0.7,
+          "relajada": 0.3
+        },
+        "pIzq": "arriba",
+        "ladeo": 1,
+        "cabeza": -5,
+        "cara": {
+          "pensativo": 0.2,
+          "alegre": 0.15
+        }
+      }
+    },
+    {
+      "t": 3,
+      "pose": {
+        "bDerK": 0.9,
+        "bDerLado": 0.5,
+        "bDerFrente": 0.6,
+        "bDerCodo": 1.25,
+        "bDerHacia": -0.2,
+        "mDer": {
+          "abierta": 0.8,
+          "relajada": 0.2
+        },
+        "pDer": "arriba",
+        "bIzqK": 0.3,
+        "ladeo": -1,
+        "cara": {
+          "alegre": 0.3
+        }
+      }
+    }
+  ]
+}

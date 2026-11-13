@@ -164,3 +164,30 @@ En Personajes → Animación, parado, aparecen asas sobre el personaje:
 - **Pecho:** ← → gira el torso; ↑ ↓ lo inclina.
 
 Igual que los deslizadores de Posar, crean o tocan la clave del cabezal.
+
+## Montaje: del guion al short (fase 11)
+La página está en **http://localhost:3170/montaje.html**; se llega con el enlace «Montaje →».
+
+Un short es una sola voz y una secuencia de escenas, con subtítulos, música y efectos. El motor es `comun/montaje.js`, el mismo en el editor y en el vídeo.
+
+1. **Voz y guion:**
+   - eliges la voz y, si quieres, pegas el guion; «Transcribir la voz» saca cada palabra con su tiempo mediante VoiceStudio (API local en el puerto 3900);
+   - si el guion tiene las mismas palabras, los subtítulos usan su texto exacto;
+   - si VoiceStudio está cerrado o la voz es un silencio de relleno, los tiempos se estiman desde el guion y la página lo avisa.
+2. **Escenas desde la voz:**
+   - se crea una escena por frase (las muy cortas se juntan) con su duración exacta;
+   - en cada una, el narrador elegido mueve la boca con la voz y hace gestos al hablar (acción común «Explicar», en capa de brazos);
+   - los encuadres varían y se usan el fondo y las transiciones elegidos;
+   - las escenas se guardan en `escenas/<short>-NN.json` y se retocan en Escenas con «Editar escena».
+3. **Línea de tiempo:**
+   - las pistas son voz (forma de onda y cortes de frase), subtítulos, escenas, música y efectos;
+   - arrastrar el borde entre dos escenas mueve el corte;
+   - «Partir aquí» divide una escena en el cabezal;
+   - cada escena puede entrar con corte, fundido o barrido y decir quién habla.
+4. **Subtítulos de la marca:** cápsula oscura con la palabra que suena en naranja; hay una lista de palabras clave que van siempre en naranja.
+5. **Música y efectos:**
+   - la música se monta al renderizar con `montar-musica.py` (AUDIO-DE-FONDO.md): se ajusta a la duración, conserva su final y baja cuando se habla. Sus opciones van en `musica.opciones` (por ejemplo `{ "outro": 94 }`);
+   - los efectos se colocan en el cabezal; la regla del canal es una sola campana, al final.
+6. **«Renderizar el short»:** exporta `../short-<id>/` y renderiza en `out/<id>-<marca>.mp4`. Cada render es un archivo nuevo, para no chocar con el que está abierto en el reproductor, y se guardan los dos últimos.
+
+**Ejemplo:** `shorts/oraciones-prueba-de-montaje.json`, hecho con la voz real de «estilo-oraciones»: 67 s, 15 escenas con Pablo, música y campana. El render salió en unos 80 s, a −16,8 LUFS.

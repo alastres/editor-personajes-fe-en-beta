@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 2 · Uno: piensa en esto. Un padre que le da ",
+  "duracion": 5.7,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -480,
+      "zoom": 1.6
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": -18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 5.7,
+          "capa": "brazos",
+          "desde": 1.3
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Uno: piensa en esto. Un padre que le da a su hijo todo lo que pide no es un buen padre.",
+  "id": "oraciones-prueba-de-montaje-02"
+}

@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 3 · Es un mal padre. Jesús lo dice: «¿Cuánto",
+  "duracion": 8.1,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -400,
+      "zoom": 1.25
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": 18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 8.1,
+          "capa": "brazos",
+          "desde": 2.6
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Es un mal padre. Jesús lo dice: «¿Cuánto más vuestro Padre que está en los cielos dará buenas cosas a los que le pidan?».",
+  "id": "oraciones-prueba-de-montaje-03"
+}

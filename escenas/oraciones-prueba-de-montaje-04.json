@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 4 · Buenas cosas, que no siempre son las que",
+  "duracion": 3.06,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -400,
+      "zoom": 1.05
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": -18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 3.06,
+          "capa": "brazos",
+          "desde": 3.9000000000000004
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Buenas cosas, que no siempre son las que pedimos.",
+  "id": "oraciones-prueba-de-montaje-04"
+}

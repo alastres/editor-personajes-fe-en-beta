@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 7 · Dos: pregúntate con sinceridad qué pides",
+  "duracion": 5.16,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -400,
+      "zoom": 1.05
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": 18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 5.16,
+          "capa": "brazos",
+          "desde": 3.8000000000000007
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Dos: pregúntate con sinceridad qué pides y para qué.",
+  "id": "oraciones-prueba-de-montaje-07"
+}

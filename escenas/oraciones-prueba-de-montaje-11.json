@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 11 · El Padre le dijo que no. Y gracias a ese",
+  "duracion": 5.42,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -480,
+      "zoom": 1.6
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": 18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 5.42,
+          "capa": "brazos",
+          "desde": 1
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "El Padre le dijo que no. Y gracias a ese «no», tú puedes ser salvo.",
+  "id": "oraciones-prueba-de-montaje-11"
+}

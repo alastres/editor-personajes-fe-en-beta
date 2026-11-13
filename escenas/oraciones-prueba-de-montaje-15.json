@@ -1,0 +1,44 @@
+{
+  "nombre": "Oraciones (prueba de montaje) · 15 · Sigue orando.",
+  "duracion": 5.75,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -400,
+      "zoom": 1.25
+    }
+  ],
+  "actores": [
+    {
+      "id": "pablo",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": 18
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 5.75,
+          "capa": "brazos",
+          "desde": 2.1999999999999993
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:oraciones-prueba-de-montaje",
+  "texto": "Sigue orando.",
+  "id": "oraciones-prueba-de-montaje-15"
+}
