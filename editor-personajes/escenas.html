@@ -15,6 +15,9 @@
     <div class="acciones">
       <button id="b-deshacer" title="Deshacer (Ctrl+Z)">↶ Deshacer</button>
       <button id="b-rehacer" title="Rehacer (Ctrl+Y)">↷ Rehacer</button>
+      <button id="b-historial" title="Versiones anteriores de lo que tienes abierto y la papelera">🕘 Historial</button>
+      <button id="b-github" title="Guardar y subir los cambios al repo de GitHub">⇅ GitHub</button>
+      <button id="b-ayuda" title="Ayuda y atajos (F1)">?</button>
       <span id="estado" class="estado">—</span>
     </div>
   </header>
@@ -25,6 +28,7 @@
       <ul id="lista"></ul>
       <form id="form-nueva" class="form-nuevo" hidden>
         <input id="nombre-nueva" type="text" maxlength="50" />
+        <select id="plantilla-nueva" title="Receta de los shorts: cámara, ambiente y efectos de partida"><option value="">Escena vacía</option><option value="gancho">Plantilla: gancho</option><option value="desarrollo">Plantilla: desarrollo</option><option value="cierre">Plantilla: cierre</option><option value="despedida">Plantilla: despedida</option></select>
         <div><button type="submit" class="primario">Crear</button><button type="button" id="b-cancelar">Cancelar</button></div>
       </form>
       <div class="pie">
@@ -170,5 +174,6 @@
   <script src="curvas.js"></script>
   <script src="render-ui.js"></script>
   <script src="escenas.js"></script>
+  <script src="herramientas.js"></script>
 </body>
 </html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pruebas · Fe en Beta</title>
+  <link rel="stylesheet" href="editor.css" />
+  <style>
+    body { overflow: auto; height: auto; }
+    .pr-cab { display: flex; gap: 10px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--borde); background: var(--panel); flex-wrap: wrap; }
+    .pr-res { padding: 10px 18px; font-size: 14px; }
+    .pr-res .mal { color: #ffb09a; } .pr-res .bien { color: #9ae0a0; }
+    .pr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 0 18px 30px; }
+    .pr-caso { background: var(--panel); border: 1px solid var(--borde); border-radius: 10px; padding: 6px; font-size: 11px; text-align: center; }
+    .pr-caso.mal { border-color: #be3f1c; box-shadow: 0 0 0 2px #be3f1c66; }
+    .pr-caso.nuevo { border-color: #f0a33a; }
+    .pr-caso svg { width: 100%; height: 180px; background: #2a3040; border-radius: 6px; }
+    .pr-caso .ref { opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div class="pr-cab"><b>Pruebas automáticas del títere</b><span class="tenue">cada personaje en varias poses y giros, comparado con la referencia guardada</span>
+    <button id="b-correr" class="primario">Comprobar</button><button id="b-guardar">Guardar como referencia</button><a href="index.html" class="enlace">← Personajes</a></div>
+  <div class="pr-res" id="res">Pulsa «Comprobar».</div>
+  <div class="pr-grid" id="grid"></div>
+  <script src="/comun/titere25d.js"></script>
+  <script src="/comun/personajes.js"></script>
+  <script src="/acciones/todas.js"></script>
+  <script>
+  // Cada caso dibuja un personaje con una pose y un giro fijos (t = 0, ojos abiertos) y saca una huella del SVG resultante.
+  // Si un cambio en comun/titere25d.js o en personajes.js altera un dibujo, su huella cambia y el caso sale en rojo junto a la referencia.
+  (() => {
+    const $ = (s) => document.querySelector(s), NS = "http://www.w3.org/2000/svg";
+    const POSES = { reposo: {}, saludo: { bDerK: 1, bDerLado: 1.3, bDerFrente: 0.3, bDerCodo: 1.4, mDer: { abierta: 1 }, cara: { alegre: 1 } },
+      sentado: { agacha: 1.25, pieIzqFrente: 75, pieDerFrente: 75 }, triste: { cara: { triste: 1 }, miraY: 0.4, inclina: 0.1 } };
+    const GIROS = [0, 40, 90, 180];
+    let PJ = {}, actual = {}, ref = {};
+    const huella = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + ":" + s.length; };
+    function dibujar(j, pose, giro) { const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "-250 -720 500 760"); const g = document.createElementNS(NS, "g"); svg.appendChild(g);
+      const m = Personajes.crear(g, j, { id: "pr" }); const e = Personajes.pose(POSES[pose], { giro }); e.t = 0; e.parpadeo = 1; m.dibujar(e); return svg; }
+    async function cargar() { const l = await (await fetch("/api/personajes")).json(); PJ = {}; for (const p of l) PJ[p.id] = await (await fetch("/api/personajes/" + p.id)).json();
+      try { ref = await (await fetch("/api/pruebas/referencia")).json(); } catch { ref = {}; } }
+    async function correr() { $("#res").textContent = "Dibujando…"; await cargar(); const grid = $("#grid"); grid.replaceChildren(); actual = {}; let mal = 0, nuevos = 0, total = 0;
+      for (const [id, j] of Object.entries(PJ)) for (const pose of Object.keys(POSES)) for (const giro of GIROS) { const k = `${id}|${pose}|${giro}`, svg = dibujar(j, pose, giro), txt = svg.innerHTML.replace(/pr-\d+/g, "pr"), hu = huella(txt);   // los ids internos llevan un contador
+        actual[k] = { huella: hu, svg: txt }; total++; const r = ref[k], estado = !r ? "nuevo" : r.huella === hu ? "bien" : "mal"; if (estado === "mal") mal++; if (estado === "nuevo") nuevos++;
+        if (estado === "bien") continue;   // solo se enseñan los que cambian o son nuevos
+        const caja = document.createElement("div"); caja.className = "pr-caso " + estado; caja.append(svg);
+        if (r && r.svg) { const s2 = document.createElementNS(NS, "svg"); s2.setAttribute("viewBox", "-250 -720 500 760"); s2.classList.add("ref"); s2.innerHTML = r.svg; caja.append(s2); }
+        const t = document.createElement("div"); t.textContent = `${j.nombre || id} · ${pose} · ${giro}°` + (estado === "mal" ? " · CAMBIÓ (abajo, la referencia)" : " · sin referencia"); caja.append(t); grid.append(caja); }
+      $("#res").innerHTML = mal ? `<span class="mal">✗ ${mal} de ${total} dibujos cambiaron respecto a la referencia.</span> Si el cambio es el que querías, pulsa «Guardar como referencia».`
+        : nuevos ? `<span class="bien">✓ Nada roto.</span> ${nuevos} casos no tienen referencia todavía (personajes nuevos): guárdala.` : `<span class="bien">✓ Los ${total} dibujos son idénticos a la referencia.</span>`; }
+    $("#b-correr").onclick = correr;
+    $("#b-guardar").onclick = async () => { if (!Object.keys(actual).length) await correr(); const r = await fetch("/api/pruebas/referencia", { method: "PUT", body: JSON.stringify(actual) });
+      $("#res").innerHTML = r.ok ? `<span class="bien">Referencia guardada (${Object.keys(actual).length} dibujos).</span>` : "No se pudo guardar"; if (r.ok) { ref = actual; $("#grid").replaceChildren(); } };
+    window.Pruebas = { correr };
+  })();
+  </script>
+</body>
+</html>

@@ -59,7 +59,7 @@
   $("#b-cancelar").addEventListener("click", () => { $("#form-nueva").hidden = true; });
   $("#form-nueva").addEventListener("submit", async (ev) => { ev.preventDefault(); const f = ev.target, nombre = $("#nombre-nueva").value.trim(); f.hidden = true; if (!nombre) return;
     let id = slug(nombre); while (lista.find((x) => x.id === id)) id = id.replace(/-\d+$/, "") + "-" + Math.floor(Math.random() * 90 + 10);
-    const x = f.dataset.base ? Object.assign(JSON.parse(JSON.stringify(esc)), { nombre }) : nueva(nombre);
+    let x = f.dataset.base ? Object.assign(JSON.parse(JSON.stringify(esc)), { nombre }) : nueva(nombre); const pl = $("#plantilla-nueva").value; if (pl && !f.dataset.base) x = Escena.aplicarPlantilla(x, pl, x.duracion);
     await fetch(`/api/escenas/${id}`, { method: "PUT", body: JSON.stringify(x) }); await cargarLista(); await abrir(id); aviso("Creada: " + nombre); });
   let tPap = 0; $("#b-papelera").addEventListener("click", async () => { if (!actual) return; const b = $("#b-papelera");
     if (Date.now() - tPap > 3000) { tPap = Date.now(); b.textContent = "¿Seguro?"; b.classList.add("armado"); setTimeout(() => { b.textContent = "Papelera"; b.classList.remove("armado"); }, 3000); return; }
@@ -361,4 +361,5 @@
   (async () => { await Promise.all([cargarPersonajes(), cargarImagenes()]); await cargarLista(); cargarAudios(); escuchar();
     let ini = new URLSearchParams(location.search).get("escena"); if (!ini) try { ini = localStorage.getItem("es-actual"); } catch {} const id = lista.find((x) => x.id === ini) ? ini : lista[0]?.id; if (id) await abrir(id); else pintarPistas();
     if (actual) consultar(); })();
+  window.CTX_HISTORIAL = () => ({ tipo: "escenas", id: actual, nombre: esc?.nombre });
 })();

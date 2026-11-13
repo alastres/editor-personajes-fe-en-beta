@@ -289,7 +289,7 @@
         estilo.relleno = o.cerrada || o.tipo === "texto" ? o.relleno : estilo.relleno; estilo.trazo = o.trazo || estilo.trazo; estilo.grosor = o.grosor ?? estilo.grosor;
         if (sel !== null && sel !== +t.dataset.i) editarForma((f) => { if (o.cerrada || o.tipo === "texto") f.relleno = o.relleno; if (o.grosor) { f.trazo = o.trazo; f.grosor = o.grosor; } }); else pintarPanel(); return; }
       if (herr === "texto") { guardarHist(); nueva({ tipo: "texto", texto: "Texto", tam: 48, puntos: [pto(p.x, p.y)], cerrada: true, relleno: estilo.relleno && estilo.relleno !== "none" ? estilo.relleno : "{tinta}", simetrica: undefined }); sel = D.formas.length - 1; ponerHerr("sel"); pintar(); setTimeout(() => { const i = $("#tl-texto", raiz); i.focus(); i.select(); }, 30); return; }
-      if (herr === "pincel" || herr === "lazo") { arr = { dibujo: [p] }; return; }
+      if (herr === "pincel" || herr === "lazo") { arr = { dibujo: [p], pres: [], lapiz: ev.pointerType === "pen" }; if (ev.pointerType === "pen") arr.pres.push(ev.pressure); return; }
       if (herr === "pluma") { if (!pluma) { guardarHist(); const f = { puntos: [], cerrada: false, relleno: estilo.relleno === "none" ? "{ropa}" : estilo.relleno, trazo: estilo.trazo || "{tinta}", grosor: estilo.grosor || 3 }; nueva(f); sel = D.formas.length - 1; pluma = { forma: f }; }
         const f = pluma.forma, P = f.puntos, k = escalaPx();
         if (P.length > 2 && Math.hypot(p.x - P[0].x, p.y - P[0].y) < 10 * k) { f.cerrada = true; f.grosor = estilo.grosor; plumaFin(); ponerHerr("sel"); pintar(); return; }
@@ -307,14 +307,14 @@
       if (arr.mover) { let dx = p.x - arr.p0.x, dy = p.y - arr.p0.y;
         if (iman) { const c0 = caja({ puntos: arr.orig[0], tipo: D.formas[arr.idx[0]].tipo, texto: D.formas[arr.idx[0]].texto, tam: D.formas[arr.idx[0]].tam }), cx = (c0.x0 + c0.x1) / 2, cy = (c0.y0 + c0.y1) / 2; dx = pega(cx + dx, "x") - cx; dy = pega(cy + dy, "y") - cy; }
         arr.idx.forEach((k, n) => D.formas[k].puntos.forEach((q, i) => { const o = arr.orig[n][i]; Object.assign(q, { x: o.x + dx, y: o.y + dy, ix: o.ix + dx, iy: o.iy + dy, ox: o.ox + dx, oy: o.oy + dy }); })); pintarFormas(); pintarAsas(); return; }
-      if (arr.dibujo) { arr.dibujo.push(p); $("#tl-trazo", raiz).setAttribute("d", "M" + arr.dibujo.map((q) => `${f2(q.x)} ${f2(q.y)}`).join(" L ")); return; }
+      if (arr.dibujo) { arr.dibujo.push(p); if (arr.lapiz) arr.pres.push(ev.pressure); $("#tl-trazo", raiz).setAttribute("d", "M" + arr.dibujo.map((q) => `${f2(q.x)} ${f2(q.y)}`).join(" L ")); return; }
       if (arr.pluma !== undefined) { const q = pluma.forma.puntos[arr.pluma]; if (Math.hypot(p.x - arr.p0.x, p.y - arr.p0.y) > 3 * escalaPx()) { q.esquina = false; q.ox = p.x; q.oy = p.y; q.ix = 2 * q.x - p.x; q.iy = 2 * q.y - p.y; pintarFormas(); } return; }
       if (arr.forma) { const a = arr.p0, f = arr.f, w = Math.abs(p.x - a.x), hh = Math.abs(p.y - a.y);
         f.puntos = arr.forma === "elipse" ? elipse((a.x + p.x) / 2, (a.y + p.y) / 2, w / 2, hh / 2) : rectR(a.x, a.y, p.x, p.y, arr.forma === "capsula" ? Math.min(w, hh) / 2 : Math.min(w, hh) * 0.2); pintarFormas(); } });
     const soltar = () => { if (!arr) return; const a = arr; arr = null;
       if (a.dibujo) { $("#tl-trazo", raiz).setAttribute("d", ""); const lazo = herr === "lazo"; if (a.dibujo.length < 3) return;
         const P = rdp(a.dibujo, 2.2 * escalaPx()); if (P.length < 2) return; guardarHist();
-        nueva({ puntos: suavizar(lazo && P.length > 3 && Math.hypot(P[0].x - P[P.length - 1].x, P[0].y - P[P.length - 1].y) < 1e-6 ? P.slice(0, -1) : P, lazo), cerrada: lazo, relleno: lazo ? (estilo.relleno === "none" ? "{ropa}" : estilo.relleno) : "none", trazo: lazo ? estilo.trazo : estilo.trazo || "{tinta}", grosor: lazo ? estilo.grosor : estilo.grosor || 6 });
+        nueva({ puntos: suavizar(lazo && P.length > 3 && Math.hypot(P[0].x - P[P.length - 1].x, P[0].y - P[P.length - 1].y) < 1e-6 ? P.slice(0, -1) : P, lazo), cerrada: lazo, relleno: lazo ? (estilo.relleno === "none" ? "{ropa}" : estilo.relleno) : "none", trazo: lazo ? estilo.trazo : estilo.trazo || "{tinta}", grosor: lazo ? estilo.grosor : f2((estilo.grosor || 6) * (a.lapiz && a.pres.length ? 0.4 + 1.2 * a.pres.reduce((x, y) => x + y, 0) / a.pres.length : 1)) });   // con lápiz, el grosor sigue la presión media
         sel = D.formas.length - 1; pintar(); return; }
       if (a.forma) { if (a.f.puntos.length < 2 || Math.abs(a.f.puntos[0].x - a.f.puntos[2].x) < 2 * escalaPx()) { D.formas.splice(D.formas.indexOf(a.f), 1); hist.pop(); sel = null; } ponerHerr("sel"); pintar(); return; }
       pintar(); };

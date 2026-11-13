@@ -15,6 +15,9 @@
     <div class="acciones">
       <button id="b-deshacer" title="Deshacer (Ctrl+Z)">↶ Deshacer</button>
       <button id="b-rehacer" title="Rehacer (Ctrl+Y)">↷ Rehacer</button>
+      <button id="b-historial" title="Versiones anteriores de lo que tienes abierto y la papelera">🕘 Historial</button>
+      <button id="b-github" title="Guardar y subir los cambios al repo de GitHub">⇅ GitHub</button>
+      <button id="b-ayuda" title="Ayuda y atajos (F1)">?</button>
       <span id="estado" class="estado">—</span>
     </div>
   </header>
@@ -32,6 +35,9 @@
         <button id="b-nuevo" class="primario">+ Nuevo</button>
         <button id="b-duplicar">Duplicar</button>
         <button id="b-papelera" class="peligro" title="Lo mueve a personajes/papelera (no se borra)">Papelera</button>
+        <button id="b-exportar-pj" title="Descarga el personaje como paquete (.json con piezas, acciones, emociones y poses) para otro proyecto">Exportar</button>
+        <button id="b-importar-pj" title="Añade un personaje desde un paquete exportado">Importar</button>
+        <input type="file" id="archivo-pj" accept=".json,application/json" hidden />
       </div>
     </aside>
 
@@ -233,5 +239,6 @@
   <script src="editor.js"></script>
   <script src="curvas.js"></script>
   <script src="editor-anim.js"></script>
+  <script src="herramientas.js"></script>
 </body>
 </html>

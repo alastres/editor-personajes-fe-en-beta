@@ -82,14 +82,14 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 ---
 
 ## P3 · Más adelante
-- [ ] Historial de versiones por personaje y escena (volver a cómo estaba ayer) y recuperar la papelera desde la interfaz.
-- [ ] Botón «Sincronizar con GitHub» en la propia interfaz.
-- [ ] Plantillas de escena con la receta de los shorts (gancho, desarrollo, cierre, despedida).
-- [ ] Generar el SEO y el prompt de miniatura al terminar un short, como pide el flujo del canal.
-- [ ] Uso con lápiz en tableta y pantallas pequeñas.
-- [ ] Pruebas automáticas: render de referencia de los personajes para detectar si un cambio en el motor los rompe.
-- [ ] Ayuda integrada: recorrido guiado la primera vez y lista de atajos.
-- [ ] Exportar un personaje como paquete (JSON con sus piezas) para compartirlo entre proyectos.
+- [x] *(13 nov 2026: 🕘 Historial en las tres páginas)* Historial de versiones por personaje y escena (volver a cómo estaba ayer) y recuperar la papelera desde la interfaz.
+- [x] *(13 nov 2026: ⇅ GitHub)* Botón «Sincronizar con GitHub» en la propia interfaz.
+- [x] *(13 nov 2026: en Escenas al crear y en Montaje al generar)* Plantillas de escena con la receta de los shorts (gancho, desarrollo, cierre, despedida).
+- [x] *(13 nov 2026: borrador en Textos/seo-borrador-<short>.md + fotograma sin subtítulos; Claude lo completa al aprobar)* Generar el SEO y el prompt de miniatura al terminar un short, como pide el flujo del canal.
+- [x] *(13 nov 2026)* Uso con lápiz en tableta y pantallas pequeñas.
+- [x] *(13 nov 2026: pruebas.html, 144 dibujos)* Pruebas automáticas: render de referencia de los personajes para detectar si un cambio en el motor los rompe.
+- [x] *(13 nov 2026: ? y F1)* Ayuda integrada: recorrido guiado la primera vez y lista de atajos.
+- [x] *(13 nov 2026: Exportar / Importar en el reparto)* Exportar un personaje como paquete (JSON con sus piezas) para compartirlo entre proyectos.
 
 ---
 

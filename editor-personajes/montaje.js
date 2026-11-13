@@ -102,7 +102,9 @@
         actores: [{ id: pid, personaje: pid, escala: 1, recorrido: [{ t: 0, x: 0, p: 0, giro: i % 2 ? -18 : 18 }],
           // que no quede quieto: gestos al hablar (acción común «Explicar», en capa de brazos), desfasados en cada escena
           bloques: Personajes.buscarAccion(pj, "explicar") ? [{ t: 0, accion: "explicar", dur: c.dur, capa: "brazos", desde: (i * 1.3) % 4 }] : [] }], textos: [], audios: [], origen: "montaje:" + actual, texto: c.texto };
-      await fetch(`/api/escenas/${id}`, { method: "PUT", body: JSON.stringify(esc) }); nuevos.push({ escena: id, t: c.t, dur: c.dur, desde: 0, transicion: i === 0 ? "corte" : gen.trans, habla: pid }); }
+      const rol = !$("#g-receta").checked ? null : i === 0 ? "gancho" : i === clips.length - 1 && clips.length > 2 ? "despedida" : i === clips.length - 2 && clips.length > 3 ? "cierre" : "desarrollo";
+      const escF = rol ? Escena.aplicarPlantilla(esc, rol, c.dur) : esc; if (rol === "despedida") escF.fondo = esc.fondo;   // el fondo elegido se respeta
+      await fetch(`/api/escenas/${id}`, { method: "PUT", body: JSON.stringify(escF) }); nuevos.push({ escena: id, t: c.t, dur: c.dur, desde: 0, transicion: i === 0 ? "corte" : gen.trans, habla: pid }); }
     await cargarEscenas(); cambio((x) => { x.clips = nuevos; }); await escenasDelShort(); reconstruir(); aviso(`${nuevos.length} escenas creadas: retócalas en Escenas («Editar escena»)`); });
 
   // ---- panel
@@ -215,6 +217,56 @@
   async function consultar() { if (!actual) return; clearTimeout(sondeo); const r = await (await fetch(`/api/shorts/${actual}/render`)).json(); if (RenderUI.estado(r, `short-${actual}/out`)) sondeo = setTimeout(consultar, 1500); }
   $("#b-render").addEventListener("click", async () => { if (!sh) return; if (!sh.clips.length) return aviso("El short no tiene escenas todavía"); await guardar(); { const v = $("#render-video"); v.pause(); v.removeAttribute("src"); v.load(); v.hidden = true; }   // suelta el MP4 anterior (Windows lo bloquea mientras está abierto)
     await fetch(`/api/shorts/${actual}/render`, { method: "POST", body: JSON.stringify(RenderUI.opciones()) }); consultar(); });
+  // ---- borrador de SEO y portada (flujo del canal: Textos/seo-*.md + fotograma sin subtítulos como referencia de estilo)
+  const VACIAS = new Set("que como para pero porque cuando donde este esta esto estos estas tiene tienen sobre entre desde hasta todo toda todos todas nada algo alguien mismo cada otro otra solo sino también tambien había habia puede pueden dijo hace hacer será sera muy más mas".split(" "));
+  $("#b-seo").addEventListener("click", async () => { if (!sh) return; const texto = (sh.guion || (sh.voz?.palabras || []).map((w) => w.word).join(" ")).trim(); if (!texto) return aviso("Hace falta el guion o la voz transcrita");
+    const frases = texto.match(/[^.?!…]+[.?!…]+/g) || [texto], titulo = frases[0].trim().slice(0, 95), preguntas = frases.filter((f) => /\?/.test(f));
+    // palabras clave por frecuencia (se cuentan sin tildes, pero se escriben como aparecen en el guion)
+    const cuenta = {}, forma = {}; for (const o of texto.toLowerCase().match(/[a-záéíóúüñ]{5,}/g) || []) { const w = o.normalize("NFD").replace(/[̀-ͯ]/g, ""); if (VACIAS.has(w)) continue; cuenta[w] = (cuenta[w] || 0) + 1; if (!forma[w] || /[áéíóú]/.test(o)) forma[w] = o; }
+    const claveN = Object.entries(cuenta).sort((a, b) => b[1] - a[1]).map(([w]) => w).slice(0, 10), clave = claveN.map((w) => forma[w]), cap = (w) => w[0].toUpperCase() + w.slice(1);
+    const enTitulo = new Set(titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").match(/[a-zñ]+/g) || []), portada = claveN.filter((w) => !enTitulo.has(w)).slice(0, 3).map((w) => forma[w]).map((w) => w.toUpperCase()).join(" ");
+    const pj = Object.values(ESC).flatMap((e) => (e.actores || []).map((a) => PJ[a.personaje]?.nombre || a.personaje)), prota = pj[0] || "el narrador";
+    const md = `# SEO y portada · ${sh.nombre || actual} (BORRADOR)
+
+> Generado por el editor (Montaje → «Borrador de SEO y portada») el ${new Date().toLocaleString("es-ES")}. Es un punto de partida: revísalo o pídele a Claude que lo complete al aprobar el vídeo. No sube ni publica nada.
+
+**Vídeo:** \`Videos/shorts-flow/short-${actual}/out/\` (el último render) · ${(D()).toFixed(0)} s · ${sh.formato === "16:9" ? "horizontal 1920 × 1080" : "vertical 1080 × 1920"}
+
+## Título
+${titulo}
+
+## Descripción
+${frases.slice(0, 3).join(" ").trim()}
+
+Citas bíblicas: Reina-Valera 1960 (RVR1960).
+
+#Shorts #FeEnBeta ${clave.slice(0, 3).map((w) => "#" + cap(w)).join(" ")}
+
+## Etiquetas
+${["fe en beta", ...clave].join(", ")}
+
+## Comentario fijado
+${(preguntas[preguntas.length - 1] || "¿Qué te ha hecho pensar este short? Te leo en los comentarios.").trim()}
+
+## Configuración en YouTube Studio
+- Categoría: Educación · Público: no es contenido para niños.
+- Subtítulos: ya van quemados; no actives los automáticos.
+- Contenido alterado o sintético: animación claramente dibujada; marcarlo es opcional.
+
+## Portada
+**Texto (2-4 palabras, sin repetir el título):** ${portada || "(elige 2-4 palabras)"}
+
+**Referencia de estilo:** \`Videos/shorts-flow/short-${actual}/portada-referencia.png\` (fotograma del vídeo sin subtítulos).
+
+**Prompt:**
+Flat 2D vector illustration matching the attached reference frame exactly: rich layered explainer-animation look, soft sky gradient, layered hills, thin rim light, warm amber glow. No black outlines, no textures, no 3D, no realism. Characters built like the reference: big low head on broad rounded shoulders, short neck, plain tunic with rope belt, mitten hands, no cloaks; Jesus always faceless. One single focus: ${prota} centered, almost empty background. Huge short text "${portada || "…"}" in cream or amber on dark ink, at most two lines, each line at least 10% of the image height, kept out of the bottom 30%. ${sh.formato === "16:9" ? "Horizontal 16:9" : "Vertical 9:16"}.
+`;
+    // fotograma del cabezal sin subtítulos, al tamaño del vídeo
+    const svg = $("#lienzo"), copia = svg.cloneNode(true); copia.querySelectorAll("[data-sub]").forEach((x) => x.remove()); const W = Montaje.ANCHO, H = Montaje.ALTO; copia.setAttribute("width", W); copia.setAttribute("height", H);
+    let png = null; try { const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copia)], { type: "image/svg+xml" })), img = new Image(); await new Promise((ok, mal) => { img.onload = ok; img.onerror = mal; img.src = url; });
+      const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").drawImage(img, 0, 0); URL.revokeObjectURL(url); png = c.toDataURL("image/png"); } catch {}
+    const r = await fetch(`/api/shorts/${actual}/seo`, { method: "POST", body: JSON.stringify({ md, png }) }); if (!r.ok) return aviso("No se pudo guardar el borrador: " + (await r.text()));
+    const j = await r.json(); aviso("Borrador guardado en " + j.md + (j.png ? " · portada de referencia en " + j.png : "")); });
   $("#r-cabezal").addEventListener("click", () => RenderUI.fragmentoDesde(tiempo, D()));
 
   // ---- teclado
@@ -227,4 +279,5 @@
   (async () => { await Promise.all([cargarPersonajes(), cargarEscenas(), cargarAudios()]); await cargarLista(); escuchar();
     let ini = new URLSearchParams(location.search).get("short"); if (!ini) try { ini = localStorage.getItem("mt-actual"); } catch {}
     const id = lista.find((x) => x.id === ini) ? ini : lista[0]?.id; if (id) await abrir(id); else pintarPistas(); })();
+  window.CTX_HISTORIAL = () => ({ tipo: "shorts", id: actual, nombre: sh?.nombre });
 })();

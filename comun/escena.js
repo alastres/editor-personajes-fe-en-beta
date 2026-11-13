@@ -175,6 +175,20 @@
     prisa: { zancada: 1.2, inclina: 0.1, amp: 1.1 },
     sigiloso: { zancada: 0.7, amp: 0.7, inclina: 0.08, hombros: 6, cara: { miedo: 0.25 } } };
 
+  // PLANTILLAS de escena con la receta de los shorts del canal (gancho → desarrollo → cierre → despedida): cámara, ambiente y efectos
+  // de partida; la escena se retoca después. aplicar(esc, rol, d) devuelve una copia con lo de la plantilla.
+  const PLANTILLAS = {
+    gancho: { nombre: "Gancho (0-3 s: primer plano y algo que pasa)", camara: (d) => [{ t: 0, x: 0, y: -470, zoom: 2.1, curva: "frena" }, { t: Math.min(d, 2.5), x: 0, y: -440, zoom: 1.7 }],
+      ambiente: { vineta: 0.45 }, efectos: [{ t: 0.15, tipo: "destello", dur: 0.4, fuerza: 0.6 }] },
+    desarrollo: { nombre: "Desarrollo (plano medio que deriva)", camara: (d) => [{ t: 0, x: -30, y: -400, zoom: 1.25 }, { t: d, x: 30, y: -410, zoom: 1.35 }], ambiente: { vineta: 0.25 } },
+    cierre: { nombre: "Cierre (la idea clave: más cálido y más cerca)", camara: (d) => [{ t: 0, x: 0, y: -420, zoom: 1.3 }, { t: d, x: 0, y: -450, zoom: 1.7, curva: "frena" }],
+      ambiente: { tono: 0.35, vineta: 0.4, particulas: "polvo", cantidad: 0.8 } },
+    despedida: { nombre: "Despedida (plano general, saludo, luz cálida)", camara: (d) => [{ t: 0, x: 0, y: -330, zoom: 0.95 }], ambiente: { tono: 0.25, vineta: 0.3 }, fondo: "alba", accion: "saludo" } };
+  function aplicarPlantilla(esc, rol, d) { const P = PLANTILLAS[rol]; if (!P) return esc; const x = JSON.parse(JSON.stringify(esc)), dur = d ?? x.duracion ?? 4;
+    x.rol = rol; x.camara = P.camara(dur); x.ambiente = Object.assign({}, x.ambiente, P.ambiente); if (P.efectos) x.efectos = P.efectos.map((e) => Object.assign({}, e)); if (P.fondo) x.fondo = Object.assign({}, x.fondo, { tipo: P.fondo });
+    for (const a of x.actores || []) { if (P.accion) a.bloques = [{ t: Math.max(0, dur * 0.35), accion: P.accion, dur: Math.min(2.2, dur * 0.6), capa: "brazos" }, ...(a.bloques || []).filter((b) => b.capa !== "brazos")]; }
+    return x; }
+
   // op.voz = { envolvente, desfase, habla }: voz que viene de fuera (el montaje de un short). desfase = segundo del short en el que empieza
   // la escena menos el punto de la escena desde el que se ve; habla = id del actor cuya boca la sigue (o "auto": el primer actor)
   function crear(svg, esc, PJ, op = {}) { formato(op.formato || esc.formato);
@@ -294,5 +308,5 @@
     }
     return { dibujar, actores, objetos, camara, raiz };
   }
-  window.Escena = { crear, claves, FONDOS, fondoDe, PARTICULAS, ESTILOS_ANDAR, formato, get ANCHO() { return ANCHO; }, get ALTO() { return ALTO; } };
+  window.Escena = { crear, claves, PLANTILLAS, aplicarPlantilla, FONDOS, fondoDe, PARTICULAS, ESTILOS_ANDAR, formato, get ANCHO() { return ANCHO; }, get ALTO() { return ALTO; } };
 })();

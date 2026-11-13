@@ -219,6 +219,15 @@
   $("#giro").addEventListener("input", (ev) => { prueba.giro = Number(ev.target.value); prueba.girar = false; $("#giro-v").textContent = prueba.giro + "°"; $("#b-girar").classList.remove("activo"); guardaPrueba(); });
   $("#b-girar").addEventListener("click", () => { prueba.girar = !prueba.girar; giroAnim = prueba.giro; guardaPrueba(); pintarPrueba(); });
   $("#b-deshacer").addEventListener("click", deshacer); $("#b-rehacer").addEventListener("click", rehacer);
+  // paquete de personaje: el JSON entero (piezas, acciones, controles, emociones, poses) más las acciones comunes que sus acciones no traen
+  $("#b-exportar-pj").addEventListener("click", () => { if (!j) return; const paq = { formato: "fe-en-beta/personaje", version: 1, exportado: new Date().toISOString(), personaje: JSON.parse(JSON.stringify(j)) };
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(paq, null, 1)], { type: "application/json" })); a.download = `personaje-${actual}.json`; a.click(); aviso("Paquete descargado: personaje-" + actual + ".json"); });
+  $("#b-importar-pj").addEventListener("click", () => $("#archivo-pj").click());
+  $("#archivo-pj").addEventListener("change", async (ev) => { const f = ev.target.files[0]; ev.target.value = ""; if (!f) return;
+    try { const d = JSON.parse(await f.text()), pj = d.personaje || d; if (!pj || typeof pj !== "object" || !pj.opciones && !pj.colores && !pj.piezas) throw new Error("no parece un personaje");
+      let id = slug(pj.nombre || pj.id || "personaje"), n = 2; const base = id; while (lista.some((x) => x.id === id)) id = `${base}-${n++}`;
+      pj.id = id; const r = await fetch(`/api/personajes/${id}`, { method: "PUT", body: JSON.stringify(pj) }); if (!r.ok) throw new Error(await r.text());
+      await cargarLista(); await abrir(id); aviso(`Importado «${pj.nombre || id}» como ${id}`); } catch (e) { aviso("No se pudo importar: " + (e.message || e)); } });
   $("#b-nuevo").addEventListener("click", () => pedirNombre(false)); $("#b-duplicar").addEventListener("click", () => pedirNombre(true));
   $("#form-nuevo").addEventListener("submit", (ev) => { ev.preventDefault(); const f = ev.target, n = $("#nombre-nuevo").value.trim(); f.hidden = true; nuevo(!!f.dataset.base, n); });
   $("#b-cancelar-nuevo").addEventListener("click", () => { $("#form-nuevo").hidden = true; }); $("#b-papelera").addEventListener("click", papelera);
@@ -402,4 +411,5 @@
     const id = lista.find((x) => x.id === ini) ? ini : lista[0]?.id; if (id) await abrir(id);
     pintarSuelo(); requestAnimationFrame(bucle);
   })();
+  window.CTX_HISTORIAL = () => ({ tipo: "personajes", id: actual, nombre: j?.nombre });
 })();

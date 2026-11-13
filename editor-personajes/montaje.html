@@ -16,6 +16,9 @@
     <div class="acciones">
       <button id="b-deshacer" title="Deshacer (Ctrl+Z)">↶ Deshacer</button>
       <button id="b-rehacer" title="Rehacer (Ctrl+Y)">↷ Rehacer</button>
+      <button id="b-historial" title="Versiones anteriores de lo que tienes abierto y la papelera">🕘 Historial</button>
+      <button id="b-github" title="Guardar y subir los cambios al repo de GitHub">⇅ GitHub</button>
+      <button id="b-ayuda" title="Ayuda y atajos (F1)">?</button>
       <span id="estado" class="estado">—</span>
     </div>
   </header>
@@ -68,6 +71,7 @@
         <div class="campo"><label>Quién narra</label><select id="g-personaje"></select></div>
         <div class="campo"><label>Fondo</label><div class="seg pequeno" id="g-fondo"></div></div>
         <div class="campo"><label>Transiciones</label><div class="seg pequeno" id="g-trans"></div></div>
+        <label class="chk" title="La primera escena es el gancho (primer plano y destello), la penúltima el cierre (cálida, más cerca) y la última la despedida (plano general y saludo)"><input type="checkbox" id="g-receta" checked /> Receta de los shorts (gancho, desarrollo, cierre, despedida)</label>
         <button id="b-generar" class="primario ancho">Crear escenas desde las frases</button>
       </section>
       <section>
@@ -113,6 +117,7 @@
         <div class="opciones-render"><label class="chk" title="Calidad de borrador a 24 fps: tarda bastante menos; para revisar, no para publicar"><input type="checkbox" id="r-rapida" /> Vista previa rápida (borrador)</label>
           <div class="fila-anadir"><span class="tenue">Solo de</span><input id="r-desde" type="number" min="0" step="0.1" placeholder="0" /><span class="tenue">a</span><input id="r-hasta" type="number" min="0" step="0.1" placeholder="fin" /><span class="tenue">s</span><button id="r-cabezal" title="Desde el cabezal, 3 segundos">⏵ 3 s</button></div></div>
         <button id="b-render" class="primario ancho">Renderizar el short</button>
+        <button id="b-seo" class="enlace" title="Escribe Textos/seo-borrador-<short>.md (título, descripción, etiquetas, comentario fijado, configuración y prompt de portada) y guarda el fotograma del cabezal, sin subtítulos, como referencia de la portada">Borrador de SEO y portada (fotograma del cabezal)</button>
         <div id="render-estado" class="ayuda"></div>
         <video id="render-video" controls hidden></video>
       </section>
@@ -128,5 +133,6 @@
   <script src="/comun/montaje.js"></script>
   <script src="render-ui.js"></script>
   <script src="montaje.js"></script>
+  <script src="herramientas.js"></script>
 </body>
 </html>

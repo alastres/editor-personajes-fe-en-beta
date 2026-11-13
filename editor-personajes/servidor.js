@@ -9,6 +9,9 @@
 //   GET  /api/eventos                                    SSE: avisa cuando un JSON cambia en disco ({ tipo, id })
 //   POST /api/escenas/:id/exportar                       crea el proyecto HyperFrames ../escena-<id>/
 //   POST /api/escenas/:id/render   · GET …/render        lanza el render (MP4 en ../escena-<id>/out/) y consulta su estado
+//   GET  /api/<tipo>/<id>/historial · POST …/restaurar { marca }   versiones anteriores (../.historial) y volver a una
+//   GET  /api/<tipo>/papelera · POST /api/<tipo>/papelera/<archivo>/recuperar   lo borrado y recuperarlo
+//   POST /api/sincronizar { mensaje }                   git pull, commit y push del repo (como sincronizar.ps1)
 //   GET  /api/imagenes                                   imágenes para fondos (carpetas fondos, imagenes, img, assets)
 //   GET  /api/audios                                     audios disponibles para las escenas (wav/mp3 bajo shorts-flow)
 //   GET  /video/<id>.mp4                                 el último render de una escena
@@ -56,8 +59,28 @@ function servir(res, archivo, req) {
       res.writeHead(206, { "Content-Type": tipo, "Content-Range": `bytes ${ini}-${fin}/${st.size}`, "Accept-Ranges": "bytes", "Content-Length": fin - ini + 1 }); return fs.createReadStream(archivo, { start: ini, end: fin }).pipe(res); }
     res.writeHead(200, { "Content-Type": tipo, "Cache-Control": "no-store", "Content-Length": st.size, "Accept-Ranges": "bytes" }); fs.createReadStream(archivo).pipe(res); });
 }
-const cuerpo = (req) => new Promise((ok, mal) => { let s = ""; req.on("data", (c) => { s += c; if (s.length > 5e6) req.destroy(); }); req.on("end", () => ok(s)); req.on("error", mal); });
+const cuerpo = (req) => new Promise((ok, mal) => { let s = ""; req.on("data", (c) => { s += c; if (s.length > 3e7) req.destroy(); }); req.on("end", () => ok(s)); req.on("error", mal); });
 const enviarJSON = (res, x, cod = 200) => { res.writeHead(cod, { "Content-Type": TIPOS[".json"] }); res.end(JSON.stringify(x)); };
+
+// ---- HISTORIAL DE VERSIONES: antes de sobrescribir un JSON se guarda la versión anterior en ../.historial/<tipo>/<id>/<marca>.json
+// (como mucho una cada 90 s mientras se edita seguido, sin repetir contenido; se guardan las 60 últimas). No va a GitHub.
+const HIST = path.join(RAIZ, ".historial");
+function guardarVersion(tipo, id, f, forzar = false) { if (!fs.existsSync(f)) return; const d = path.join(HIST, tipo, id); fs.mkdirSync(d, { recursive: true });
+  const ls = fs.readdirSync(d).filter((x) => /^\d+\.json$/.test(x)).sort(), ult = ls[ls.length - 1], prev = fs.readFileSync(f, "utf8");
+  if (ult && fs.readFileSync(path.join(d, ult), "utf8") === prev) return; if (!forzar && ult && Date.now() - +ult.slice(0, -5) < 90000) return;
+  fs.writeFileSync(path.join(d, Date.now() + ".json"), prev); for (const x of ls.slice(0, Math.max(0, ls.length + 1 - 60))) fs.unlinkSync(path.join(d, x)); }
+function versiones(tipo, id) { const d = path.join(HIST, tipo, id); let ls = []; try { ls = fs.readdirSync(d).filter((x) => /^\d+\.json$/.test(x)); } catch {}
+  return ls.sort().reverse().map((x) => { const st = fs.statSync(path.join(d, x)); return { marca: x.slice(0, -5), tam: st.size }; }); }
+// papelera de cada tipo: lo borrado desde la interfaz, para recuperarlo
+function papelera(tipo) { const d = path.join(DIRS[tipo], "papelera"); let ls = []; try { ls = fs.readdirSync(d).filter((x) => x.endsWith(".json")); } catch {}
+  return ls.map((x) => { let nombre = x; try { nombre = leerJSON(path.join(d, x)).nombre || x; } catch {} const m = x.match(/^(.*)-(\d{12,})\.json$/); return { archivo: x, id: m ? m[1] : x.slice(0, -5), marca: m ? +m[2] : 0, nombre }; }).sort((a, b) => b.marca - a.marca); }
+// sincronizar con GitHub (lo mismo que sincronizar.ps1): traer lo último, guardar los cambios y subirlos
+function git(args) { return new Promise((ok) => { const p = spawn("git", args, { cwd: RAIZ }); let out = ""; p.stdout.on("data", (b) => (out += b)); p.stderr.on("data", (b) => (out += b)); p.on("close", (cod) => ok({ cod, out })); p.on("error", (e) => ok({ cod: -1, out: String(e) })); }); }
+async function sincronizar(mensaje) { const log = []; const paso = async (args) => { const r = await git(args); log.push("$ git " + args.join(" ") + "\n" + r.out.trim()); return r; };
+  let r = await paso(["pull", "--rebase", "--autostash"]); if (r.cod !== 0) return { ok: false, log: log.join("\n\n"), error: "No se pudo traer lo último de GitHub (¿conflicto?)" };
+  await paso(["add", "-A"]); r = await git(["diff", "--cached", "--quiet"]); if (r.cod === 0) return { ok: true, nada: true, log: log.join("\n\n") };
+  r = await paso(["commit", "-m", mensaje || "Actualizar editor de personajes y escenas"]); if (r.cod !== 0) return { ok: false, log: log.join("\n\n"), error: "No se pudo guardar el commit" };
+  r = await paso(["push"]); return { ok: r.cod === 0, log: log.join("\n\n"), error: r.cod === 0 ? "" : "No se pudo subir a GitHub" }; }
 
 // ---- exportar una escena a un proyecto HyperFrames (../escena-<id>/)
 function exportar(id) {
@@ -300,6 +323,18 @@ http.createServer(async (req, res) => {
       return enviarJSON(res, await envolvente(f)); }
     if (url === "/api/transcribir" && req.method === "POST") { const b = JSON.parse(await cuerpo(req) || "{}");
       try { return enviarJSON(res, await transcribir(b.archivo, b.guion)); } catch (e) { return enviarJSON(res, { error: String(e.message || e) }, 400); } }
+    // pruebas automáticas (pruebas.html): la referencia de los dibujos se guarda fuera de Git (../.pruebas/referencia.json)
+    if (url === "/api/pruebas/referencia") { const f = path.join(RAIZ, ".pruebas", "referencia.json");
+      if (req.method === "PUT") { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, await cuerpo(req)); res.writeHead(200); return res.end("ok"); }
+      if (!fs.existsSync(f)) return enviarJSON(res, {}); return servir(res, f, req); }
+    if (url === "/api/sincronizar" && req.method === "POST") { let b = {}; try { b = JSON.parse(await cuerpo(req) || "{}"); } catch {} return enviarJSON(res, await sincronizar(String(b.mensaje || "").slice(0, 200))); }
+    let mp = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)\/papelera$/);
+    if (mp && req.method === "GET") return enviarJSON(res, papelera(mp[1]));
+    mp = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)\/papelera\/([^/]+\.json)\/recuperar$/);
+    if (mp && req.method === "POST") { const [, tipo, arch] = mp, src = path.join(DIRS[tipo], "papelera", path.basename(arch)); if (!fs.existsSync(src)) { res.writeHead(404); return res.end(); }
+      const info = papelera(tipo).find((x) => x.archivo === path.basename(arch)); let id = info?.id && idValido(info.id) ? info.id : "recuperado", n = 2; const base = id;
+      while (fs.existsSync(path.join(DIRS[tipo], id + ".json"))) id = `${base}-${n++}`;
+      fs.renameSync(src, path.join(DIRS[tipo], id + ".json")); return enviarJSON(res, { id }); }
     let m = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)$/);
     if (m && req.method === "GET") return enviarJSON(res, lista(m[1]));
     m = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)\/([^/]+)(\/[a-z]+)?$/);
@@ -311,9 +346,17 @@ http.createServer(async (req, res) => {
       if (tipo === "escenas" && sub === "/render") { if (req.method === "POST") { let op = {}; try { op = JSON.parse(await cuerpo(req) || "{}"); } catch {} renderizar(id, op); } const r = renders[id] || { estado: "nada", log: "" };
         return enviarJSON(res, estadoRender(id)); }
       if (tipo === "shorts" && sub === "/render") { if (req.method === "POST") { let op = {}; try { op = JSON.parse(await cuerpo(req) || "{}"); } catch {} lanzarRender("short:" + id, (r) => exportarShort(id, r), `/video-short/${id}.mp4`, op); } return enviarJSON(res, estadoRender("short:" + id)); }
+      if (tipo === "shorts" && sub === "/seo" && req.method === "POST") { const b = JSON.parse(await cuerpo(req) || "{}"), textos = path.join(RAIZ, "..", "..", "Textos"); fs.mkdirSync(textos, { recursive: true });
+        const fmd = path.join(textos, `seo-borrador-${id}.md`); fs.writeFileSync(fmd, String(b.md || ""));
+        let fpng = null; if (/^data:image\/png;base64,/.test(b.png || "")) { const d = path.join(RAIZ, "short-" + id); fs.mkdirSync(d, { recursive: true }); fpng = path.join(d, "portada-referencia.png"); fs.writeFileSync(fpng, Buffer.from(b.png.split(",")[1], "base64")); }
+        return enviarJSON(res, { md: path.relative(path.join(RAIZ, "..", ".."), fmd).replace(/\\/g, "/"), png: fpng ? path.relative(path.join(RAIZ, "..", ".."), fpng).replace(/\\/g, "/") : null }); }
       if (tipo === "shorts" && sub === "/exportar" && req.method === "POST") return enviarJSON(res, { dir: path.relative(RAIZ, await exportarShort(id)) });
+      if (sub === "/historial" && req.method === "GET") return enviarJSON(res, versiones(tipo, id));
+      if (sub === "/version" && req.method === "GET") { const mk = new URL(req.url, "http://x").searchParams.get("marca") || ""; if (!/^\d+$/.test(mk)) { res.writeHead(400); return res.end(); } return servir(res, path.join(HIST, tipo, id, mk + ".json"), req); }
+      if (sub === "/restaurar" && req.method === "POST") { let b = {}; try { b = JSON.parse(await cuerpo(req) || "{}"); } catch {} const v = path.join(HIST, tipo, id, String(b.marca) + ".json");
+        if (!/^\d+$/.test(String(b.marca)) || !fs.existsSync(v)) { res.writeHead(404); return res.end(); } guardarVersion(tipo, id, f, true); fs.copyFileSync(v, f); return enviarJSON(res, { ok: true }); }
       if (!sub && req.method === "GET") return servir(res, f, req);
-      if (!sub && req.method === "PUT") { const s = await cuerpo(req); const j = JSON.parse(s); j.id = id;
+      if (!sub && req.method === "PUT") { const s = await cuerpo(req); const j = JSON.parse(s); j.id = id; guardarVersion(tipo, id, f);
         fs.writeFileSync(f, JSON.stringify(j, null, 2) + "\n"); res.writeHead(200); return res.end("ok"); }
     }
     if (url.startsWith("/video-short/")) { const id = path.basename(url, ".mp4"); if (!idValido(id)) { res.writeHead(400); return res.end(); } const o = path.join(RAIZ, "short-" + id, "out"); return servir(res, path.join(o, ultimoRender(o, id) || id + ".mp4"), req); }

@@ -286,3 +286,17 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - **Montes del fondo:** se dibujan con varias frecuencias que no se repiten; antes se veía el patrón.
 - **Hoja de giro:** etiquetas más grandes y claras.
 - **Contrapicado corriendo:** con la cámara baja, al correr el codo se dobla menos y el brazo bracea algo menos, para que el puño no suba a la cara. Afecta a cualquier vídeo que se vuelva a renderizar con el títere común.
+
+## P3: historial, GitHub, plantillas, SEO, tableta, pruebas, ayuda y paquetes (fase 23)
+- **🕘 Historial** (barra de arriba, en las tres páginas):
+  - **Versiones de lo abierto:** se guarda una versión anterior cada minuto y medio mientras editas (las 60 últimas, en `shorts-flow/.historial/`, fuera de Git). «Volver a esta» guarda antes la actual, así que también se puede deshacer.
+  - **Papelera:** lo enviado a la papelera desde la interfaz, para recuperarlo. Si el nombre ya está ocupado, se recupera con otro.
+- **⇅ GitHub:** trae lo último, guarda todos los cambios y los sube al repo privado (lo mismo que `sincronizar.ps1`). Enseña lo que ha pasado.
+- **Plantillas con la receta de los shorts:**
+  - Al crear una escena (Escenas → «+ Nueva escena») se puede elegir gancho, desarrollo, cierre o despedida. Cada una trae cámara, ambiente y efectos de partida.
+  - En Montaje, «Receta de los shorts» las aplica sola al crear las escenas desde las frases. La primera escena es el gancho (primer plano y destello), la penúltima el cierre (cálida, más cerca, polvo de luz) y la última la despedida (plano general y saludo); el resto son desarrollo.
+- **Borrador de SEO y portada** (Montaje, debajo de Renderizar): escribe `Textos/seo-borrador-<short>.md` con título, descripción, hashtags, etiquetas, comentario fijado, configuración y prompt de portada con el estilo de la marca. Guarda además el fotograma del cabezal, sin subtítulos, como referencia de estilo (`short-<id>/portada-referencia.png`). Es un borrador: el SEO definitivo lo completa Claude al aprobar el vídeo, como pide el flujo del canal. No sube ni publica nada.
+- **Tableta y pantallas pequeñas:** botones y deslizadores más grandes con el dedo, el taller se recoloca en vertical, los lienzos no se desplazan al dibujar y la barra de arriba se reparte en dos líneas. Con lápiz, el pincel del taller usa la presión media para el grosor.
+- **Pruebas automáticas** (`pruebas.html`, enlazada desde la ayuda): dibuja cada personaje en 4 poses y 4 giros y lo compara con la referencia guardada. Lo que cambia sale en rojo junto a su referencia. Si el cambio es el que querías, «Guardar como referencia». La referencia va en `.pruebas/`, fuera de Git.
+- **Ayuda (? o F1):** lista de atajos de cada página y un recorrido guiado, que sale solo la primera vez.
+- **Paquetes de personaje:** «Exportar» descarga `personaje-<id>.json` (con piezas, acciones, controles, emociones y poses). «Importar» lo añade sin pisar ninguno: si el nombre existe, lo renombra.
