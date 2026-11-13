@@ -24,15 +24,15 @@
     "capas": [
       {
         "id": "lejos",
-        "par": 0.8
+        "par": 0.45
       },
       {
         "id": "medio",
-        "par": 0.2
+        "par": 0.12
       },
       {
         "id": "delante",
-        "par": -0.35,
+        "par": -0.25,
         "delante": true
       }
     ]
