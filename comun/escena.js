@@ -285,6 +285,17 @@
     let fondoKey = null;
     const actores = (esc.actores || []).map((a) => { const j = PJ[a.personaje]; const g = el("g", { "data-actor": a.id }, mundo);
       if (!j) { const tx = el("text", { fill: "#f66", "font-size": 40 }, g); tx.textContent = "falta el personaje «" + a.personaje + "»"; return { a, g, m: null, j: null }; }
+      // ILUMINACIÓN DEL ACTOR (a.luz): tono de la escena (noche: más oscuro y frío) y un filo de luz del color de una fuente (la puerta,
+      // el fuego) en el lado que da a ella. a.luz = { noche: 0…1, color: "#ffb860", lado: 1 (derecha) | -1, ancho: 7, fuerza: 0.9 }
+      if (a.luz) { const L = a.luz, fid = "luz-" + (++contadorDof) + "-" + a.id, defsL = (svg.ownerSVGElement || svg).querySelector("defs") || el("defs", {}, svg.ownerSVGElement || svg), k = L.noche || 0;
+        const f = el("filter", { id: fid, x: "-20%", y: "-10%", width: "140%", height: "120%" }, defsL);
+        el("feColorMatrix", { in: "SourceGraphic", type: "matrix", result: "tono", values: `${1 - 0.38 * k} 0 0 0 ${0.01 * k}  0 ${1 - 0.34 * k} 0 0 ${0.015 * k}  0 0 ${1 - 0.14 * k} 0 ${0.05 * k}  0 0 0 1 0` }, f);
+        if (L.color) { el("feOffset", { in: "SourceAlpha", dx: -(L.lado ?? 1) * (L.ancho ?? 7), dy: 0, result: "corrido" }, f);
+          el("feComposite", { in: "SourceAlpha", in2: "corrido", operator: "out", result: "filo" }, f);
+          el("feFlood", { "flood-color": L.color, "flood-opacity": L.fuerza ?? 0.9 }, f); el("feComposite", { in2: "filo", operator: "in", result: "luzF" }, f);
+          el("feGaussianBlur", { in: "luzF", stdDeviation: 1.6, result: "luzB" }, f);
+          const mg = el("feMerge", {}, f); el("feMergeNode", { in: "tono" }, mg); el("feMergeNode", { in: "luzB" }, mg); }
+        g.setAttribute("filter", `url(#${fid})`); }
       return { a, g, j, m: Personajes.crear(g, j, { id: "esc-" + a.id }) }; });
     // ESPACIO 2,5D: cada cosa está en (x, profundidad p) sobre el suelo; la cámara está a una distancia D del plano p = 0 y a una altura
     // «alto» (claves de cámara: alto; 450 por defecto). Proyección en perspectiva: lo lejano encoge, sube hacia el horizonte (que queda a la

@@ -70,13 +70,14 @@ def silueta_svg(m):
     return d
 
 
-def vectorizar(rgb, ruta_tmp):
+def vectorizar(rgb, ruta_tmp, op=None):
+    op = op or {}
     # alisado que conserva los bordes: aplana el ruido del JPG en zonas de color limpias (bordes nítidos, sin dientes)
     rgb = cv2.pyrMeanShiftFiltering(rgb, 5, 10)
     big = cv2.resize(rgb, None, fx=ESC, fy=ESC, interpolation=cv2.INTER_LANCZOS4) if ESC != 1 else rgb
     cv2.imwrite(ruta_tmp + ".png", big)
     vtracer.convert_image_to_svg_py(ruta_tmp + ".png", ruta_tmp + ".svg", colormode="color", hierarchical="stacked", mode="spline",
-                                    filter_speckle=6, color_precision=7, layer_difference=8, corner_threshold=70,
+                                    filter_speckle=op.get("speckle", 6), color_precision=op.get("color_precision", 7), layer_difference=op.get("layer_difference", 8), corner_threshold=70,
                                     length_threshold=3.5, max_iterations=10, splice_threshold=50, path_precision=1)
     svg = open(ruta_tmp + ".svg", encoding="utf-8").read()
     cuerpo = svg[svg.index(">", svg.index("<svg")) + 1: svg.rindex("</svg>")]
@@ -142,7 +143,7 @@ def main():
             for y in range(1, h): fila = t[y]; rgb[y, fila] = rgb[y - 1, fila]
             suave = cv2.GaussianBlur(rgb, (41, 1), 0); rgb[t] = suave[t]
         else: rgb = cv2.inpaint(im, tapa, 12, cv2.INPAINT_TELEA) if tapa.any() else im.copy()
-        cuerpo = vectorizar(rgb, os.path.join(dest, "_tmp_" + c["id"]))
+        cuerpo = vectorizar(rgb, os.path.join(dest, "_tmp_" + c["id"]), c.get("vtracer"))
         if mascaras[i] is not None:
             cid = f'lam-{cfg["nombre"]}-{c["id"]}'
             cuerpo = f'<defs><clipPath id="{cid}"><path d="{silueta_svg(cv2.dilate(mascaras[i], np.ones((3, 3), np.uint8)))}" clip-rule="evenodd"/></clipPath></defs><g clip-path="url(#{cid})">{cuerpo}</g>'
