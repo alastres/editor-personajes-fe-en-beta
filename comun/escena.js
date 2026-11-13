@@ -264,6 +264,7 @@
           const vis = Personajes.visemaEn(au.palabras, u);
           if (vis) { const f = v == null ? 1.1 : 0.7 + 0.55 * cl(v * 1.5); e.visema = { abre: Math.min(1.2, vis.abre * f * 1.2), ancho: vis.ancho, dientes: vis.dientes }; break; }
           if (v != null && !au.palabras) { e.boca = cl(v * 1.15); e.bocaAncho = Math.sin(u * 11.3) * Math.sin(u * 4.1); } }
+        if (a.variantes) e.variantes = Object.assign({}, A.j.variantes || {}, a.variantes);   // variantes propias en esta escena (con o sin velo…)
         e.t = t; e.mundo = [q.x / esc0, -170 * (q.p || 0) / esc0];
         A.m.dibujar(e);
         // puntos del personaje en el mundo (para que otros le miren o le cojan de la mano en el fotograma siguiente)

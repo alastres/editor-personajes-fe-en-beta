@@ -222,10 +222,16 @@
     }
     const KAP = 0.5523, RC = 58;
     const elD = (cx, cy, rx, ry) => `M${cx + rx} ${cy} C ${cx + rx} ${cy + ry * KAP} ${cx + rx * KAP} ${cy + ry} ${cx} ${cy + ry} C ${cx - rx * KAP} ${cy + ry} ${cx - rx} ${cy + ry * KAP} ${cx - rx} ${cy} C ${cx - rx} ${cy - ry * KAP} ${cx - rx * KAP} ${cy - ry} ${cx} ${cy - ry} C ${cx + rx * KAP} ${cy - ry} ${cx + rx} ${cy - ry * KAP} ${cx + rx} ${cy} Z`;
-    const CABF = [];
+    const CABF = []; let OCULTO = new Set();
     // prof: k (cuánto sigue la superficie), z (profundidad extra), w (cuánto se queda quieto: la silueta no gira),
     //       desp (corrimiento de una masa con el giro), lim (no salir del cráneo, con frenado suave), ojo (usa el ángulo de los ojos)
-    const CF = (d, prof, at, g = gC, pre = null) => { const e = el("path", at, g); const fz = { e, prof, pre }; Object.assign(fz, parsear(d)); CABF.push(fz); return e; };
+    // cada forma de la cabeza sabe a qué parte pertenece (para que una pieza dibujada la sustituya: oculta: ["pelo", "ojos", "boca"…])
+    const catDe = (prof, at, g) => { const pelos = [C.pelo, C.peloS, C.peloL];
+      if (g === gMelena || prof === MASA || prof === FLEQ || prof === PATILLA) return "pelo"; if (prof === BARBA) return "barba"; if (prof === OJO) return "ojos"; if (prof === OREJA) return "orejas";
+      if (prof.z === 9 && at.stroke === C.pelo) return "barba"; if (prof.z === 4 && at["stroke-width"] === 10) return "cejas"; if (at.fill === C.nariz) return "nariz";
+      if (prof.z === 6 && prof.k === 1) return "boca"; if (prof === NUCA_ && (pelos.includes(at.fill) || pelos.includes(at.stroke))) return "pelo"; return null; };
+    let NUCA_ = null;
+    const CF = (d, prof, at, g = gC, pre = null) => { const e = el("path", at, g); const fz = { e, prof, pre, cat: catDe(prof, at, g) }; Object.assign(fz, parsear(d)); CABF.push(fz); return e; };
     const R_ = (c, o = 1) => ({ fill: c, opacity: o });
     const T_ = (c, w, o = 1) => ({ fill: "none", stroke: c, "stroke-width": w, "stroke-linecap": "round", "stroke-linejoin": "round", opacity: o });
     const MASA = { k: 0, z: 0, w: 1, desp: -16 }, CARA = { k: 0, z: 0, w: 1 };
@@ -307,7 +313,7 @@
       (x, y) => [x, y - EXP.cejaY - (Math.abs(x) < 20 ? EXP.cejaIn : EXP.cejaOut)]));
     // ---- nuca (vista de espaldas): orejas a los lados, cráneo de piel y el pelo cubriéndolo hasta la nuca
     const caraKids = [...gC.children].filter((k) => k.getAttribute("display") !== "none"), puntos = {};
-    const gNuca = el("g", { display: "none" }, gC), NUCA = { k: 0, z: 0, w: 1 };
+    const gNuca = el("g", { display: "none" }, gC), NUCA = { k: 0, z: 0, w: 1 }; NUCA_ = NUCA;
     if (!largo) [-1, 1].forEach((sg) => { CF(elD(sg * 58, 4, 12, 17), NUCA, R_(C.piel), gNuca); CF(elD(sg * 59, 5, 5.5, 9), NUCA, R_(C.pielS), gNuca); });
     CF("M-58 -30 C -58 -58 -34 -78 0 -78 C 34 -78 58 -58 58 -30 L 58 26 C 58 56 32 78 0 78 C -32 78 -58 56 -58 26 Z", NUCA, R_(mix(C.piel, C.pielS, 0.25)), gNuca);
     const bajoPelo = largo ? 80 : rizado ? 52 : 44;
@@ -326,7 +332,7 @@
     const PIEZAS = (op.piezas || []).map((pz) => {
       // padre según el hueso: cabeza, brazo/antebrazo/mano (grupo de su brazo), pie (grupo de su pierna) o pecho/cintura (túnica)
       const h_ = pz.hueso || "", lado = /Izq$/.test(h_) ? 0 : /Der$/.test(h_) ? 1 : -1;
-      const padre = h_ === "cabeza" ? gC : /^(mano|brazo|antebrazo)/.test(h_) && lado >= 0 ? brazos[lado].g : /^pie/.test(h_) && lado >= 0 ? piernas[lado].g : gT;
+      const padre = h_ === "cabeza" ? gC : /^(mano|brazo|antebrazo)/.test(h_) && lado >= 0 ? brazos[lado].g : /^(pie|muslo|pierna)/.test(h_) && lado >= 0 ? piernas[lado].g : gT;
       const g = el("g", { "data-pieza": pz.id || "" }, padre), dentro = el("g", {}, g), tinta = (t) => String(t || "").replace(/\{(\w+)\}/g, (m0, k) => C[k] || m0);
       // un dibujo por vista (como las capas de cambio de Moho): frente (svg), perfil (svgPerfil, mirando a la derecha; se refleja) y espaldas
       const vis = { frente: el("g", {}, dentro) }; vis.frente.innerHTML = tinta(pz.svg);
@@ -347,9 +353,36 @@
       for (let i = 0; i < n; i++) { st.w += (-K * st.th - C * st.w - S * ax) * hh; st.th = Math.max(-1.2, Math.min(1.2, st.th + st.w * hh)); }
       Object.assign(st, { t: TT, x, y, vx }); return st.th;
     }
+    // FÍSICA EN CADENA (pz.cadena = { segmentos, largo, grosor, fin, color, rigidez, amortiguacion, ancla: [x, y], angulo }): una tira que cuelga
+    // de la pieza (pelo largo, cuerda, cola, cinta) y se mueve en ola. Verlet en coordenadas del mundo (la inercia sale de andar o correr), con la
+    // gravedad hacia abajo y un muelle hacia la forma de reposo; si el tiempo salta, vuelve al reposo (mismo criterio que la física de péndulo).
+    function cadena(P, mat) { const Cd = P.pz.cadena, n = Math.max(2, Math.min(16, Math.round(Cd.segmentos ?? 6))), L = (Cd.largo ?? 160) / n;
+      const sc = P.pz.escala ?? 1, an = Cd.ancla || [0, 0], a0 = ((P.pz.rot || 0) * Math.PI) / 180, lx = (P.pz.x || 0) + sc * (an[0] * Math.cos(a0) - an[1] * Math.sin(a0)), ly = (P.pz.y || 0) + sc * (an[0] * Math.sin(a0) + an[1] * Math.cos(a0));
+      const O = [mat[0] * lx + mat[2] * ly + mat[4] + MUNDO[0], mat[1] * lx + mat[3] * ly + mat[5] + MUNDO[1]];
+      const ar = (((Cd.angulo ?? 0) + (P.pz.rot || 0)) * Math.PI) / 180, dx0 = Math.sin(-ar), dy0 = Math.cos(ar), d = [mat[0] * dx0 + mat[2] * dy0, mat[1] * dx0 + mat[3] * dy0], dl = Math.hypot(d[0], d[1]) || 1, D0 = [d[0] / dl, d[1] / dl];
+      const reposo = () => Array.from({ length: n + 1 }, (_, i) => [O[0] + D0[0] * L * i * sc, O[1] + D0[1] * L * i * sc]);
+      let st = P.cad;       if (!st || !(TT >= st.t) || TT - st.t > 0.25) { const r = reposo(); st = P.cad = { t: TT, p: r, q: r.map((v) => v.slice()) }; }
+      else if (TT > st.t) { const dt = TT - st.t, m = Math.ceil(dt * 120), h = dt / m, amo = 1 - 0.01 - 0.06 * (Cd.amortiguacion ?? 0.3), rig = 0.0005 + 0.03 * (Cd.rigidez ?? 0.25), Lr = L * sc;
+        for (let k = 0; k < m; k++) { const R = reposo(); st.p[0] = [O[0], O[1]];
+          for (let i = 1; i <= n; i++) { const p = st.p[i], q = st.q[i], vx = (p[0] - q[0]) * amo, vy = (p[1] - q[1]) * amo; st.q[i] = p.slice();
+            p[0] += vx + (R[i][0] - p[0]) * rig; p[1] += vy + 2400 * h * h + (R[i][1] - p[1]) * rig; }
+          for (let it = 0; it < 3; it++) for (let i = 1; i <= n; i++) { const a = st.p[i - 1], b = st.p[i], ex = b[0] - a[0], ey = b[1] - a[1], ll = Math.hypot(ex, ey) || 1, f = (ll - Lr) / ll;
+            if (i === 1) { b[0] -= ex * f; b[1] -= ey * f; } else { a[0] += ex * f * 0.5; a[1] += ey * f * 0.5; b[0] -= ex * f * 0.5; b[1] -= ey * f * 0.5; } } }
+        st.t = TT; }
+      // forma rellena que se afina (grosor → fin), en las coordenadas del padre de la pieza
+      const pts = st.p.map((v) => [v[0] - MUNDO[0], v[1] - MUNDO[1]]), g0 = (Cd.grosor ?? 18) * sc, g1 = (Cd.fin ?? 4) * sc, izq = [], der = [];
+      pts.forEach((p, i) => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], tl = Math.hypot(tx, ty) || 1, w = (g0 + (g1 - g0) * (i / n)) / 2;
+        izq.push([p[0] - (ty / tl) * w, p[1] + (tx / tl) * w]); der.push([p[0] + (ty / tl) * w, p[1] - (tx / tl) * w]); });
+      const curva = (arr) => arr.map((p, i) => (i ? (i < arr.length - 1 ? `Q ${f1(p[0])} ${f1(p[1])} ${f1((p[0] + arr[i + 1][0]) / 2)} ${f1((p[1] + arr[i + 1][1]) / 2)}` : `L ${f1(p[0])} ${f1(p[1])}`) : `M${f1(p[0])} ${f1(p[1])}`)).join(" ");
+      const fin = pts[n], dr = der.slice().reverse();
+      P.cadEl.setAttribute("d", curva(izq) + ` Q ${f1(fin[0] + (fin[0] - pts[n - 1][0]) * 0.4)} ${f1(fin[1] + (fin[1] - pts[n - 1][1]) * 0.4)} ${f1(dr[0][0])} ${f1(dr[0][1])} ` + curva(dr).replace(/^M/, "L") + " Z");
+      P.cadEl.setAttribute("fill", String(Cd.color || "{pelo}").replace(/\{(\w+)\}/g, (m0, k) => C[k] || m0)); }
     function ponerPieza(P, mat, ve, detrasForzado, ang) {
       const pz = P.pz, act = activa(pz, ve);
+      if (P.cadEl) P.cadEl.setAttribute("display", act && mat && pz.cadena && pz.cadena.activa !== false ? "inline" : "none");
       if (!act || !mat) { P.g.setAttribute("display", "none"); return; }
+      if (pz.cadena && pz.cadena.activa !== false) { if (!P.cadEl) P.cadEl = el("path", { "data-cadena": pz.id || "" }, P.padre); cadena(P, mat);
+        if ((pz.capa || "delante") === "delante" && !detrasForzado) P.padre.appendChild(P.cadEl); else P.padre.insertBefore(P.cadEl, P.padre.firstChild); }
       P.g.setAttribute("display", "inline");
       P.g.setAttribute("transform", `matrix(${mat.map((v) => v.toFixed(4)).join(" ")})`);
       let fis = "";
@@ -381,6 +414,7 @@
         const d = escribir(fz.cmds, pts); fz.e.setAttribute("d", d);
         if (fz.e === caraF) clipCara.setAttribute("d", d);
         if (fz.e._copia) fz.e._copia.setAttribute("d", d);
+        if (fz.cat) fz.e.setAttribute("visibility", OCULTO.has(fz.cat) ? "hidden" : "visible");
       }
     }
 
@@ -410,7 +444,7 @@
       if (e.visema) { const v = e.visema; EXP.abre = EXP.abre * 0.3 + v.abre * 0.95; EXP.ancho *= v.ancho; EXP.dientes = v.dientes ?? 0; }   // labios por fonemas
       else if (e.boca) { EXP.abre += 0.75 * e.boca; EXP.ancho *= 1 - 0.3 * e.boca + 0.25 * (e.bocaAncho || 0); }   // hablar: la boca se abre con la voz (escenas: envolvente del audio)
       // partes del muñeco que tapa una pieza puesta (oculta: ["melena", "cinto"])
-      const oculto = new Set(); for (const P of PIEZAS) if (activa(P.pz, e.variantes)) (P.pz.oculta || []).forEach((k) => oculto.add(k));
+      const oculto = new Set(); for (const P of PIEZAS) if (activa(P.pz, e.variantes)) (P.pz.oculta || []).forEach((k) => oculto.add(k)); OCULTO = oculto;
       const R = e.correr || 0, AG = e.agacha || 0, REC = e.recoge || 0, ALT = e.altura || 0;
       // vaivén: andando baja al apoyar; corriendo baja a mitad del apoyo y sube en el vuelo; agacharse baja la cadera (las rodillas se doblan solas por IK)
       const bobW = 6 * A * Math.cos(4 * Math.PI * p), bobR = 15 * A * Math.cos(4 * Math.PI * (p - 0.18));
@@ -447,6 +481,11 @@
         // piezas en el pie (calzado, tobillera…): plano del empeine, que gira con el pie y se apoya con él
         for (const P of PIEZAS) { if (P.pz.hueso !== (sg > 0 ? "pieIzq" : "pieDer")) continue;
           const O = P3(0, 8, -10); ponerPieza(P, planoA(O, W(1, 0, 0, ap), [0, 1, 0]), e.variantes, false, ap); }
+        // piezas en el muslo (cadera → rodilla) y en la pierna (rodilla → tobillo): el eje y del dibujo sigue el hueso; el origen es su punto medio
+        const LADO = sg > 0 ? "Izq" : "Der";
+        for (const P of PIEZAS) { const hu = P.pz.hueso; if (hu !== "muslo" + LADO && hu !== "pierna" + LADO) continue;
+          const [A0, B0] = hu.startsWith("muslo") ? [cad, rod] : [rod, tobillo], O = mul(add(A0, B0), 0.5), ey = nrm(sub(B0, A0));
+          ponerPieza(P, planoA(O, W(1, 0, 0, ap), ey), e.variantes, false, ap); }
         const z = (rod[2] + tobillo[2]) / 2, os = cl(-z / 50) * 0.35;
         L.muslo.setAttribute("stroke", mix(cPierna, C.noche, os)); L.canilla.setAttribute("fill", mix(cPierna, C.noche, os)); L.empeine.setAttribute("fill", mix(moderno ? C.zapato : C.piel, C.noche, os));
         L.luz.setAttribute("opacity", (0.6 * (1 - os * 2.5)).toFixed(2));

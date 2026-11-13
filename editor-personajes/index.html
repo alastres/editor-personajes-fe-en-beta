@@ -157,9 +157,24 @@
               <div class="deslizador"><label>Punto de giro Y (en el dibujo)</label><input type="range" id="pz-fis-py" min="-150" max="150" step="1" /><output></output></div>
               <p class="ayuda">El punto de giro es donde la pieza «cuelga» (el cordón del colgante, la costura del velo). Pruébalo con la acción Andar o Correr.</p>
             </div></div>
-          <div class="campo"><label>Mientras está puesta, oculta</label><div class="interruptores"><label><input type="checkbox" id="pz-oc-melena" /> Melena</label><label><input type="checkbox" id="pz-oc-cinto" /> Cinturón</label></div></div>
+          <div class="campo fisica-campo"><label class="chk-grande"><input type="checkbox" id="pz-cad" /> Cadena: pelo largo, cuerda o cola que cuelga y ondea</label>
+            <div id="pz-cad-det">
+              <div class="deslizador"><label>Segmentos</label><input type="range" id="pz-cad-seg" min="2" max="14" step="1" /><output></output></div>
+              <div class="deslizador"><label>Largo</label><input type="range" id="pz-cad-largo" min="30" max="500" step="1" /><output></output></div>
+              <div class="deslizador"><label>Grosor al empezar</label><input type="range" id="pz-cad-gro" min="2" max="80" step="1" /><output></output></div>
+              <div class="deslizador"><label>Grosor al final</label><input type="range" id="pz-cad-fin" min="0" max="60" step="1" /><output></output></div>
+              <div class="deslizador"><label>Rigidez (vuelve a su forma)</label><input type="range" id="pz-cad-rig" min="0" max="1" step="0.01" /><output></output></div>
+              <div class="deslizador"><label>Amortiguación</label><input type="range" id="pz-cad-amo" min="0" max="1" step="0.01" /><output></output></div>
+              <div class="deslizador"><label>Ángulo de reposo</label><input type="range" id="pz-cad-ang" min="-90" max="90" step="1" /><output></output></div>
+              <div class="deslizador"><label>Ancla X (en el dibujo)</label><input type="range" id="pz-cad-ax" min="-150" max="150" step="1" /><output></output></div>
+              <div class="deslizador"><label>Ancla Y (en el dibujo)</label><input type="range" id="pz-cad-ay" min="-150" max="150" step="1" /><output></output></div>
+              <div class="campo"><label>Color</label><select id="pz-cad-color"><option value="{pelo}">Pelo</option><option value="{peloS}">Pelo sombra</option><option value="{ropa}">Ropa</option><option value="{ropaS}">Ropa sombra</option><option value="{piel}">Piel</option><option value="#be3f1c">Rojo</option><option value="#e0b070">Dorado</option><option value="#3a2a2a">Oscuro</option></select></div>
+            </div></div>
+          <div class="campo"><label>Mientras está puesta, oculta</label><div class="interruptores"><label><input type="checkbox" id="pz-oc-melena" /> Melena</label><label><input type="checkbox" id="pz-oc-cinto" /> Cinturón</label><label><input type="checkbox" id="pz-oc-pelo" /> Pelo</label><label><input type="checkbox" id="pz-oc-barba" /> Barba</label><label><input type="checkbox" id="pz-oc-ojos" /> Ojos</label><label><input type="checkbox" id="pz-oc-cejas" /> Cejas</label><label><input type="checkbox" id="pz-oc-boca" /> Boca</label><label><input type="checkbox" id="pz-oc-nariz" /> Nariz</label><label><input type="checkbox" id="pz-oc-orejas" /> Orejas</label></div>
+            <p class="ayuda">Para sustituir una parte del muñeco: dibuja la tuya en esta pieza (atada a la cabeza) y oculta la original.</p></div>
           <div class="campo"><label>Grupo de variantes <span class="tenue">(piezas que se turnan: «sombrero», «en la mano»…)</span></label><input id="pz-grupo" type="text" placeholder="sin grupo: siempre visible" /></div>
           <button id="pz-editar" class="primario ancho" style="margin-bottom:8px">✎ Editar el dibujo (vectores)</button>
+          <button id="pz-compartir" class="enlace" title="La guarda en la biblioteca común (shorts-flow/piezas): cualquier personaje podrá ponérsela">Compartir esta pieza con todos los personajes</button>
           <div class="fila-botones"><button id="pz-arriba">↑ Encima</button><button id="pz-abajo">↓ Debajo</button><button id="pz-duplicar">Duplicar</button><button id="pz-quitar" class="peligro">Quitar</button></div>
         </div>
       </section>

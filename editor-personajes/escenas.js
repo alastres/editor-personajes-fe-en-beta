@@ -87,6 +87,14 @@
   function tocarClave(listaK, campos, valores) { let i = listaK.findIndex((k) => Math.abs(k.t - tiempo) < 0.02);
     if (i < 0) { const base = Escena.claves(listaK, tiempo, campos) || {}; const k = { t: +tiempo.toFixed(2) }; for (const c of campos) k[c] = base[c] ?? valores[c] ?? 0; listaK.push(k); listaK.sort((a, b) => a.t - b.t); i = listaK.indexOf(k); }
     Object.assign(listaK[i], valores); }
+  // contraste WCAG entre dos colores (luminancia relativa); el peor de los colores del fondo que suelen quedar detrás de la cabeza
+  const lumi = (hx) => { const c = [1, 3, 5].map((i) => parseInt(hx.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const contraste = (a, b) => { const x = lumi(a), y = lumi(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  function contrasteFondo(piel) { const F = Escena.fondoDe(esc.fondo), cand = [];
+    if (F.tipo === "color") cand.push([esc.fondo?.color || "#2a2540", "el color de fondo"]);
+    else if (F.tipo === "interior") cand.push([F.pared[0], "la pared"]);
+    else { (F.cielo || []).slice(1).forEach((c, i) => cand.push([c, i ? "el horizonte" : "el cielo"])); if ((F.lejos || "montes") !== "nada") cand.push([F.montes[0], "lo de lejos"]); }
+    let peor = null; for (const [c, donde] of cand) { if (!/^#[0-9a-f]{6}$/i.test(c)) continue; const v = contraste(piel, c); if (!peor || v < peor.v) peor = { v, donde }; } return peor; }
   // ---- personalizar el fondo
   function pintarFondoPanel() { const F = Escena.fondoDe(esc.fondo), f = esc.fondo || {}, col = (id, v) => { const i = $("#" + id); if (v && document.activeElement !== i) i.value = v; };
     const conCielo = !["interior", "color"].includes(F.tipo); $("#f-mas").hidden = F.tipo === "color";
@@ -144,6 +152,10 @@
     const ul = $("#actores"); ul.replaceChildren(); if (!esc.actores.length) ul.append(h("li", { class: "vacio" }, "Añade personajes de tu reparto."));
     for (const a of esc.actores) ul.append(h("li", { class: a.id === selActor ? "activo" : "", onclick: () => { selActor = a.id; selBloque = null; pintarPanel(); pintarPistas(); } },
       h("span", {}, "●"), h("span", {}, PJ[a.personaje]?.nombre || a.personaje), h("span", { class: "hueso" }, `${(a.bloques || []).length} acc.`), h("span")));
+    // regla de la marca: la piel contrasta al menos 2:1 con lo que tiene detrás (cielo, horizonte y montes; pared en interior)
+    const malos = esc.actores.map((x) => { const pj = PJ[x.personaje]; if (!pj) return null; const piel = Personajes.colores(pj).piel || "#c8684a", r = contrasteFondo(piel);
+      return r && r.v < 2 ? `${pj.nombre || x.personaje}: ${r.v.toFixed(2).replace(".", ",")}:1 contra ${r.donde}` : null; }).filter(Boolean);
+    const av = $("#aviso-contraste"); av.hidden = !malos.length; if (malos.length) av.textContent = "⚠ Piel con poco contraste con el fondo (mínimo 2:1):\n" + malos.join("\n") + "\nCambia el fondo o sus colores, o el tono de piel en Personajes.";
     const a = actor(); $("#actor-det").hidden = !a;
     if (a) { const q = posActor(a); deslizar("a-x", q.x, (v) => Math.round(v)); deslizar("a-p", q.p || 0, (v) => v.toFixed(2)); deslizar("a-giro", q.giro ?? 20, (v) => Math.round(v) + "°"); deslizar("a-escala", a.escala || 1, (v) => Math.round(v * 100) + "%");
       const acc = [...(PJ[a.personaje]?.acciones || []), ...Object.values(window.ACCIONES || {}).map((x) => Object.assign({}, x, { comun: true }))];

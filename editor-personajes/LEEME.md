@@ -250,3 +250,11 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - **Poses guardadas:** «Guardar pose» guarda la pose del cabezal en el personaje (`poses`). Con clic se pone en el cabezal y con clic derecho se borra.
 - **Copiar y pegar** la pose del cabezal entre claves, acciones o personajes (botones junto a «Borrar clave»).
 - **Rendimiento:** la distancia recorrida (para el paso de los pies) se calcula una vez y se guarda, en vez de integrarse desde 0 en cada fotograma.
+
+## Diseño: sustituir partes, piezas en las piernas, cadenas, biblioteca y contraste (fase 19)
+- **Sustituir partes del muñeco:** en una pieza, «Mientras está puesta, oculta» admite ahora pelo, barba, ojos, cejas, boca, nariz y orejas, además de melena y cinturón. Para cambiar el peinado o los ojos, dibuja los tuyos en una pieza atada a la cabeza y oculta los originales.
+- **Piezas en muslos y piernas:** huesos nuevos Muslo y Pierna (izq. y der.) para rodilleras, vendas, polainas o bajos de pantalón. El eje vertical del dibujo sigue el hueso y el origen es su punto medio.
+- **Física en cadena:** en una pieza, «Cadena» añade una tira que cuelga y ondea (pelo largo, cuerda, cola, cinta). Se ajustan segmentos, largo, grosor al empezar y al final, rigidez, amortiguación, ángulo de reposo, ancla y color. Al correr se queda atrás y al frenar ondea en ola. En el JSON: `cadena: { segmentos, largo, grosor, fin, rigidez, amortiguacion, angulo, ancla, color }`. Ejemplo: «Cinta (cadena)» en demo-piezas.
+- **Biblioteca común de piezas** (`shorts-flow/piezas`): «Compartir esta pieza con todos los personajes» la guarda allí, y aparece con ★ en «Biblioteca» para cualquier personaje.
+- **Contraste piel/fondo** (Escenas): si la piel de un personaje contrasta menos de 2:1 con el cielo, el horizonte, lo lejano o la pared (regla de la marca), sale un aviso con el valor y contra qué.
+- **Variantes por escena:** un actor puede llevar `variantes` propias en la escena (por ejemplo, sin velo) sin cambiar el personaje.

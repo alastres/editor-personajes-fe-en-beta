@@ -20,7 +20,7 @@
 const http = require("http"), fs = require("fs"), path = require("path"), { spawn } = require("child_process");
 const PUERTO = Number(process.env.PORT || 3170);
 const AQUI = __dirname, RAIZ = path.join(AQUI, ".."), COMUN = path.join(RAIZ, "comun");
-const DIRS = { personajes: path.join(RAIZ, "personajes"), escenas: path.join(RAIZ, "escenas"), acciones: path.join(RAIZ, "acciones"), shorts: path.join(RAIZ, "shorts") };   // acciones = biblioteca común
+const DIRS = { personajes: path.join(RAIZ, "personajes"), escenas: path.join(RAIZ, "escenas"), acciones: path.join(RAIZ, "acciones"), shorts: path.join(RAIZ, "shorts"), piezas: path.join(RAIZ, "piezas") };   // acciones = biblioteca común
 const PY_VS = path.join(process.env.APPDATA || "", "VoiceStudio", "runtime", "project", ".venv", "Scripts", "python.exe");   // python con numpy y soundfile (montar-musica.py)
 const API_VS = "http://127.0.0.1:3900";   // VoiceStudio: transcripción con tiempos por palabra
 for (const d of Object.values(DIRS)) fs.mkdirSync(d, { recursive: true });
@@ -292,9 +292,9 @@ http.createServer(async (req, res) => {
       return enviarJSON(res, await envolvente(f)); }
     if (url === "/api/transcribir" && req.method === "POST") { const b = JSON.parse(await cuerpo(req) || "{}");
       try { return enviarJSON(res, await transcribir(b.archivo, b.guion)); } catch (e) { return enviarJSON(res, { error: String(e.message || e) }, 400); } }
-    let m = url.match(/^\/api\/(personajes|escenas|acciones|shorts)$/);
+    let m = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)$/);
     if (m && req.method === "GET") return enviarJSON(res, lista(m[1]));
-    m = url.match(/^\/api\/(personajes|escenas|acciones|shorts)\/([^/]+)(\/[a-z]+)?$/);
+    m = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)\/([^/]+)(\/[a-z]+)?$/);
     if (m) { const [, tipo, id, sub] = m; if (!idValido(id)) { res.writeHead(400); return res.end("id no válido: minúsculas, números y guiones"); }
       const f = path.join(DIRS[tipo], id + ".json");
       if (sub === "/papelera" && req.method === "POST") { if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }

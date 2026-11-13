@@ -59,12 +59,12 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 - [x] *(13 nov 2026)* **Biblioteca de poses** (instantáneas reutilizables) y copiar y pegar claves entre acciones.
 
 ### Diseño
-- [ ] **Sustituir partes base del muñeco:** cabeza, ojos, bocas, peinados o manos dibujados en el taller, con sus variantes. Ahora solo se puede añadir encima o quitar el pelo.
+- [x] *(13 nov 2026: una pieza en la cabeza puede ocultar pelo, barba, ojos, cejas, boca, nariz u orejas y ocupar su lugar)* **Sustituir partes base del muñeco:** cabeza, ojos, bocas, peinados o manos dibujados en el taller, con sus variantes. Ahora solo se puede añadir encima o quitar el pelo.
 - [ ] **Piezas que se doblan con los huesos** (mallas): mangas, faldas, capas y cinturones que se deforman con el cuerpo en vez de ser rígidos.
-- [ ] **Física en cadena:** pelo largo, cuerdas o colas de varios segmentos que se mueven en ola; choque simple con el cuerpo.
-- [ ] **Piezas en muslos y piernas.**
-- [ ] **Biblioteca común de piezas** (como la de acciones): un sombrero hecho una vez, disponible para todos.
-- [ ] **Comprobar el contraste piel/fondo** (regla de la marca: al menos 2:1) desde el editor, con aviso.
+- [x] *(13 nov 2026)* **Física en cadena:** pelo largo, cuerdas o colas de varios segmentos que se mueven en ola; choque simple con el cuerpo.
+- [x] *(13 nov 2026)* **Piezas en muslos y piernas.**
+- [x] *(13 nov 2026)* **Biblioteca común de piezas** (como la de acciones): un sombrero hecho una vez, disponible para todos.
+- [x] *(13 nov 2026)* **Comprobar el contraste piel/fondo** (regla de la marca: al menos 2:1) desde el editor, con aviso.
 
 ### Taller de dibujo
 - [ ] **Simetría en vivo:** dibujar media cara o medio sombrero y que se refleje solo.

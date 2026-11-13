@@ -1,9 +1,7 @@
 {
-  "nombre": "Fondo desierto",
   "duracion": 1.5,
   "fondo": {
-    "tipo": "desierto",
-    "lejos": "ciudad"
+    "tipo": "desierto"
   },
   "camara": [
     {
@@ -37,5 +35,7 @@
   ],
   "textos": [],
   "audios": [],
+  "objetos": [],
+  "nombre": "Fondo desierto",
   "id": "fondo-desierto"
 }

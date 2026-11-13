@@ -1,0 +1,56 @@
+{
+ "nombre": "Prueba de física en cadena",
+ "duracion": 4,
+ "fondo": {
+  "tipo": "dia"
+ },
+ "camara": [
+  {
+   "t": 0,
+   "x": -300,
+   "y": -380,
+   "zoom": 1
+  },
+  {
+   "t": 4,
+   "x": 500,
+   "y": -380,
+   "zoom": 1
+  }
+ ],
+ "actores": [
+  {
+   "id": "demo",
+   "personaje": "demo-piezas",
+   "escala": 1,
+   "recorrido": [
+    {
+     "t": 0,
+     "x": -500,
+     "p": 0.1,
+     "giro": 80
+    },
+    {
+     "t": 1.5,
+     "x": -500,
+     "p": 0.1,
+     "giro": 80
+    },
+    {
+     "t": 3.2,
+     "x": 700,
+     "p": 0.1,
+     "giro": 80,
+     "curva": "frena"
+    }
+   ],
+   "bloques": [],
+   "variantes": {
+    "sombrero": ""
+   }
+  }
+ ],
+ "textos": [],
+ "audios": [],
+ "id": "prueba-cadena"
+}

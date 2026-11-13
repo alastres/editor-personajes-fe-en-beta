@@ -229,7 +229,7 @@
 
   // =====================================================================================================
   // ---- PIEZAS PROPIAS (fase 2): SVG atados a huesos, variantes, arrastrar en el escenario
-  const HUESOS = { cabeza: "Cabeza", pecho: "Pecho", cintura: "Cintura", brazoIzq: "Brazo izq.", brazoDer: "Brazo der.", antebrazoIzq: "Antebrazo izq.", antebrazoDer: "Antebrazo der.", manoIzq: "Mano izq.", manoDer: "Mano der.", pieIzq: "Pie izq.", pieDer: "Pie der." };
+  const HUESOS = { cabeza: "Cabeza", pecho: "Pecho", cintura: "Cintura", brazoIzq: "Brazo izq.", brazoDer: "Brazo der.", antebrazoIzq: "Antebrazo izq.", antebrazoDer: "Antebrazo der.", manoIzq: "Mano izq.", manoDer: "Mano der.", musloIzq: "Muslo izq.", musloDer: "Muslo der.", piernaIzq: "Pierna izq.", piernaDer: "Pierna der.", pieIzq: "Pie izq.", pieDer: "Pie der." };
   const CAPAS = { delante: "Delante", detras: "Detrás" }, VISTAS_PZ = { siempre: "Siempre", frente: "De frente", espaldas: "De espaldas" }, MODOS = { silueta: "Fija (sombrero)", superficie: "Gira con la cara" };
   let sel = null;   // id de la pieza elegida
   prueba.variantes = prueba.variantes || {};
@@ -257,7 +257,14 @@
     for (const f of ev.target.files) { try { const svg = limpiarSVG(await f.text()); anadirPieza({ nombre: f.name.replace(/\.svg$/i, ""), svg }); } catch (e) { aviso(`${f.name}: ${e.message}`); } }
     ev.target.value = ""; });
   $("#b-biblio").addEventListener("click", () => { const b = $("#biblio"); b.hidden = !b.hidden; $("#b-biblio").classList.toggle("activo", !b.hidden); });
-  $("#biblio").replaceChildren(...(window.BIBLIOTECA || []).map((spec) => h("button", { onclick: () => anadirPieza(spec), title: HUESOS[spec.hueso] }, spec.nombre)));
+  // biblioteca: los ejemplos que trae el editor y la biblioteca común (shorts-flow/piezas, lo que se comparte desde cualquier personaje)
+  async function pintarBiblio() { let comunes = []; try { const l = await (await fetch("/api/piezas")).json(); comunes = await Promise.all(l.map(async (x) => { try { return await (await fetch("/api/piezas/" + x.id)).json(); } catch { return null; } })); } catch {}
+    $("#biblio").replaceChildren(...(window.BIBLIOTECA || []).map((spec) => h("button", { onclick: () => anadirPieza(spec), title: HUESOS[spec.hueso] }, spec.nombre)),
+      ...comunes.filter(Boolean).map((spec) => h("button", { class: "comun", onclick: () => { const c = JSON.parse(JSON.stringify(spec)); delete c.origen; anadirPieza(c); }, title: "Biblioteca común · " + (HUESOS[spec.hueso] || spec.hueso) }, "★ " + spec.nombre))); }
+  pintarBiblio();
+  $("#pz-compartir").addEventListener("click", async () => { const pz = j?.piezas.find((x) => x.id === sel); if (!pz) return; const id = slug(pz.nombre || pz.id);
+    const c = JSON.parse(JSON.stringify(pz)); delete c.id; c.origen = actual;
+    const r = await fetch("/api/piezas/" + id, { method: "PUT", body: JSON.stringify(c) }); if (r.ok) { aviso(`«${pz.nombre}» está en la biblioteca común (★ en «Biblioteca»)`); pintarBiblio(); } else aviso("No se pudo compartir"); });
 
   function pintarPiezas() {
     if (!j) return; const ul = $("#piezas"); ul.replaceChildren();
@@ -285,20 +292,28 @@
       const F = pz.fisica && pz.fisica.activa !== false ? pz.fisica : null; $("#pz-fis").checked = !!F; $("#pz-fis-det").hidden = !F;
       if (F) [["rig", F.rigidez ?? 0.4, (v) => Math.round(v * 100) + "%"], ["amo", F.amortiguacion ?? 0.35, (v) => Math.round(v * 100) + "%"], ["peso", F.peso ?? 1, (v) => v.toFixed(2)], ["px", (F.pivote || [0, 0])[0], (v) => Math.round(v)], ["py", (F.pivote || [0, 0])[1], (v) => Math.round(v)]]
         .forEach(([k, v, fmt]) => { const inp = $("#pz-fis-" + k); if (document.activeElement !== inp) inp.value = v; inp.nextElementSibling.textContent = fmt(v); });
-      ["melena", "cinto"].forEach((k) => { $("#pz-oc-" + k).checked = (pz.oculta || []).includes(k); });
+      ["melena", "cinto", "pelo", "barba", "ojos", "cejas", "boca", "nariz", "orejas"].forEach((k) => { $("#pz-oc-" + k).checked = (pz.oculta || []).includes(k); });
+      const Cd = pz.cadena && pz.cadena.activa !== false ? pz.cadena : null; $("#pz-cad").checked = !!Cd; $("#pz-cad-det").hidden = !Cd;
+      if (Cd) { for (const [k, v, fmt] of CADENA_UI(Cd)) { const inp = $("#pz-cad-" + k); if (document.activeElement !== inp) inp.value = v; inp.nextElementSibling.textContent = fmt(v); } $("#pz-cad-color").value = Cd.color || "{pelo}"; }
       $("#pz-prof").parentElement.hidden = !/^(pecho|cintura)$/.test(pz.hueso) && !(pz.hueso === "cabeza" && pz.modo === "superficie");
     }
     pintarVariantes();
   }
   function cambioPz(fn, clave) { cambio((x) => { const q = x.piezas.find((y) => y.id === sel); if (q) fn(q, x); }, clave); }
   ["x", "y", "escala", "rot", "prof"].forEach((k) => $("#pz-" + k).addEventListener("input", (ev) => cambioPz((q) => { q[k] = Number(ev.target.value); }, "pz-" + k + sel)));
-  ["melena", "cinto"].forEach((k) => $("#pz-oc-" + k).addEventListener("change", (ev) => cambioPz((q) => { const o = new Set(q.oculta || []); ev.target.checked ? o.add(k) : o.delete(k); q.oculta = [...o]; })));
+  ["melena", "cinto", "pelo", "barba", "ojos", "cejas", "boca", "nariz", "orejas"].forEach((k) => $("#pz-oc-" + k).addEventListener("change", (ev) => cambioPz((q) => { const o = new Set(q.oculta || []); ev.target.checked ? o.add(k) : o.delete(k); q.oculta = [...o]; })));
   let vistaImp = null;
   for (const v of ["perfil", "espaldas"]) { const campo = "svg" + v[0].toUpperCase() + v.slice(1);
     $("#pz-imp-" + v).addEventListener("click", () => { vistaImp = campo; $("#archivo-vista").click(); });
     $("#pz-quita-" + v).addEventListener("click", () => cambioPz((q) => { delete q[campo]; })); }
   $("#archivo-vista").addEventListener("change", async (ev) => { const f = ev.target.files[0]; ev.target.value = ""; if (!f || !vistaImp) return;
     try { const svg = limpiarSVG(await f.text()), campo = vistaImp; cambioPz((q) => { q[campo] = svg; }); aviso("Dibujo de " + (campo === "svgPerfil" ? "perfil" : "espaldas") + " importado"); } catch (e) { aviso(`${f.name}: ${e.message}`); } });
+  const CADENA_UI = (C) => [["seg", C.segmentos ?? 6, (v) => Math.round(v)], ["largo", C.largo ?? 160, (v) => Math.round(v)], ["gro", C.grosor ?? 18, (v) => Math.round(v)], ["fin", C.fin ?? 4, (v) => Math.round(v)],
+    ["rig", C.rigidez ?? 0.25, (v) => Math.round(v * 100) + "%"], ["amo", C.amortiguacion ?? 0.3, (v) => Math.round(v * 100) + "%"], ["ang", C.angulo ?? 0, (v) => Math.round(v) + "°"], ["ax", (C.ancla || [0, 0])[0], (v) => Math.round(v)], ["ay", (C.ancla || [0, 0])[1], (v) => Math.round(v)]];
+  $("#pz-cad").addEventListener("change", (ev) => cambioPz((q) => { if (ev.target.checked) q.cadena = Object.assign({ segmentos: 6, largo: 160, grosor: 18, fin: 4, rigidez: 0.25, amortiguacion: 0.3, color: "{pelo}" }, q.cadena || {}, { activa: true }); else if (q.cadena) q.cadena.activa = false; }));
+  for (const [k, campo] of [["seg", "segmentos"], ["largo", "largo"], ["gro", "grosor"], ["fin", "fin"], ["rig", "rigidez"], ["amo", "amortiguacion"], ["ang", "angulo"], ["ax", 0], ["ay", 1]])
+    $("#pz-cad-" + k).addEventListener("input", (ev) => cambioPz((q) => { q.cadena = q.cadena || { activa: true }; const v = Number(ev.target.value); if (typeof campo === "number") { q.cadena.ancla = [...(q.cadena.ancla || [0, 0])]; q.cadena.ancla[campo] = v; } else q.cadena[campo] = v; }, "cad-" + k + sel));
+  $("#pz-cad-color").addEventListener("change", (ev) => cambioPz((q) => { if (q.cadena) q.cadena.color = ev.target.value; }));
   $("#pz-fis").addEventListener("change", (ev) => cambioPz((q) => { if (ev.target.checked) q.fisica = Object.assign({ rigidez: 0.4, amortiguacion: 0.35, peso: 1, pivote: [0, 0] }, q.fisica || {}, { activa: true }); else if (q.fisica) q.fisica.activa = false; }));
   for (const [k, campo] of [["rig", "rigidez"], ["amo", "amortiguacion"], ["peso", "peso"], ["px", 0], ["py", 1]])
     $("#pz-fis-" + k).addEventListener("input", (ev) => cambioPz((q) => { q.fisica = q.fisica || { activa: true }; const v = Number(ev.target.value); if (typeof campo === "number") { q.fisica.pivote = [...(q.fisica.pivote || [0, 0])]; q.fisica.pivote[campo] = v; } else q.fisica[campo] = v; }, "fis-" + k + sel));

@@ -1,0 +1,11 @@
+{
+  "nombre": "Rodillera",
+  "hueso": "piernaDer",
+  "svg": "<rect x=\"-14\" y=\"-46\" width=\"28\" height=\"34\" rx=\"10\" fill=\"{ropaS}\"/>",
+  "x": 0,
+  "y": 0,
+  "escala": 1,
+  "capa": "delante",
+  "origen": "demo-piezas",
+  "id": "rodillera"
+}
