@@ -67,16 +67,16 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 - [x] *(13 nov 2026)* **Comprobar el contraste piel/fondo** (regla de la marca: al menos 2:1) desde el editor, con aviso.
 
 ### Taller de dibujo
-- [ ] **Simetría en vivo:** dibujar media cara o medio sombrero y que se refleje solo.
-- [ ] **Cuentagotas, alinear y distribuir, ajuste a la cuadrícula y a la simetría.**
-- [ ] **Unir y restar formas** (operaciones booleanas) y agrupar formas.
-- [ ] **Calco:** importar un PNG o un boceto de Flow como plantilla semitransparente para dibujar encima.
-- [ ] **Texto** convertido en formas (carteles, inscripciones).
+- [x] *(13 nov 2026)* **Simetría en vivo:** dibujar media cara o medio sombrero y que se refleje solo.
+- [x] *(13 nov 2026)* **Cuentagotas, alinear y distribuir, ajuste a la cuadrícula y a la simetría.**
+- [x] *(13 nov 2026: restar con «Agujero», que hace de máscara; unir = agrupar formas del mismo color)* **Unir y restar formas** (operaciones booleanas) y agrupar formas.
+- [x] *(13 nov 2026)* **Calco:** importar un PNG o un boceto de Flow como plantilla semitransparente para dibujar encima.
+- [x] *(13 nov 2026: herramienta Texto con tamaño y color; va como texto, no convertido en curvas)* **Texto** convertido en formas (carteles, inscripciones).
 
 ### Render
-- [ ] **Vista previa rápida** a baja resolución y render solo de un fragmento.
-- [ ] **Progreso real del render,** cola de varios y aviso al terminar.
-- [ ] **Formato horizontal (16:9)** para los vídeos largos, además del vertical.
+- [x] *(13 nov 2026)* **Vista previa rápida** a baja resolución y render solo de un fragmento.
+- [x] *(13 nov 2026)* **Progreso real del render,** cola de varios y aviso al terminar.
+- [x] *(13 nov 2026)* **Formato horizontal (16:9)** para los vídeos largos, además del vertical.
 - [x] *(13 nov 2026)* **Rendimiento en escenas largas:** cachear el recorrido y la simulación. *(Hecho el recorrido, con una tabla acumulada; la física ya estaba acotada a 1 s de pre-simulación.)*
 
 ---

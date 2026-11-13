@@ -67,7 +67,7 @@
 
   // ---- dibujo
   const lienzo = $("#lienzo"), capa = $("#capa-escena");
-  function reconstruir() { if (!esc) return; capa.replaceChildren(); motor = Escena.crear(capa, esc, PJ); prepararAudios(); pintarPanel(); pintarPistas(); dibujar(); }
+  function reconstruir() { if (!esc) return; capa.replaceChildren(); motor = Escena.crear(capa, esc, PJ); RenderUI.formatoLienzo(lienzo, esc.formato); prepararAudios(); pintarPanel(); pintarPistas(); dibujar(); }
   function dibujar() { if (motor) motor.dibujar(Math.min(tiempo, D())); }
   function bucle(ahora) { const t = ahora / 1000;
     if (play && esc) { if (tAnt !== null) tiempo += t - tAnt; tAnt = t; if (tiempo >= D()) { tiempo = D(); parar(); } dibujar(); moverCabezal(); }
@@ -145,6 +145,7 @@
     if (!esc) return;
     if (document.activeElement !== $("#e-nombre")) $("#e-nombre").value = esc.nombre || "";
     deslizar("e-dur", D(), (v) => v.toFixed(1) + " s");
+    seg("#e-formato", { "": "Vertical 9:16 (short)", "16:9": "Horizontal 16:9" }, esc.formato || "", (k) => cambio((x) => { if (k) x.formato = k; else delete x.formato; }));
     // al cambiar de fondo se quitan los retoques de color y clima, pero se conservan las capas dibujadas y la imagen
     seg("#e-fondo", FONDOS_N, esc.fondo?.tipo || "noche", (k) => cambio((x) => { const v = x.fondo || {}; x.fondo = { tipo: k }; if (v.capas) x.fondo.capas = v.capas; if (v.imagen) x.fondo.imagen = v.imagen; if (k === "color") x.fondo.color = v.color; }));
     pintarFondoPanel();
@@ -324,14 +325,14 @@
   let arrO = null;
   lienzo.addEventListener("pointerdown", (ev) => { const go = ev.target.closest("[data-objeto]"); if (!go || !esc || ev.target.closest("[data-actor]")) return; const ob = objeto(go.getAttribute("data-objeto")); if (!ob) return; parar();
     selObjeto = ob.id; try { lienzo.setPointerCapture(ev.pointerId); } catch {} lienzo.classList.add("arrastrando");
-    arrO = { id: ob.id, x0: ev.clientX, y0: ev.clientY, x: ob.x || 0, p: ob.p || 0, k: (1080 / lienzo.clientWidth) / (posCam().zoom || 1) }; pintarPanel(); });
+    arrO = { id: ob.id, x0: ev.clientX, y0: ev.clientY, x: ob.x || 0, p: ob.p || 0, k: (Escena.ANCHO / lienzo.clientWidth) / (posCam().zoom || 1) }; pintarPanel(); });
   lienzo.addEventListener("pointermove", (ev) => { if (!arrO) return; const a = arrO, dx = (ev.clientX - a.x0) * a.k, dy = (ev.clientY - a.y0) * a.k;
     cambio((x) => { const o = x.objetos.find((y) => y.id === a.id); o.x = Math.round(a.x + dx); o.p = +cl(a.p - dy / 400, 0, 1.5).toFixed(3); }, "arrO" + a.id, false); });
   const soltarO = () => { if (!arrO) return; arrO = null; lienzo.classList.remove("arrastrando"); pintarPanel(); };
   lienzo.addEventListener("pointerup", soltarO); lienzo.addEventListener("pointercancel", soltarO);
   lienzo.addEventListener("pointerdown", (ev) => { const g = ev.target.closest("[data-actor]"); if (!g || !esc) return; const a = actor(g.getAttribute("data-actor")); if (!a) return; parar();
     selActor = a.id; selBloque = null; try { lienzo.setPointerCapture(ev.pointerId); } catch {} lienzo.classList.add("arrastrando");
-    const q = posActor(a); arrA = { id: a.id, x0: ev.clientX, y0: ev.clientY, q, k: (1080 / lienzo.clientWidth) / (posCam().zoom || 1) }; pintarPanel(); pintarPistas(); });
+    const q = posActor(a); arrA = { id: a.id, x0: ev.clientX, y0: ev.clientY, q, k: (Escena.ANCHO / lienzo.clientWidth) / (posCam().zoom || 1) }; pintarPanel(); pintarPistas(); });
   lienzo.addEventListener("pointermove", (ev) => { if (!arrA) return; const a = arrA, dx = (ev.clientX - a.x0) * a.k, dy = (ev.clientY - a.y0) * a.k;
     cambio((x) => tocarClave(x.actores.find((y) => y.id === a.id).recorrido, ["x", "p", "giro"], { x: Math.round(a.q.x + dx), p: +cl((a.q.p || 0) - dy / 400, 0, 1).toFixed(3) }), "arrA" + a.id + tiempo.toFixed(2), false); });
   const soltarA = () => { if (!arrA) return; arrA = null; lienzo.classList.remove("arrastrando"); };
@@ -339,17 +340,15 @@
 
   // ---- render
   let sondeo = null;
-  async function consultar() { const r = await (await fetch(`/api/escenas/${actual}/render`)).json(), e = $("#render-estado"), b = $("#b-render");
-    if (r.estado === "renderizando" || r.estado === "preparando") { e.textContent = `${r.estado === "preparando" ? "Preparando" : "Renderizando"}… ${r.progreso || ""} (${r.segundos} s)`; b.disabled = true; sondeo = setTimeout(consultar, 1500); return; }
-    b.disabled = false; if (r.estado === "listo") { e.textContent = `Listo en ${r.segundos} s · Videos/shorts-flow/${r.ruta || "escena-" + actual + "/out"}`; const v = $("#render-video"); v.hidden = false; v.src = r.archivo; }
-    else if (r.estado === "error") e.textContent = "Error al renderizar:\n" + r.log; else e.textContent = ""; }
+  async function consultar() { const r = await (await fetch(`/api/escenas/${actual}/render`)).json(); if (RenderUI.estado(r, `escena-${actual}/out`)) sondeo = setTimeout(consultar, 1500); }
   $("#b-render").addEventListener("click", async () => { if (!esc) return; await guardar(); clearTimeout(sondeo); { const v = $("#render-video"); v.pause(); v.removeAttribute("src"); v.load(); v.hidden = true; }   // suelta el MP4 anterior (Windows lo bloquea mientras está abierto)
-    await fetch(`/api/escenas/${actual}/render`, { method: "POST" }); consultar(); });
+    await fetch(`/api/escenas/${actual}/render`, { method: "POST", body: JSON.stringify(RenderUI.opciones()) }); consultar(); });
+  $("#r-cabezal").addEventListener("click", () => RenderUI.fragmentoDesde(tiempo, D()));
   $("#b-exportar").addEventListener("click", async () => { await guardar(); const r = await (await fetch(`/api/escenas/${actual}/exportar`, { method: "POST" })).json(); aviso("Proyecto en Videos/shorts-flow/" + r.dir); });
 
-  $("#b-png").addEventListener("click", async () => { if (!esc) return; const svg = $("#lienzo"), copia = svg.cloneNode(true); copia.setAttribute("width", 1080); copia.setAttribute("height", 1920); copia.querySelector("#guias")?.remove();
+  $("#b-png").addEventListener("click", async () => { if (!esc) return; const svg = $("#lienzo"), copia = svg.cloneNode(true); copia.setAttribute("width", Escena.ANCHO); copia.setAttribute("height", Escena.ALTO); copia.querySelector("#guias")?.remove();
     const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copia)], { type: "image/svg+xml" })), img = new Image(); await new Promise((ok, mal) => { img.onload = ok; img.onerror = mal; img.src = url; });
-    const c = document.createElement("canvas"); c.width = 1080; c.height = 1920; c.getContext("2d").drawImage(img, 0, 0); URL.revokeObjectURL(url);
+    const c = document.createElement("canvas"); c.width = Escena.ANCHO; c.height = Escena.ALTO; c.getContext("2d").drawImage(img, 0, 0); URL.revokeObjectURL(url);
     c.toBlob((b) => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `${actual}-${tiempo.toFixed(2).replace(".", "_")}s.png`; a.click(); aviso("Fotograma descargado"); }, "image/png"); });
 
   // ---- teclado

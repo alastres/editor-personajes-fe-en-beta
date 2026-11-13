@@ -1,6 +1,6 @@
 .escenario.esc { grid-template-rows: 1fr auto; }
 .marco-cont { min-height: 0; display: flex; align-items: center; justify-content: center; padding: 14px; background: #0f0d1a; }
-.marco-cont #lienzo { height: 100%; width: auto; max-width: 100%; aspect-ratio: 9 / 16; border-radius: 6px; box-shadow: 0 0 0 1px #3a3456, 0 10px 40px #0008; background: #100c1e; }
+.marco-cont #lienzo { height: 100%; width: auto; max-width: 100%; aspect-ratio: var(--aspecto, 9 / 16); border-radius: 6px; box-shadow: 0 0 0 1px #3a3456, 0 10px 40px #0008; background: #100c1e; }
 #lienzo [data-actor] { cursor: grab; }
 #lienzo.arrastrando, #lienzo.arrastrando [data-actor] { cursor: grabbing; }
 .pistas { display: grid; gap: 4px; margin: 0 6px; }
@@ -38,3 +38,8 @@ button.ancho { width: 100%; padding: 10px; }
 .piezas li.fila-efecto { grid-template-columns: 16px 1fr 70px 52px 22px; }
 .piezas li.fila-efecto input[type=number] { width: 52px; font: inherit; font-size: 12px; color: var(--texto); background: var(--panel2); border: 1px solid var(--borde); border-radius: 6px; padding: 2px 4px; }
 .aviso-contraste { background: #4a2a1e; border: 1px solid #be3f1c; color: #ffd0b8; border-radius: 8px; padding: 6px 8px; font-size: 12px; margin: 6px 0; white-space: pre-line; }
+.opciones-render { margin: 6px 0 8px; }
+.opciones-render .fila-anadir { display: flex; gap: 6px; align-items: center; }
+.opciones-render input[type=number] { width: 64px; font: inherit; color: var(--texto); background: var(--fondo); border: 1px solid var(--borde); border-radius: 6px; padding: 4px 6px; }
+.barra-render { height: 6px; border-radius: 3px; background: #ffffff14; margin-top: 6px; overflow: hidden; }
+.barra-render i { display: block; height: 100%; background: var(--acento, #f0a33a); transition: width .4s; }

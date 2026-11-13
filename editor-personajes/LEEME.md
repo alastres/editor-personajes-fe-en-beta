@@ -258,3 +258,19 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - **Biblioteca común de piezas** (`shorts-flow/piezas`): «Compartir esta pieza con todos los personajes» la guarda allí, y aparece con ★ en «Biblioteca» para cualquier personaje.
 - **Contraste piel/fondo** (Escenas): si la piel de un personaje contrasta menos de 2:1 con el cielo, el horizonte, lo lejano o la pared (regla de la marca), sale un aviso con el valor y contra qué.
 - **Variantes por escena:** un actor puede llevar `variantes` propias en la escena (por ejemplo, sin velo) sin cambiar el personaje.
+
+## Taller de dibujo: simetría, agujeros, texto, varias formas y calco (fase 20)
+- **Simetría en vivo:** «Simetría: se refleja sola en el eje» dibuja la forma también reflejada en la línea vertical del centro, para hacer media cara o medio sombrero. Con ninguna forma elegida, vale para las que se dibujen después.
+- **Agujero:** una forma marcada como agujero no se pinta y recorta la forma que tiene justo debajo (restar; en el SVG es una máscara). En el taller se ve con contorno discontinuo.
+- **Texto** (herramienta T): clic donde va, y en el panel se cambian el texto, el tamaño y el color. Sale como texto SVG con la letra de la marca, no convertido en curvas.
+- **Cuentagotas** (I): clic en una forma copia su color de relleno y contorno a la forma elegida, o al estilo de las siguientes.
+- **Varias formas:** Mayús + clic para elegir más. Se pueden alinear (izquierda, centro, derecha, arriba, medio, abajo), repartir a la misma distancia (3 o más), moverlas juntas y agrupar o desagrupar. Una forma sola se centra en el eje. Unir formas del mismo color equivale a agruparlas.
+- **Ajustar a la cuadrícula y al eje:** con el imán, los puntos y las formas caen en una cuadrícula de 10 y se pegan al eje cuando están cerca.
+- **Calco:** «Calco: abrir imagen…» pone un PNG o JPG (un boceto, una imagen de Flow) semitransparente debajo para dibujar encima, con opacidad y tamaño. No se guarda en la pieza.
+
+## Render: vista previa rápida, fragmento, cola, aviso y 16:9 (fase 21)
+- **Vista previa rápida:** borrador a 24 fps, mucho más rápido, para revisar antes del render final.
+- **Fragmento:** «Solo de … a … s» renderiza solo esa parte; «⏵ 3 s» la rellena desde el cabezal.
+- **Cola:** los renders van de uno en uno; los demás esperan en cola y muestran su puesto. Hay barra de progreso y el porcentaje sale en el título de la pestaña.
+- **Aviso al terminar:** un sonido y, con la pestaña en segundo plano, una notificación del sistema (si se permite) y el título cambiado.
+- **Formato horizontal 16:9** (1920 × 1080) para los vídeos largos: en Escenas («Formato») y en Montaje (el del short, que se aplica a todas sus escenas). El lienzo del editor, la exportación y el PNG siguen el formato. En el JSON: `formato: "16:9"`.

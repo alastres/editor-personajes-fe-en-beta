@@ -13,7 +13,7 @@
   const TOKENS = [["{piel}", "Piel"], ["{pielS}", "Piel sombra"], ["{pielL}", "Piel luz"], ["{pelo}", "Pelo"], ["{peloS}", "Pelo sombra"], ["{peloL}", "Pelo brillo"], ["{ropa}", "Ropa"], ["{ropaS}", "Ropa sombra"], ["{ropaL}", "Ropa luz"], ["{cinto}", "Cinturón"], ["{boca}", "Boca"], ["{tinta}", "Tinta"]];
   const LIBRES = ["#f7f1e5", "#e6d6b4", "#d8b060", "#b8302a", "#be3f1c", "#7a9a5a", "#3f6fa0", "#5a5aa0", "#8a5a3a", "#3a2a2a", "#1d1a26", "#ffffff"];
   const HERR = [["sel", "Seleccionar y editar puntos", "V", "⬚"], ["pincel", "Pincel (trazo a mano alzada)", "B", "✎"], ["lazo", "Lazo (forma rellena a mano)", "L", "◌"], ["pluma", "Pluma (clic = esquina, arrastrar = curva; clic en el primer punto cierra)", "P", "✒"],
-    ["elipse", "Elipse", "E", "◯"], ["rect", "Rectángulo redondeado", "R", "▢"], ["capsula", "Cápsula", "C", "⬭"]];
+    ["elipse", "Elipse", "E", "◯"], ["rect", "Rectángulo redondeado", "R", "▢"], ["capsula", "Cápsula", "C", "⬭"], ["gotas", "Cuentagotas (copia el color de una forma)", "I", "💧"], ["texto", "Texto (clic donde va)", "T", "T"]];
 
   // ---------------- geometría
   const d = (f) => { const P = f.puntos; if (!P.length) return ""; let s = `M${f2(P[0].x)} ${f2(P[0].y)}`;
@@ -43,7 +43,25 @@
   function bez(a, b, t) { const u = 1 - t; return { x: u * u * u * a.x + 3 * u * u * t * a.ox + 3 * u * t * t * b.ix + t * t * t * b.x, y: u * u * u * a.y + 3 * u * u * t * a.oy + 3 * u * t * t * b.iy + t * t * t * b.y }; }
 
   // ---------------- SVG ⇄ formas (para guardar y para convertir piezas existentes en editables)
-  function aSVG(D) { return D.formas.filter((f) => !f.oculta && f.puntos.length > 1).map((f) => `<path d="${d(f)}" fill="${f.cerrada ? f.relleno || "none" : "none"}"${f.trazo && f.grosor ? ` stroke="${f.trazo}" stroke-width="${f2(f.grosor)}" stroke-linecap="round" stroke-linejoin="round"` : ""}${f.opacidad != null && f.opacidad < 1 ? ` opacity="${f2(f.opacidad)}"` : ""}/>`).join("\n"); }
+  // formas → SVG. f.simetrica: se dibuja también reflejada en el eje (x = 0); f.agujero: recorta la forma de debajo (máscara);
+  // f.tipo === "texto": un texto (cartel, inscripción) con su tamaño y color. R resuelve colores; ed = modo editor (clases y contornos)
+  const escT = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  function svgFormas(F, R, ed) { const out = [];
+    const op = (f) => (f.opacidad != null && f.opacidad < 1 ? ` opacity="${f2(f.opacidad)}"` : "");
+    const uno = (f, extra) => { if (f.tipo === "texto") { const q = f.puntos[0]; return `<text x="${f2(q.x)}" y="${f2(q.y)}" font-size="${f2(f.tam || 48)}" text-anchor="middle" dominant-baseline="central" font-family="Inter, Figtree, Segoe UI, sans-serif" font-weight="${f.peso || 800}" fill="${R(f.relleno || "{tinta}")}"${op(f)}${extra}>${escT(f.texto || "")}</text>`; }
+      if (f.puntos.length < 2) return "";
+      const st = f.trazo && f.grosor ? ` stroke="${R(f.trazo)}" stroke-width="${f2(f.grosor)}" stroke-linecap="round" stroke-linejoin="round"` : ed && !f.cerrada ? ` stroke="#888" stroke-width="2"` : "";
+      return `<path d="${d(f)}" fill="${f.cerrada ? R(f.relleno || "none") : "none"}"${st}${op(f)}${extra}/>`; };
+    const conEspejo = (f, extra) => uno(f, extra) + (f.simetrica && f.tipo !== "texto" ? `<g transform="scale(-1 1)"${ed ? ' pointer-events="none"' : ""}>${uno(f, "")}</g>` : "");
+    F.forEach((f, i) => { if (f.oculta) return; const ex = ed ? ` data-i="${i}" class="forma${ed.sel(i) ? " sel" : ""}"` : "";
+      if (f.agujero) { if (ed && f.puntos.length > 1) out.push(`<path d="${d(f)}" fill="#ffffff" fill-opacity="0.05" stroke="#f0a33a" stroke-width="${f2(1.5 * ed.k)}" stroke-dasharray="${f2(5 * ed.k)} ${f2(4 * ed.k)}"${ex}/>`); return; }
+      const cortes = []; for (let k = i + 1; k < F.length && F[k].agujero; k++) if (!F[k].oculta && F[k].puntos.length > 1) cortes.push(F[k]);
+      const cuerpo = conEspejo(f, ex); if (!cortes.length) { out.push(cuerpo); return; }
+      const id = "ag" + Math.abs([...(d(f) + cortes.map(d).join(""))].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)).toString(36);
+      const hueco = cortes.map((c) => `<path d="${d(c)}" fill="#000"/>` + (c.simetrica ? `<path d="${d(c)}" fill="#000" transform="scale(-1 1)"/>` : "")).join("");
+      out.push(`<mask id="${id}" maskUnits="userSpaceOnUse" x="-4000" y="-4000" width="8000" height="8000"><rect x="-4000" y="-4000" width="8000" height="8000" fill="#fff"/>${hueco}</mask><g mask="url(#${id})">${cuerpo}</g>`); });
+    return out.join("\n"); }
+  function aSVG(D) { return svgFormas(D.formas, (c) => c, null); }
   // lee path (M L H V C S Q T Z, absolutos y relativos), circle, ellipse, rect, line, polygon; aplica translate/scale/matrix de los grupos
   function deSVG(svgTxt) {
     const doc = new DOMParser().parseFromString(`<svg xmlns="${NS}">${svgTxt}</svg>`, "image/svg+xml"), raiz = doc.documentElement, formas = [];
@@ -98,7 +116,7 @@
         <button id="tl-cancelar">Cancelar</button><button id="tl-guardar" class="primario">Guardar pieza</button></div>
       <div class="taller-cuerpo">
         <div class="taller-herr" id="tl-herr"></div>
-        <div class="taller-lienzo"><svg id="tl-svg"><g id="tl-ref"></g><g id="tl-ejes"></g><g id="tl-formas"></g><g id="tl-asas"></g><path id="tl-trazo" fill="none" stroke="#f0a33a" stroke-width="2" stroke-dasharray="4 3"/></svg>
+        <div class="taller-lienzo"><svg id="tl-svg"><g id="tl-calco"></g><g id="tl-ref"></g><g id="tl-ejes"></g><g id="tl-formas"></g><g id="tl-asas"></g><path id="tl-trazo" fill="none" stroke="#f0a33a" stroke-width="2" stroke-dasharray="4 3"/></svg>
           <div class="tl-zoom"><button id="tl-zm">−</button><button id="tl-z0">Encajar</button><button id="tl-zp">+</button><label class="chk"><input type="checkbox" id="tl-verref" checked> Ver el personaje</label></div></div>
         <div class="taller-panel">
           <h4>Relleno</h4><div class="paleta" id="tl-relleno"></div>
@@ -110,6 +128,19 @@
             <button id="tl-menos">Encoger</button><button id="tl-mas">Agrandar</button><button id="tl-rot">Girar 15°</button>
             <button id="tl-subir">Subir</button><button id="tl-bajar">Bajar</button><button id="tl-borrar" class="peligro">Borrar</button></div>
           <label class="chk"><input type="checkbox" id="tl-cerrada"> Forma cerrada (con relleno)</label>
+          <label class="chk" title="Se dibuja también reflejada en el eje (la línea vertical del centro): media cara, medio sombrero"><input type="checkbox" id="tl-sim"> Simetría: se refleja sola en el eje</label>
+          <label class="chk" title="Esta forma no se pinta: recorta la forma que tiene justo debajo (restar)"><input type="checkbox" id="tl-agujero"> Agujero: recorta la forma de debajo</label>
+          <div id="tl-texto-det" hidden><div class="campo"><input id="tl-texto" type="text" placeholder="Texto"></div><div class="deslizador"><label>Tamaño del texto</label><input type="range" id="tl-tam" min="8" max="240" step="1"><output></output></div></div>
+          <h4>Varias formas <span class="tenue">(Mayús + clic para elegir más)</span></h4>
+          <div class="fila-botones tres tl-multi"><button data-al="izq" title="Alinear a la izquierda">⇤ Izq.</button><button data-al="cx" title="Centrar en horizontal (una sola: en el eje)">↔ Centro</button><button data-al="der" title="Alinear a la derecha">Der. ⇥</button>
+            <button data-al="arr" title="Alinear arriba">⤒ Arriba</button><button data-al="cy" title="Centrar en vertical">↕ Medio</button><button data-al="aba" title="Alinear abajo">⤓ Abajo</button>
+            <button id="tl-dist-x" title="Repartir a la misma distancia en horizontal (3 o más)">Repartir ↔</button><button id="tl-dist-y" title="Repartir en vertical (3 o más)">Repartir ↕</button><button id="tl-agrupar" title="Agrupar o desagrupar: el grupo se elige y se mueve junto">Agrupar</button></div>
+          <h4>Ayudas</h4>
+          <label class="chk"><input type="checkbox" id="tl-iman"> Ajustar a la cuadrícula y al eje</label>
+          <div class="fila-botones dos"><button id="tl-calco-b" title="Una imagen (PNG, JPG: un boceto, una referencia de Flow) semitransparente debajo, para dibujar encima. No se guarda en la pieza">Calco: abrir imagen…</button><button id="tl-calco-x">Quitar calco</button></div>
+          <input type="file" id="tl-calco-f" accept="image/*" hidden>
+          <div class="deslizador"><label>Opacidad del calco</label><input type="range" id="tl-calco-op" min="0.05" max="1" step="0.05" value="0.4"><output>40%</output></div>
+          <div class="deslizador"><label>Tamaño del calco</label><input type="range" id="tl-calco-k" min="0.1" max="4" step="0.05" value="1"><output>100%</output></div>
           <p class="ayuda">Con <b>Seleccionar</b>: arrastra la forma para moverla, los cuadrados para mover puntos y los círculos para curvar. Doble clic en un punto: esquina ⇄ curva. Doble clic en el trazo: añade un punto. Alt + clic en un punto: lo quita. Supr borra; Ctrl+Z deshace; rueda = zoom; espacio + arrastrar = mover la vista.</p>
         </div>
       </div>`;
@@ -131,8 +162,44 @@
     accion("tl-subir", () => { if (sel >= D.formas.length - 1) return; guardarHist(); [D.formas[sel], D.formas[sel + 1]] = [D.formas[sel + 1], D.formas[sel]]; sel++; pintar(); });
     accion("tl-bajar", () => { if (sel <= 0) return; guardarHist(); [D.formas[sel], D.formas[sel - 1]] = [D.formas[sel - 1], D.formas[sel]]; sel--; pintar(); });
     accion("tl-borrar", borrarForma);
+    $("#tl-sim", raiz).onchange = (ev) => { estilo.simetrica = ev.target.checked; for (const i of selSet()) { guardarHist(); D.formas[i].simetrica = ev.target.checked || undefined; } pintar(); };
+    $("#tl-agujero", raiz).onchange = (ev) => { if (sel !== null) editarForma((f) => { f.agujero = ev.target.checked || undefined; if (f.agujero) f.cerrada = true; }); };
+    $("#tl-texto", raiz).oninput = (ev) => { if (sel !== null && D.formas[sel].tipo === "texto") editarForma((f) => { f.texto = ev.target.value; }, "texto"); };
+    $("#tl-tam", raiz).oninput = (ev) => { if (sel !== null && D.formas[sel].tipo === "texto") editarForma((f) => { f.tam = +ev.target.value; }, "tam"); };
+    raiz.querySelectorAll("[data-al]").forEach((b) => (b.onclick = () => alinear(b.dataset.al)));
+    $("#tl-dist-x", raiz).onclick = () => distribuir("x"); $("#tl-dist-y", raiz).onclick = () => distribuir("y");
+    $("#tl-agrupar", raiz).onclick = () => { const idx = [...selSet()]; if (!idx.length) return; guardarHist(); const juntos = idx.length > 1 && idx.every((i) => D.formas[i].grupo && D.formas[i].grupo === D.formas[idx[0]].grupo);
+      const g = "g" + Date.now().toString(36); idx.forEach((i) => { if (juntos) delete D.formas[i].grupo; else D.formas[i].grupo = g; }); if (juntos) multi.clear(); pintar(); };
+    $("#tl-iman", raiz).onchange = (ev) => { iman = ev.target.checked; pintarRejilla(); };
+    $("#tl-calco-b", raiz).onclick = () => $("#tl-calco-f", raiz).click();
+    $("#tl-calco-f", raiz).onchange = (ev) => { const f = ev.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { const im = new Image(); im.onload = () => { calco = { src: r.result, w: im.width, h: im.height }; pintarCalco(); }; im.src = r.result; }; r.readAsDataURL(f); ev.target.value = ""; };
+    $("#tl-calco-x", raiz).onclick = () => { calco = null; pintarCalco(); };
+    for (const id of ["tl-calco-op", "tl-calco-k"]) $("#" + id, raiz).oninput = (ev) => { ev.target.nextElementSibling.textContent = Math.round(ev.target.value * 100) + "%"; pintarCalco(); };
     eventosLienzo(); document.addEventListener("keydown", teclas);
   }
+  // ---- selección múltiple (Mayús + clic) y grupos: la selección incluye todo el grupo de cada forma elegida
+  let multi = new Set(), iman = false, calco = null;
+  function selSet() { const base = new Set(multi); if (sel !== null) base.add(sel); const grupos = new Set([...base].map((i) => D.formas[i]?.grupo).filter(Boolean));
+    D.formas.forEach((f, i) => { if (f.grupo && grupos.has(f.grupo)) base.add(i); }); return new Set([...base].filter((i) => D.formas[i])); }
+  const caja = (f) => { if (f.tipo === "texto") { const q = f.puntos[0], w = (f.texto || "").length * (f.tam || 48) * 0.55, hh = f.tam || 48; return { x0: q.x - w / 2, x1: q.x + w / 2, y0: q.y - hh / 2, y1: q.y + hh / 2 }; }
+    const xs = f.puntos.map((q) => q.x), ys = f.puntos.map((q) => q.y); return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) }; };
+  const desplazar = (f, dx, dy) => f.puntos.forEach((q) => { q.x += dx; q.ix += dx; q.ox += dx; q.y += dy; q.iy += dy; q.oy += dy; });
+  function alinear(modo) { const idx = [...selSet()]; if (!idx.length) return; guardarHist(); const C = idx.map((i) => caja(D.formas[i])), solo = idx.length === 1;
+    const T = { x0: Math.min(...C.map((c) => c.x0)), x1: Math.max(...C.map((c) => c.x1)), y0: Math.min(...C.map((c) => c.y0)), y1: Math.max(...C.map((c) => c.y1)) };
+    idx.forEach((i, n) => { const c = C[n]; let dx = 0, dy = 0;     // una sola forma se alinea con el eje (x = 0) o con el origen del hueso (y = 0)
+      if (modo === "izq") dx = (solo ? 0 : T.x0) - c.x0; else if (modo === "der") dx = (solo ? 0 : T.x1) - c.x1; else if (modo === "cx") dx = (solo ? 0 : (T.x0 + T.x1) / 2) - (c.x0 + c.x1) / 2;
+      else if (modo === "arr") dy = (solo ? 0 : T.y0) - c.y0; else if (modo === "aba") dy = (solo ? 0 : T.y1) - c.y1; else if (modo === "cy") dy = (solo ? 0 : (T.y0 + T.y1) / 2) - (c.y0 + c.y1) / 2;
+      desplazar(D.formas[i], dx, dy); }); pintar(); }
+  function distribuir(eje) { const idx = [...selSet()]; if (idx.length < 3) return; guardarHist(); const [a0, a1] = eje === "x" ? ["x0", "x1"] : ["y0", "y1"];
+    const it = idx.map((i) => { const c = caja(D.formas[i]); return { i, m: (c[a0] + c[a1]) / 2 }; }).sort((u, v) => u.m - v.m), A = it[0].m, B = it[it.length - 1].m;
+    it.forEach((o, n) => { const obj = A + ((B - A) * n) / (it.length - 1); desplazar(D.formas[o.i], eje === "x" ? obj - o.m : 0, eje === "y" ? obj - o.m : 0); }); pintar(); }
+  function pintarCalco() { const g = $("#tl-calco", raiz); g.replaceChildren(); if (!calco) return; const k = +$("#tl-calco-k", raiz).value, w = 400 * k, hh = (w * calco.h) / calco.w;
+    el("image", { href: calco.src, x: f2(-w / 2), y: f2(-hh / 2), width: f2(w), height: f2(hh), opacity: $("#tl-calco-op", raiz).value, "pointer-events": "none" }, g); }
+  function pintarRejilla() { const g = $("#tl-ejes", raiz); g.querySelectorAll(".rejilla").forEach((x) => x.remove()); if (!iman) return;
+    for (let v = -600; v <= 600; v += 10) { const fuerte = v % 50 === 0; for (const [x1, y1, x2, y2] of [[v, -600, v, 600], [-600, v, 600, v]]) el("line", { x1, y1, x2, y2, stroke: "#ffffff", "stroke-opacity": fuerte ? 0.07 : 0.03, class: "rejilla", "pointer-events": "none" }, g); } }
+  // imán: a la cuadrícula de 10 y, si está cerca, al eje (x = 0)
+  const pega = (v, eje) => { const k = escalaPx(); if (eje === "x" && Math.abs(v) < 8 * k) return 0; return Math.round(v / 10) * 10; };
+  function nueva(f) { if (estilo.simetrica && f.simetrica === undefined) f.simetrica = true; D.formas.push(f); }
   const centro = (f) => { const xs = f.puntos.map((p) => p.x), ys = f.puntos.map((p) => p.y); return { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }; };
   function ponerHerr(k) { herr = k; [...$("#tl-herr", raiz).children].forEach((b) => b.classList.toggle("activo", b.dataset.h === k));
     $("#tl-ayuda", raiz).textContent = { sel: "Clic en una forma para editarla.", pincel: "Dibuja un trazo: se suaviza al soltar.", lazo: "Dibuja el contorno de una forma rellena.", pluma: "Clic = punto de esquina · arrastrar = curva · clic en el primer punto o Intro = terminar.", elipse: "Arrastra para dibujar una elipse.", rect: "Arrastra para dibujar un rectángulo redondeado.", capsula: "Arrastra para dibujar una cápsula." }[k];
@@ -142,7 +209,7 @@
   function editarForma(fn, clave) { if (!(clave && clave === ultClave && Date.now() - tClave < 800)) guardarHist(); ultClave = clave; tClave = Date.now(); fn(D.formas[sel]); pintar(); }
   function deshacer() { if (!hist.length) return; fut.push(JSON.stringify(D)); D = JSON.parse(hist.pop()); if (sel !== null && sel >= D.formas.length) sel = null; pintar(); }
   function rehacer() { if (!fut.length) return; hist.push(JSON.stringify(D)); D = JSON.parse(fut.pop()); pintar(); }
-  function borrarForma() { if (sel === null) return; guardarHist(); D.formas.splice(sel, 1); sel = null; pintar(); }
+  function borrarForma() { if (sel === null) return; guardarHist(); const idx = [...selSet()].sort((a, b) => b - a); idx.forEach((i) => D.formas.splice(i, 1)); sel = null; multi = new Set(); pintar(); }
 
   // ---- vista (zoom y desplazamiento)
   function aplicarVista() { $("#tl-svg", raiz).setAttribute("viewBox", `${f2(vista.x)} ${f2(vista.y)} ${f2(vista.w)} ${f2(vista.h)}`); pintarAsas(); }
@@ -156,9 +223,10 @@
 
   // ---- pintar
   function pintar() { pintarFormas(); pintarAsas(); pintarPanel(); }
-  function pintarFormas() { const g = $("#tl-formas", raiz); g.replaceChildren();
-    D.formas.forEach((f, i) => { if (f.oculta) return; el("path", { d: d(f), fill: f.cerrada ? res(f.relleno) : "none", stroke: f.trazo && f.grosor ? res(f.trazo) : (f.cerrada ? "none" : "#888"), "stroke-width": f.grosor || (f.cerrada ? 0 : 2), "stroke-linecap": "round", "stroke-linejoin": "round", opacity: f.opacidad ?? 1, "data-i": i, class: "forma" + (i === sel ? " sel" : "") }, g); }); }
-  function pintarAsas() { if (!raiz) return; const g = $("#tl-asas", raiz); g.replaceChildren(); if (sel === null || herr !== "sel" || !D.formas[sel]) return; const f = D.formas[sel], k = escalaPx();
+  function pintarFormas() { const g = $("#tl-formas", raiz), S = selSet(); g.innerHTML = svgFormas(D.formas, res, { sel: (i) => S.has(i), k: escalaPx() }); }
+  function pintarAsas() { if (!raiz) return; const g = $("#tl-asas", raiz); g.replaceChildren();
+    if (D) { const kk = escalaPx(); for (const i of selSet()) { if (i === sel && D.formas[i].tipo !== "texto") continue; const c = caja(D.formas[i]);
+      el("rect", { x: c.x0 - 4 * kk, y: c.y0 - 4 * kk, width: c.x1 - c.x0 + 8 * kk, height: c.y1 - c.y0 + 8 * kk, fill: "none", stroke: "#f0a33a", "stroke-width": 1.2 * kk, "stroke-dasharray": `${4 * kk} ${3 * kk}`, "pointer-events": "none" }, g); } } if (sel === null || herr !== "sel" || !D.formas[sel]) return; const f = D.formas[sel], k = escalaPx();
     el("path", { d: d(f), fill: "none", stroke: "#f0a33a", "stroke-width": 1.5 * k, "pointer-events": "none" }, g);
     f.puntos.forEach((p, i) => { if (!p.esquina) { for (const [hx, hy, t] of [[p.ix, p.iy, "i"], [p.ox, p.oy, "o"]]) { if (Math.hypot(hx - p.x, hy - p.y) < 0.5) continue;
           el("line", { x1: p.x, y1: p.y, x2: hx, y2: hy, stroke: "#7ab8ff", "stroke-width": 1.2 * k }, g); el("circle", { cx: hx, cy: hy, r: 4.5 * k, fill: "#1b1830", stroke: "#7ab8ff", "stroke-width": 1.5 * k, "data-asa": t, "data-p": i, class: "asa" }, g); } }
@@ -174,7 +242,11 @@
     const g = $("#tl-grosor", raiz); if (document.activeElement !== g) g.value = f ? f.grosor || 0 : estilo.grosor; g.nextElementSibling.textContent = (+g.value).toFixed(1);
     const o = $("#tl-opac", raiz); if (document.activeElement !== o) o.value = f?.opacidad ?? 1; o.nextElementSibling.textContent = Math.round((+o.value) * 100) + "%";
     $("#tl-cerrada", raiz).checked = !!f?.cerrada; $("#tl-cerrada", raiz).disabled = !f;
-    raiz.querySelectorAll(".taller-panel .fila-botones button").forEach((b) => (b.disabled = !f));
+    $("#tl-sim", raiz).checked = f ? !!f.simetrica : !!estilo.simetrica; $("#tl-agujero", raiz).checked = !!f?.agujero; $("#tl-agujero", raiz).disabled = !f || f.tipo === "texto";
+    const esT = f?.tipo === "texto"; $("#tl-texto-det", raiz).hidden = !esT; if (esT) { if (document.activeElement !== $("#tl-texto", raiz)) $("#tl-texto", raiz).value = f.texto || ""; const tm = $("#tl-tam", raiz); if (document.activeElement !== tm) tm.value = f.tam || 48; tm.nextElementSibling.textContent = Math.round(f.tam || 48); }
+    const n = selSet().size; raiz.querySelectorAll(".tl-multi button").forEach((b) => (b.disabled = !n)); $("#tl-dist-x", raiz).disabled = $("#tl-dist-y", raiz).disabled = n < 3;
+    $("#tl-agrupar", raiz).textContent = n > 1 && [...selSet()].every((i) => D.formas[i].grupo && D.formas[i].grupo === D.formas[[...selSet()][0]].grupo) ? "Desagrupar" : "Agrupar";
+    raiz.querySelectorAll(".taller-panel .fila-botones:not(.tl-multi) button").forEach((b) => { if (!/tl-calco/.test(b.id)) b.disabled = !f; });
     const ul = $("#tl-capas", raiz); ul.replaceChildren(); if (!D.formas.length) ul.append(h("li", { class: "vacio" }, "Aún no hay formas: elige una herramienta y dibuja."));
     [...D.formas.keys()].reverse().forEach((i) => { const fo = D.formas[i], mini = h("span", { class: "mini" }); mini.style.background = fo.cerrada ? res(fo.relleno) : "transparent"; mini.style.borderColor = fo.grosor ? res(fo.trazo) : "#4a4466";
       const ojo = h("button", { class: "ojo" + (fo.oculta ? " apagado" : ""), title: "Mostrar u ocultar", onclick: (ev) => { ev.stopPropagation(); guardarHist(); fo.oculta = !fo.oculta; pintar(); } }, fo.oculta ? "○" : "●");
@@ -193,23 +265,32 @@
           if (ev.altKey) { if (f.puntos.length > 2) { guardarHist(); f.puntos.splice(i, 1); pintar(); } return; }
           guardarHist(); arr = { punto: i, p0: p, orig: clon(f.puntos[i]) }; return; }
         if (t.classList.contains("asa")) { guardarHist(); arr = { asa: t.dataset.asa, punto: +t.dataset.p }; return; }
-        if (t.classList.contains("forma")) { sel = +t.dataset.i; guardarHist(); arr = { mover: true, p0: p, orig: clon(D.formas[sel].puntos) }; pintar(); return; }
-        sel = null; pintar(); return; }
+        if (t.classList.contains("forma")) { const i = +t.dataset.i;
+          if (ev.shiftKey) { if (sel !== null) multi.add(sel); if (multi.has(i)) multi.delete(i); else multi.add(i); sel = i; pintar(); return; }
+          if (!selSet().has(i)) multi = new Set(); sel = i; const idx = [...selSet()]; guardarHist(); arr = { mover: true, p0: p, idx, orig: idx.map((k) => clon(D.formas[k].puntos)) }; pintar(); return; }
+        sel = null; multi = new Set(); pintar(); return; }
+      if (herr === "gotas") { const t = ev.target; if (!t.classList.contains("forma")) return; const o = D.formas[+t.dataset.i];
+        estilo.relleno = o.cerrada || o.tipo === "texto" ? o.relleno : estilo.relleno; estilo.trazo = o.trazo || estilo.trazo; estilo.grosor = o.grosor ?? estilo.grosor;
+        if (sel !== null && sel !== +t.dataset.i) editarForma((f) => { if (o.cerrada || o.tipo === "texto") f.relleno = o.relleno; if (o.grosor) { f.trazo = o.trazo; f.grosor = o.grosor; } }); else pintarPanel(); return; }
+      if (herr === "texto") { guardarHist(); nueva({ tipo: "texto", texto: "Texto", tam: 48, puntos: [pto(p.x, p.y)], cerrada: true, relleno: estilo.relleno && estilo.relleno !== "none" ? estilo.relleno : "{tinta}", simetrica: undefined }); sel = D.formas.length - 1; ponerHerr("sel"); pintar(); setTimeout(() => { const i = $("#tl-texto", raiz); i.focus(); i.select(); }, 30); return; }
       if (herr === "pincel" || herr === "lazo") { arr = { dibujo: [p] }; return; }
-      if (herr === "pluma") { if (!pluma) { guardarHist(); const f = { puntos: [], cerrada: false, relleno: estilo.relleno === "none" ? "{ropa}" : estilo.relleno, trazo: estilo.trazo || "{tinta}", grosor: estilo.grosor || 3 }; D.formas.push(f); sel = D.formas.length - 1; pluma = { forma: f }; }
+      if (herr === "pluma") { if (!pluma) { guardarHist(); const f = { puntos: [], cerrada: false, relleno: estilo.relleno === "none" ? "{ropa}" : estilo.relleno, trazo: estilo.trazo || "{tinta}", grosor: estilo.grosor || 3 }; nueva(f); sel = D.formas.length - 1; pluma = { forma: f }; }
         const f = pluma.forma, P = f.puntos, k = escalaPx();
         if (P.length > 2 && Math.hypot(p.x - P[0].x, p.y - P[0].y) < 10 * k) { f.cerrada = true; f.grosor = estilo.grosor; plumaFin(); ponerHerr("sel"); pintar(); return; }
         P.push(pto(p.x, p.y)); arr = { pluma: P.length - 1, p0: p }; pintar(); return; }
-      if (["elipse", "rect", "capsula"].includes(herr)) { guardarHist(); const f = { puntos: [], cerrada: true, relleno: estilo.relleno === "none" ? "{ropa}" : estilo.relleno, trazo: estilo.trazo, grosor: estilo.grosor }; D.formas.push(f); sel = D.formas.length - 1; arr = { forma: herr, p0: p, f }; } });
+      if (["elipse", "rect", "capsula"].includes(herr)) { guardarHist(); const f = { puntos: [], cerrada: true, relleno: estilo.relleno === "none" ? "{ropa}" : estilo.relleno, trazo: estilo.trazo, grosor: estilo.grosor }; nueva(f); sel = D.formas.length - 1; arr = { forma: herr, p0: p, f }; } });
     s.addEventListener("pointermove", (ev) => { if (!arr) { if (pluma && pluma.forma.puntos.length) { const p = local(ev), P = pluma.forma.puntos, u = P[P.length - 1]; $("#tl-trazo", raiz).setAttribute("d", `M${u.x} ${u.y} L ${p.x} ${p.y}`); } return; }
       const p = local(ev);
       if (arr.pan) { const k = vista.w / s.getBoundingClientRect().width; vista.x = arr.v.x - (ev.clientX - arr.x0) * k; vista.y = arr.v.y - (ev.clientY - arr.y0) * k; aplicarVista(); return; }
       if (arr.punto !== undefined && !arr.asa) { const f = D.formas[sel], q = f.puntos[arr.punto], dx = p.x - arr.p0.x, dy = p.y - arr.p0.y, o = arr.orig;
-        Object.assign(q, { x: o.x + dx, y: o.y + dy, ix: o.ix + dx, iy: o.iy + dy, ox: o.ox + dx, oy: o.oy + dy }); pintarFormas(); pintarAsas(); return; }
+        let ddx = dx, ddy = dy; if (iman) { ddx = pega(o.x + dx, "x") - o.x; ddy = pega(o.y + dy, "y") - o.y; }
+        Object.assign(q, { x: o.x + ddx, y: o.y + ddy, ix: o.ix + ddx, iy: o.iy + ddy, ox: o.ox + ddx, oy: o.oy + ddy }); pintarFormas(); pintarAsas(); return; }
       if (arr.asa) { const q = D.formas[sel].puntos[arr.punto], [a, b] = arr.asa === "i" ? ["ix", "iy"] : ["ox", "oy"], [c, e] = arr.asa === "i" ? ["ox", "oy"] : ["ix", "iy"];
         q[a] = p.x; q[b] = p.y; if (!ev.altKey) { const l = Math.hypot(q[c] - q.x, q[e] - q.y) || Math.hypot(p.x - q.x, p.y - q.y), v = Math.hypot(p.x - q.x, p.y - q.y) || 1; q[c] = q.x - ((p.x - q.x) / v) * l; q[e] = q.y - ((p.y - q.y) / v) * l; }   // Alt = romper la simetría
         pintarFormas(); pintarAsas(); return; }
-      if (arr.mover) { const dx = p.x - arr.p0.x, dy = p.y - arr.p0.y; D.formas[sel].puntos.forEach((q, i) => { const o = arr.orig[i]; Object.assign(q, { x: o.x + dx, y: o.y + dy, ix: o.ix + dx, iy: o.iy + dy, ox: o.ox + dx, oy: o.oy + dy }); }); pintarFormas(); pintarAsas(); return; }
+      if (arr.mover) { let dx = p.x - arr.p0.x, dy = p.y - arr.p0.y;
+        if (iman) { const c0 = caja({ puntos: arr.orig[0], tipo: D.formas[arr.idx[0]].tipo, texto: D.formas[arr.idx[0]].texto, tam: D.formas[arr.idx[0]].tam }), cx = (c0.x0 + c0.x1) / 2, cy = (c0.y0 + c0.y1) / 2; dx = pega(cx + dx, "x") - cx; dy = pega(cy + dy, "y") - cy; }
+        arr.idx.forEach((k, n) => D.formas[k].puntos.forEach((q, i) => { const o = arr.orig[n][i]; Object.assign(q, { x: o.x + dx, y: o.y + dy, ix: o.ix + dx, iy: o.iy + dy, ox: o.ox + dx, oy: o.oy + dy }); })); pintarFormas(); pintarAsas(); return; }
       if (arr.dibujo) { arr.dibujo.push(p); $("#tl-trazo", raiz).setAttribute("d", "M" + arr.dibujo.map((q) => `${f2(q.x)} ${f2(q.y)}`).join(" L ")); return; }
       if (arr.pluma !== undefined) { const q = pluma.forma.puntos[arr.pluma]; if (Math.hypot(p.x - arr.p0.x, p.y - arr.p0.y) > 3 * escalaPx()) { q.esquina = false; q.ox = p.x; q.oy = p.y; q.ix = 2 * q.x - p.x; q.iy = 2 * q.y - p.y; pintarFormas(); } return; }
       if (arr.forma) { const a = arr.p0, f = arr.f, w = Math.abs(p.x - a.x), hh = Math.abs(p.y - a.y);
@@ -217,7 +298,7 @@
     const soltar = () => { if (!arr) return; const a = arr; arr = null;
       if (a.dibujo) { $("#tl-trazo", raiz).setAttribute("d", ""); const lazo = herr === "lazo"; if (a.dibujo.length < 3) return;
         const P = rdp(a.dibujo, 2.2 * escalaPx()); if (P.length < 2) return; guardarHist();
-        D.formas.push({ puntos: suavizar(lazo && P.length > 3 && Math.hypot(P[0].x - P[P.length - 1].x, P[0].y - P[P.length - 1].y) < 1e-6 ? P.slice(0, -1) : P, lazo), cerrada: lazo, relleno: lazo ? (estilo.relleno === "none" ? "{ropa}" : estilo.relleno) : "none", trazo: lazo ? estilo.trazo : estilo.trazo || "{tinta}", grosor: lazo ? estilo.grosor : estilo.grosor || 6 });
+        nueva({ puntos: suavizar(lazo && P.length > 3 && Math.hypot(P[0].x - P[P.length - 1].x, P[0].y - P[P.length - 1].y) < 1e-6 ? P.slice(0, -1) : P, lazo), cerrada: lazo, relleno: lazo ? (estilo.relleno === "none" ? "{ropa}" : estilo.relleno) : "none", trazo: lazo ? estilo.trazo : estilo.trazo || "{tinta}", grosor: lazo ? estilo.grosor : estilo.grosor || 6 });
         sel = D.formas.length - 1; pintar(); return; }
       if (a.forma) { if (a.f.puntos.length < 2 || Math.abs(a.f.puntos[0].x - a.f.puntos[2].x) < 2 * escalaPx()) { D.formas.splice(D.formas.indexOf(a.f), 1); hist.pop(); sel = null; } ponerHerr("sel"); pintar(); return; }
       pintar(); };
@@ -245,7 +326,7 @@
   // ---- abrir / guardar
   function ponerVista(v) { cfg.vista = v; seg(); $("#tl-ref", raiz).replaceChildren(); if (cfg.referencia) cfg.referencia($("#tl-ref", raiz), v);
     const ej = $("#tl-ejes", raiz); ej.replaceChildren(); el("line", { x1: -2000, y1: 0, x2: 2000, y2: 0, stroke: "#ffffff", "stroke-opacity": 0.12 }, ej); el("line", { x1: 0, y1: -2000, x2: 0, y2: 2000, stroke: "#ffffff", "stroke-opacity": 0.12 }, ej);
-    el("circle", { cx: 0, cy: 0, r: 4, fill: "#ff6a4a" }, ej); }
+    el("circle", { cx: 0, cy: 0, r: 4, fill: "#ff6a4a" }, ej); pintarRejilla(); }
   function seg() { const c = $("#tl-vista", raiz); c.replaceChildren(); if (!cfg.vistas) return;
     for (const [k, n] of Object.entries(cfg.vistas)) c.append(h("button", { class: k === cfg.vista ? "activo" : "", onclick: () => { if (k === cfg.vista) return; cfg.dibujos[cfg.vista] = D; D = cfg.dibujos[k] || { formas: [] }; sel = null; hist = []; fut = []; ponerVista(k); pintar(); } }, n)); }
   function abrir(op) {
@@ -253,7 +334,7 @@
     // un dibujo por vista; si la pieza venía de un SVG (biblioteca o importado), se convierte en vectores editables
     for (const v of Object.keys(cfg.vistas || { frente: 1 })) if (!cfg.dibujos[v] && cfg.svgs?.[v]) { try { cfg.dibujos[v] = deSVG(cfg.svgs[v]); } catch { cfg.dibujos[v] = { formas: [] }; } }
     D = clon(cfg.dibujos[cfg.vista] || { formas: [] }); Object.keys(cfg.dibujos).forEach((k) => (cfg.dibujos[k] = clon(cfg.dibujos[k])));
-    sel = null; hist = []; fut = []; $("#tl-titulo", raiz).textContent = op.titulo || "Dibujar pieza"; $("#tl-guardar", raiz).textContent = op.textoGuardar || "Guardar pieza"; raiz.hidden = false; document.body.classList.add("con-taller");
+    sel = null; multi = new Set(); pintarCalco(); pintarRejilla(); hist = []; fut = []; $("#tl-titulo", raiz).textContent = op.titulo || "Dibujar pieza"; $("#tl-guardar", raiz).textContent = op.textoGuardar || "Guardar pieza"; raiz.hidden = false; document.body.classList.add("con-taller");
     ponerVista(cfg.vista); ponerHerr(D.formas.length ? "sel" : "lazo"); requestAnimationFrame(() => { encajar(); pintar(); }); }
   function cerrar() { plumaFin(); raiz.hidden = true; document.body.classList.remove("con-taller"); }
   function guardar() { plumaFin(); cfg.dibujos[cfg.vista] = D; const out = {};

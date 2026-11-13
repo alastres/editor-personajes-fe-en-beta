@@ -20,3 +20,8 @@ select { font: inherit; }
 .carril .bloque.clip.arrastrando { opacity: .75; z-index: 5; box-shadow: 0 4px 14px #0008; cursor: grabbing; }
 .carril .bloque.clip.destino { outline: 2px dashed #f0a33a; outline-offset: -2px; }
 .carril .bloque.clip { cursor: grab; }
+.opciones-render { margin: 6px 0 8px; }
+.opciones-render .fila-anadir { display: flex; gap: 6px; align-items: center; }
+.opciones-render input[type=number] { width: 64px; font: inherit; color: var(--texto); background: var(--fondo); border: 1px solid var(--borde); border-radius: 6px; padding: 4px 6px; }
+.barra-render { height: 6px; border-radius: 3px; background: #ffffff14; margin-top: 6px; overflow: hidden; }
+.barra-render i { display: block; height: 100%; background: var(--acento, #f0a33a); transition: width .4s; }

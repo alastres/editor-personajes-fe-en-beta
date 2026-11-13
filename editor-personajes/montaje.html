@@ -53,6 +53,7 @@
         <h3>Short</h3>
         <div class="campo"><label>Nombre</label><input id="s-nombre" type="text" /></div>
         <div class="deslizador"><label>Duración</label><input type="range" id="s-dur" min="2" max="180" step="0.1" /><output></output></div>
+        <div class="campo"><label>Formato <span class="tenue">(el de todas sus escenas)</span></label><div class="seg pequeno" id="s-formato"></div></div>
       </section>
       <section>
         <h3>1 · Voz y guion</h3>
@@ -109,6 +110,8 @@
       </section>
       <section>
         <h3>Vídeo</h3>
+        <div class="opciones-render"><label class="chk" title="Calidad de borrador a 24 fps: tarda bastante menos; para revisar, no para publicar"><input type="checkbox" id="r-rapida" /> Vista previa rápida (borrador)</label>
+          <div class="fila-anadir"><span class="tenue">Solo de</span><input id="r-desde" type="number" min="0" step="0.1" placeholder="0" /><span class="tenue">a</span><input id="r-hasta" type="number" min="0" step="0.1" placeholder="fin" /><span class="tenue">s</span><button id="r-cabezal" title="Desde el cabezal, 3 segundos">⏵ 3 s</button></div></div>
         <button id="b-render" class="primario ancho">Renderizar el short</button>
         <div id="render-estado" class="ayuda"></div>
         <video id="render-video" controls hidden></video>
@@ -123,6 +126,7 @@
   <script src="/acciones/todas.js"></script>
   <script src="/comun/escena.js"></script>
   <script src="/comun/montaje.js"></script>
+  <script src="render-ui.js"></script>
   <script src="montaje.js"></script>
 </body>
 </html>

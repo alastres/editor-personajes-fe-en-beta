@@ -61,7 +61,7 @@ const enviarJSON = (res, x, cod = 200) => { res.writeHead(cod, { "Content-Type":
 
 // ---- exportar una escena a un proyecto HyperFrames (../escena-<id>/)
 function exportar(id) {
-  const esc = leerJSON(path.join(DIRS.escenas, id + ".json")), dir = path.join(RAIZ, "escena-" + id), A = path.join(dir, "assets");
+  const esc = leerJSON(path.join(DIRS.escenas, id + ".json")), [W, H] = esc.formato === "16:9" ? [1920, 1080] : [1080, 1920], dir = path.join(RAIZ, "escena-" + id), A = path.join(dir, "assets");
   for (const d of [dir, A, path.join(A, "vendor"), path.join(A, "audio"), path.join(dir, "compositions"), path.join(dir, "out")]) fs.mkdirSync(d, { recursive: true });
   for (const f of ["titere25d.js", "personajes.js", "atrezo.js", "escena.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
   fs.copyFileSync(path.join(COMUN, "vendor", "gsap.min.js"), path.join(A, "vendor", "gsap.min.js"));
@@ -81,7 +81,7 @@ function exportar(id) {
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1080, height=1920" />
+    <meta name="viewport" content="width=${W}, height=${H}" />
     <title>${(esc.nombre || id).replace(/</g, "")} · Fe en Beta</title>
     <script src="assets/vendor/gsap.min.js"></script>
     <script src="assets/titere25d.js"></script>
@@ -92,13 +92,13 @@ function exportar(id) {
     <style>
       @font-face { font-family: "Inter"; src: url("assets/vendor/figtree.woff2") format("woff2"); }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #100c1e; }
-      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+      html, body { margin: 0; width: ${W}px; height: ${H}px; overflow: hidden; background: #100c1e; }
+      #root { position: relative; width: ${W}px; height: ${H}px; overflow: hidden; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="${D}" data-width="1080" data-height="1920">
-      <div id="escena" data-composition-id="escena" data-composition-src="compositions/escena.html" data-start="0" data-duration="${D}" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="${D}" data-width="${W}" data-height="${H}">
+      <div id="escena" data-composition-id="escena" data-composition-src="compositions/escena.html" data-start="0" data-duration="${D}" data-track-index="1" data-track-kind="graphics" data-width="${W}" data-height="${H}" style="z-index:1"></div>
 ${audios}    </div>
     <script>
       window.__timelines = window.__timelines || {};
@@ -108,9 +108,9 @@ ${audios}    </div>
 </html>
 `);
   fs.writeFileSync(path.join(dir, "compositions", "escena.html"), `<template>
-  <style>#root { position: absolute; inset: 0; overflow: hidden; background: #100c1e; } #esc-svg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }</style>
-  <div id="root" data-composition-id="escena" data-width="1080" data-height="1920">
-    <svg id="esc-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"><defs></defs></svg>
+  <style>#root { position: absolute; inset: 0; overflow: hidden; background: #100c1e; } #esc-svg { position: absolute; left: 0; top: 0; width: ${W}px; height: ${H}px; }</style>
+  <div id="root" data-composition-id="escena" data-width="${W}" data-height="${H}">
+    <svg id="esc-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><defs></defs></svg>
   </div>
   <script>
     // Generado por el editor de escenas (editor-personajes/escenas.html): se rehace al exportar; edita la escena allí.
@@ -129,27 +129,35 @@ ${audios}    </div>
 }
 // ---- render en segundo plano
 const renders = {};   // clave → { estado: "preparando"|"renderizando"|"listo"|"error", log, inicio, archivo }
-function renderizar(id) { return lanzarRender(id, async () => exportar(id), `/video/${id}.mp4`); }
-function lanzarRender(clave, preparar, url) {
-  if (["preparando", "renderizando"].includes(renders[clave]?.estado)) return renders[clave];
-  const r = { estado: "preparando", log: "", inicio: Date.now(), archivo: null }; renders[clave] = r;
-  (async () => { let dir; try { dir = await preparar(r); } catch (e) { r.estado = "error"; r.log = String(e.stack || e); r.fin = Date.now(); return; }
+function renderizar(id, op) { return lanzarRender(id, async () => exportar(id), `/video/${id}.mp4`, op); }
+// COLA: los renders van de uno en uno (cada uno ya usa varios procesos de Chrome); los demás esperan con su puesto.
+// op = { rapida: borrador a 24 fps, desde, hasta: solo ese fragmento (segundos) }
+const cola = []; let ocupado = false;
+function siguiente() { if (ocupado) return; const job = cola.shift(); if (!job) return; ocupado = true; job.correr(() => { ocupado = false; siguiente(); }); }
+function lanzarRender(clave, preparar, url, op = {}) {
+  if (["en cola", "preparando", "renderizando"].includes(renders[clave]?.estado)) return renders[clave];
+  const r = { estado: "en cola", log: "", inicio: Date.now(), archivo: null, rapida: !!op.rapida, fragmento: op.desde != null || op.hasta != null }; renders[clave] = r;
+  cola.push({ r, correr: async (hecho) => { r.estado = "preparando"; r.inicio = Date.now(); let dir; try { dir = await preparar(r); } catch (e) { r.estado = "error"; r.log = String(e.stack || e); r.fin = Date.now(); return hecho(); }
     // cada render a un archivo nuevo: el anterior puede estar abierto en el reproductor (Windows no deja sustituirlo)
     r.estado = "renderizando"; const id = path.basename(url, ".mp4"), salida = path.join("out", `${id}-${Date.now()}.mp4`);
     const env = Object.assign({}, process.env, { PATH: HERRAMIENTAS + path.delimiter + process.env.PATH });
-    const p = spawn("npx", ["--yes", "hyperframes@0.9.8", "render", "--quality", "delivery", "-o", salida], { cwd: dir, env, shell: true });
+    const args = ["--yes", "hyperframes@0.9.8", "render", "--quality", op.rapida ? "draft" : "delivery", "-o", salida];
+    if (op.rapida) args.push("--fps", "24");
+    if (op.desde != null && op.desde !== "") args.push("--start", String(Math.max(0, +op.desde))); if (op.hasta != null && op.hasta !== "") args.push("--end", String(+op.hasta));
+    const p = spawn("npx", args, { cwd: dir, env, shell: true });
     const leer = (b) => { r.log = (r.log + b.toString()).slice(-4000); };
     p.stdout.on("data", leer); p.stderr.on("data", leer);
     p.on("close", (cod) => { r.estado = cod === 0 && fs.existsSync(path.join(dir, salida)) ? "listo" : "error"; r.fin = Date.now(); r.ruta = path.relative(RAIZ, path.join(dir, salida)).replace(/\\/g, "/");
-      if (r.estado === "listo") { r.archivo = `${url}?v=${r.fin}`; limpiarRenders(path.join(dir, "out"), id); } }); })();
-  return r;
+      if (r.estado === "listo") { r.archivo = `${url}?v=${r.fin}`; limpiarRenders(path.join(dir, "out"), id); } hecho(); }); } });
+  siguiente(); return r;
 }
 // el render más reciente de un id (out/<id>-<marca>.mp4 o el antiguo out/<id>.mp4); se guardan los dos últimos
 function ultimoRender(dirOut, id) { let ls = []; try { ls = fs.readdirSync(dirOut).filter((f) => f === id + ".mp4" || (f.startsWith(id + "-") && /^\d+\.mp4$/.test(f.slice(id.length + 1)))); } catch {}
   return ls.map((f) => ({ f, t: fs.statSync(path.join(dirOut, f)).mtimeMs })).sort((a, b) => b.t - a.t)[0]?.f; }
 function limpiarRenders(dirOut, id) { try { fs.readdirSync(dirOut).filter((f) => f.startsWith(id + "-") && f.endsWith(".mp4")).map((f) => ({ f, t: fs.statSync(path.join(dirOut, f)).mtimeMs })).sort((a, b) => b.t - a.t).slice(2).forEach(({ f }) => { try { fs.unlinkSync(path.join(dirOut, f)); } catch {} }); } catch {} }
 const estadoRender = (clave) => { const r = renders[clave] || { estado: "nada", log: "" }, pct = (r.log.match(/(\d{1,3})%/g) || []).pop();
-  return { estado: r.estado, archivo: r.archivo, ruta: r.ruta || "", segundos: r.inicio ? Math.round(((r.fin || Date.now()) - r.inicio) / 1000) : 0, progreso: pct || "", nota: r.nota || "", log: r.estado === "error" ? r.log.slice(-1500) : "" }; };
+  const puesto = r.estado === "en cola" ? cola.findIndex((j) => j.r === r) + 1 : 0;
+  return { estado: r.estado, puesto, rapida: !!r.rapida, fragmento: !!r.fragmento, archivo: r.archivo, ruta: r.ruta || "", segundos: r.inicio ? Math.round(((r.fin || Date.now()) - r.inicio) / 1000) : 0, progreso: pct || "", nota: r.nota || "", log: r.estado === "error" ? r.log.slice(-1500) : "" }; };
 
 // ---- transcripción de la voz: VoiceStudio (tiempos reales por palabra) o, si no está, estimada desde el guion como en comun/montar.py
 const correr = (cmd, args, op = {}) => new Promise((ok) => { const p = spawn(cmd, args, op); let out = "", err = ""; p.stdout?.on("data", (c) => (out += c)); p.stderr?.on("data", (c) => (err += c)); p.on("error", (e) => ok({ cod: -1, out, err: String(e) })); p.on("close", (cod) => ok({ cod, out, err })); });
@@ -175,7 +183,7 @@ async function transcribir(archivo, guion) {
 
 // ---- exportar un short (montaje) a ../short-<id>/: escenas en secuencia, voz, música montada, efectos y subtítulos
 async function exportarShort(id, r = {}) {
-  const sh = leerJSON(path.join(DIRS.shorts, id + ".json")), dir = path.join(RAIZ, "short-" + id), A = path.join(dir, "assets");
+  const sh = leerJSON(path.join(DIRS.shorts, id + ".json")), [W, H] = sh.formato === "16:9" ? [1920, 1080] : [1080, 1920], dir = path.join(RAIZ, "short-" + id), A = path.join(dir, "assets");
   for (const d of [dir, A, path.join(A, "vendor"), path.join(A, "voz"), path.join(A, "musica"), path.join(A, "sfx"), path.join(dir, "compositions"), path.join(dir, "out")]) fs.mkdirSync(d, { recursive: true });
   for (const f of ["titere25d.js", "personajes.js", "atrezo.js", "escena.js", "montaje.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
   for (const f of ["gsap.min.js", "figtree.woff2"]) fs.copyFileSync(path.join(COMUN, "vendor", f), path.join(A, "vendor", f));
@@ -211,7 +219,7 @@ async function exportarShort(id, r = {}) {
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1080, height=1920" />
+    <meta name="viewport" content="width=${W}, height=${H}" />
     <title>${(sh.nombre || id).replace(/</g, "")} · Fe en Beta</title>
     <script src="assets/vendor/gsap.min.js"></script>
     <script src="assets/titere25d.js"></script>
@@ -224,13 +232,13 @@ async function exportarShort(id, r = {}) {
       @font-face { font-family: "Figtree"; src: url("assets/vendor/figtree.woff2") format("woff2"); font-weight: 300 900; }
       @font-face { font-family: "Inter"; src: url("assets/vendor/figtree.woff2") format("woff2"); }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #100c1e; }
-      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+      html, body { margin: 0; width: ${W}px; height: ${H}px; overflow: hidden; background: #100c1e; }
+      #root { position: relative; width: ${W}px; height: ${H}px; overflow: hidden; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="${D}" data-width="1080" data-height="1920">
-      <div id="montaje" data-composition-id="montaje" data-composition-src="compositions/montaje.html" data-start="0" data-duration="${D}" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="${D}" data-width="${W}" data-height="${H}">
+      <div id="montaje" data-composition-id="montaje" data-composition-src="compositions/montaje.html" data-start="0" data-duration="${D}" data-track-index="1" data-track-kind="graphics" data-width="${W}" data-height="${H}" style="z-index:1"></div>
 ${audios}    </div>
     <script>
       window.__timelines = window.__timelines || {};
@@ -240,9 +248,9 @@ ${audios}    </div>
 </html>
 `);
   fs.writeFileSync(path.join(dir, "compositions", "montaje.html"), `<template>
-  <style>#root { position: absolute; inset: 0; overflow: hidden; background: #100c1e; } #mt-svg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }</style>
-  <div id="root" data-composition-id="montaje" data-width="1080" data-height="1920">
-    <svg id="mt-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"><defs></defs></svg>
+  <style>#root { position: absolute; inset: 0; overflow: hidden; background: #100c1e; } #mt-svg { position: absolute; left: 0; top: 0; width: ${W}px; height: ${H}px; }</style>
+  <div id="root" data-composition-id="montaje" data-width="${W}" data-height="${H}">
+    <svg id="mt-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><defs></defs></svg>
   </div>
   <script>
     // Generado por el editor (editor-personajes/montaje.html): se rehace al exportar; edita el short allí.
@@ -300,9 +308,9 @@ http.createServer(async (req, res) => {
       if (sub === "/papelera" && req.method === "POST") { if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
         fs.mkdirSync(path.join(DIRS[tipo], "papelera"), { recursive: true }); fs.renameSync(f, path.join(DIRS[tipo], "papelera", `${id}-${Date.now()}.json`)); res.writeHead(200); return res.end("ok"); }
       if (tipo === "escenas" && sub === "/exportar" && req.method === "POST") return enviarJSON(res, { dir: path.relative(RAIZ, exportar(id)) });
-      if (tipo === "escenas" && sub === "/render") { if (req.method === "POST") renderizar(id); const r = renders[id] || { estado: "nada", log: "" };
+      if (tipo === "escenas" && sub === "/render") { if (req.method === "POST") { let op = {}; try { op = JSON.parse(await cuerpo(req) || "{}"); } catch {} renderizar(id, op); } const r = renders[id] || { estado: "nada", log: "" };
         return enviarJSON(res, estadoRender(id)); }
-      if (tipo === "shorts" && sub === "/render") { if (req.method === "POST") lanzarRender("short:" + id, (r) => exportarShort(id, r), `/video-short/${id}.mp4`); return enviarJSON(res, estadoRender("short:" + id)); }
+      if (tipo === "shorts" && sub === "/render") { if (req.method === "POST") { let op = {}; try { op = JSON.parse(await cuerpo(req) || "{}"); } catch {} lanzarRender("short:" + id, (r) => exportarShort(id, r), `/video-short/${id}.mp4`, op); } return enviarJSON(res, estadoRender("short:" + id)); }
       if (tipo === "shorts" && sub === "/exportar" && req.method === "POST") return enviarJSON(res, { dir: path.relative(RAIZ, await exportarShort(id)) });
       if (!sub && req.method === "GET") return servir(res, f, req);
       if (!sub && req.method === "PUT") { const s = await cuerpo(req); const j = JSON.parse(s); j.id = id;

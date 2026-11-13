@@ -10,7 +10,9 @@
 //   textos: [{ t, dur, texto }] }                                   // rótulos sencillos
 // Mundo: el suelo está en y = 0; un adulto mide ~600. El encuadre es 1080 × 1920 (vertical).
 (function () {
-  const NS = "http://www.w3.org/2000/svg", ANCHO = 1080, ALTO = 1920;
+  const NS = "http://www.w3.org/2000/svg";
+  // formato del vídeo: vertical 9:16 (shorts, por defecto) u horizontal 16:9 (vídeos largos)
+  let ANCHO = 1080, ALTO = 1920; const formato = (f) => { [ANCHO, ALTO] = f === "16:9" ? [1920, 1080] : [1080, 1920]; return [ANCHO, ALTO]; };
   const el = (tag, at = {}, padre) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (padre) padre.appendChild(e); return e; };
   const mixc = (a, b, k) => { const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return "#" + A.map((x, i) => Math.round(x + (B[i] - x) * k).toString(16).padStart(2, "0")).join(""); };
   const rad = (g) => (g * Math.PI) / 180, cl = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), lerp = (a, b, k) => a + (b - a) * k, suave = (x) => x * x * (3 - 2 * x), f1 = (x) => x.toFixed(1);
@@ -175,7 +177,7 @@
 
   // op.voz = { envolvente, desfase, habla }: voz que viene de fuera (el montaje de un short). desfase = segundo del short en el que empieza
   // la escena menos el punto de la escena desde el que se ve; habla = id del actor cuya boca la sigue (o "auto": el primer actor)
-  function crear(svg, esc, PJ, op = {}) {
+  function crear(svg, esc, PJ, op = {}) { formato(op.formato || esc.formato);
     const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), mundo = el("g", {}, raiz), gDelante = el("g", {}, raiz), gAmb = el("g", { "pointer-events": "none" }, raiz), gTextos = el("g", {}, raiz);
     let fondoKey = null;
     const actores = (esc.actores || []).map((a) => { const j = PJ[a.personaje]; const g = el("g", { "data-actor": a.id }, mundo);
@@ -287,10 +289,10 @@
       // rótulos (en pantalla, no se mueven con la cámara)
       gTextos.replaceChildren();
       for (const tx of esc.textos || []) { if (t < tx.t || t > tx.t + (tx.dur || 2)) continue; const k2 = cl((t - tx.t) / 0.25) * cl((tx.t + (tx.dur || 2) - t) / 0.25);
-        const w = 40 + String(tx.texto).length * 30; el("rect", { x: ANCHO / 2 - w / 2, y: 1400, width: w, height: 92, rx: 16, fill: "#14171e", opacity: (0.88 * k2).toFixed(2) }, gTextos);
-        const tt = el("text", { x: ANCHO / 2, y: 1462, "text-anchor": "middle", fill: "#f7f1e5", "font-size": 52, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif", opacity: k2.toFixed(2) }, gTextos); tt.textContent = tx.texto; }
+        const w = 40 + String(tx.texto).length * 30; el("rect", { x: ANCHO / 2 - w / 2, y: ALTO === 1920 ? 1400 : ALTO - 210, width: w, height: 92, rx: 16, fill: "#14171e", opacity: (0.88 * k2).toFixed(2) }, gTextos);
+        const tt = el("text", { x: ANCHO / 2, y: ALTO === 1920 ? 1462 : ALTO - 148, "text-anchor": "middle", fill: "#f7f1e5", "font-size": 52, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif", opacity: k2.toFixed(2) }, gTextos); tt.textContent = tx.texto; }
     }
     return { dibujar, actores, objetos, camara, raiz };
   }
-  window.Escena = { crear, claves, FONDOS, fondoDe, PARTICULAS, ESTILOS_ANDAR, ANCHO, ALTO };
+  window.Escena = { crear, claves, FONDOS, fondoDe, PARTICULAS, ESTILOS_ANDAR, formato, get ANCHO() { return ANCHO; }, get ALTO() { return ALTO; } };
 })();

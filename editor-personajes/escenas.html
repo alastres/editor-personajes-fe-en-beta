@@ -55,6 +55,7 @@
         <h3>Escena</h3>
         <div class="campo"><label>Nombre</label><input id="e-nombre" type="text" /></div>
         <div class="deslizador"><label>Duración</label><input type="range" id="e-dur" min="1" max="90" step="0.5" /><output></output></div>
+        <div class="campo"><label>Formato</label><div class="seg pequeno" id="e-formato"></div></div>
         <div class="campo"><label>Fondo</label><div class="seg pequeno" id="e-fondo"></div></div>
         <details id="f-mas" class="detalle">
           <summary>Personalizar el fondo</summary>
@@ -148,11 +149,13 @@
       </section>
       <section>
         <h3>Vídeo</h3>
+        <div class="opciones-render"><label class="chk" title="Calidad de borrador a 24 fps: tarda bastante menos; para revisar, no para publicar"><input type="checkbox" id="r-rapida" /> Vista previa rápida (borrador)</label>
+          <div class="fila-anadir"><span class="tenue">Solo de</span><input id="r-desde" type="number" min="0" step="0.1" placeholder="0" /><span class="tenue">a</span><input id="r-hasta" type="number" min="0" step="0.1" placeholder="fin" /><span class="tenue">s</span><button id="r-cabezal" title="Desde el cabezal, 3 segundos">⏵ 3 s</button></div></div>
         <button id="b-render" class="primario ancho">Renderizar vídeo</button>
         <div id="render-estado" class="ayuda"></div>
         <video id="render-video" controls hidden></video>
         <button id="b-exportar" class="enlace">Solo exportar el proyecto HyperFrames</button>
-        <button id="b-png" class="enlace">Guardar este fotograma como PNG (1080 × 1920)</button>
+        <button id="b-png" class="enlace">Guardar este fotograma como PNG</button>
       </section>
     </aside>
   </main>
@@ -165,6 +168,7 @@
   <script src="/comun/escena.js"></script>
   <script src="dibujo.js"></script>
   <script src="curvas.js"></script>
+  <script src="render-ui.js"></script>
   <script src="escenas.js"></script>
 </body>
 </html>

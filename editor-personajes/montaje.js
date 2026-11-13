@@ -63,7 +63,7 @@
 
   // ---- vista previa y sonido
   const capa = $("#capa");
-  function reconstruir() { if (!sh) return; capa.replaceChildren(); motor = Montaje.crear(capa, sh, ESC, PJ); prepararSonido(); pintarPanel(); pintarPistas(); dibujar(); }
+  function reconstruir() { if (!sh) return; capa.replaceChildren(); motor = Montaje.crear(capa, sh, ESC, PJ); RenderUI.formatoLienzo($("#lienzo"), sh.formato); prepararSonido(); pintarPanel(); pintarPistas(); dibujar(); }
   function dibujar() { if (motor) motor.dibujar(Math.min(tiempo, D() - 0.001)); }
   let sVoz = null, sMus = null, sfxProg = [];
   function prepararSonido() { callar(); sVoz = sh.voz?.archivo ? Object.assign(new Audio("/audio/" + sh.voz.archivo), { preload: "auto" }) : null;
@@ -110,7 +110,8 @@
   function deslizar(id, v, fmt) { const i = $("#" + id); if (document.activeElement !== i) i.value = v; i.nextElementSibling.textContent = fmt(Number(v)); }
   const opciones = (sel, items, valor, vacio) => { const s = $(sel), v = valor ?? s.value; s.replaceChildren(...(vacio ? [h("option", { value: "" }, vacio)] : []), ...items.map(([val, txt]) => h("option", { value: val }, txt))); s.value = v || ""; };
   function pintarPanel() { if (!sh) return;
-    if (document.activeElement !== $("#s-nombre")) $("#s-nombre").value = sh.nombre || ""; deslizar("s-dur", D(), (v) => v.toFixed(1) + " s");
+    if (document.activeElement !== $("#s-nombre")) $("#s-nombre").value = sh.nombre || "";
+    seg("#s-formato", { "": "Vertical 9:16 (short)", "16:9": "Horizontal 16:9" }, sh.formato || "", (k) => cambio((x) => { if (k) x.formato = k; else delete x.formato; })); deslizar("s-dur", D(), (v) => v.toFixed(1) + " s");
     opciones("#v-archivo", audios.filter((a) => /voz|narra/i.test(a)).map((a) => [a, a]), sh.voz?.archivo, "— elige la voz —");
     if (document.activeElement !== $("#v-guion")) $("#v-guion").value = sh.guion || "";
     if (sh.voz && !$("#v-estado").textContent) $("#v-estado").textContent = `${sh.voz.palabras?.length || 0} palabras · ${fmtT(sh.voz.duracion || 0)} · ${sh.voz.fuente === "estimado" ? "tiempos estimados" : "tiempos de VoiceStudio"}`;
@@ -211,12 +212,10 @@
 
   // ---- render
   let sondeo = null;
-  async function consultar() { if (!actual) return; clearTimeout(sondeo); const r = await (await fetch(`/api/shorts/${actual}/render`)).json(), e = $("#render-estado"), b = $("#b-render");
-    if (r.estado === "renderizando" || r.estado === "preparando") { e.textContent = `${r.estado === "preparando" ? "Preparando (voz, música, escenas)" : "Renderizando"}… ${r.progreso || ""} (${r.segundos} s)`; b.disabled = true; sondeo = setTimeout(consultar, 1500); return; }
-    b.disabled = false; if (r.estado === "listo") { e.textContent = `Listo en ${r.segundos} s · ${r.ruta || "Videos/shorts-flow/short-" + actual + "/out/"}${r.nota ? "\n" + r.nota : ""}`; const v = $("#render-video"); v.hidden = false; v.src = r.archivo; }
-    else if (r.estado === "error") e.textContent = "Error al renderizar:\n" + r.log; else e.textContent = ""; }
+  async function consultar() { if (!actual) return; clearTimeout(sondeo); const r = await (await fetch(`/api/shorts/${actual}/render`)).json(); if (RenderUI.estado(r, `short-${actual}/out`)) sondeo = setTimeout(consultar, 1500); }
   $("#b-render").addEventListener("click", async () => { if (!sh) return; if (!sh.clips.length) return aviso("El short no tiene escenas todavía"); await guardar(); { const v = $("#render-video"); v.pause(); v.removeAttribute("src"); v.load(); v.hidden = true; }   // suelta el MP4 anterior (Windows lo bloquea mientras está abierto)
-    await fetch(`/api/shorts/${actual}/render`, { method: "POST" }); consultar(); });
+    await fetch(`/api/shorts/${actual}/render`, { method: "POST", body: JSON.stringify(RenderUI.opciones()) }); consultar(); });
+  $("#r-cabezal").addEventListener("click", () => RenderUI.fragmentoDesde(tiempo, D()));
 
   // ---- teclado
   $("#b-deshacer").addEventListener("click", deshacer); $("#b-rehacer").addEventListener("click", rehacer);
