@@ -357,3 +357,7 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
   - `centro` es el punto del mundo que mira la cámara cuando la lámina llena la pantalla; se ajusta para que el suelo del dibujo quede bajo los pies de los personajes.
   - El desenfoque de los primeros planos también se aplica a las capas de atrás.
 - El editor y el vídeo cargan `ilustraciones/todas.js` (al exportar, solo las láminas que se usan).
+- **Capas que vienen separadas desde Flow** (lo correcto; recortar después siempre deja trozos de cielo pegados a las plantas y hojas):
+  - en el editor de Flow se edita la propia imagen para cada capa: «medio» = lo mismo con el cielo y lo lejano en magenta #FF00FF; «lejos» = solo cielo y montes, con lo que había detrás dibujado por Flow;
+  - en `capas.json`, cada capa puede llevar su `imagen` y `croma: true` (lo magenta es transparente, con un borde de 1 px limpio), y una capa `diferencia` saca lo que hay en el original y no en otra imagen dentro de una `zona` (el primer término que la edición del medio quitó);
+  - ojo: la descarga «2K resolución mejorada» de una EDICIÓN puede salir distinta (Flow la vuelve a generar); la edición del medio se bajó a su tamaño original con `comun/flow-bajar.py`.

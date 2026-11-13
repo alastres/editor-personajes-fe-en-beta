@@ -36,6 +36,30 @@ def ajustar(im, aprox):
     return m
 
 
+def quitar_cielo(im, m, banda, umbral=14):
+    """Saca de la máscara los huecos de cielo entre hojas, ramas o pinchos: se hacen dos paletas (k-means) con los colores de FUERA
+    de la capa (cielo, lejanías) y del CENTRO de la capa (roca, hojas); cada píxel de cerca del borde va con la paleta más parecida."""
+    lab = cv2.cvtColor(cv2.GaussianBlur(im, (3, 3), 0), cv2.COLOR_BGR2LAB).astype(np.float32)
+    h, w = m.shape; rng = np.random.default_rng(1)
+    def paleta(sel, n=24):
+        px = lab[sel]; px = px[rng.choice(len(px), min(len(px), 40000), replace=False)]
+        _, _, c = cv2.kmeans(px, n, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.5), 3, cv2.KMEANS_PP_CENTERS); return c
+    fuera = cv2.dilate(m, np.ones((15, 15), np.uint8)) == 0
+    nucleo = cv2.erode(m, np.ones((int(banda),) * 2, np.uint8)) > 0
+    if fuera.sum() < 500 or nucleo.sum() < 500: return m
+    cb, cf = paleta(fuera), paleta(nucleo)
+    borde = (cv2.distanceTransform((m > 0).astype(np.uint8), cv2.DIST_L2, 5) < banda) & (m > 0)
+    P = lab[borde]
+    db = np.min(np.linalg.norm(P[:, None, :] - cb[None], axis=-1), 1); df = np.min(np.linalg.norm(P[:, None, :] - cf[None], axis=-1), 1)
+    cielo = (db < df * 0.85) & (db < umbral * 1.6)
+    m2 = m.copy(); ys, xs = np.nonzero(borde); m2[ys[cielo], xs[cielo]] = 0
+    m2 = cv2.morphologyEx(m2, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    n, cc, st, _ = cv2.connectedComponentsWithStats(m2, 8)
+    for i in range(1, n):
+        if st[i, cv2.CC_STAT_AREA] < 80: m2[cc == i] = 0
+    return m2
+
+
 def silueta_svg(m):
     cs, _ = cv2.findContours(m, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
     d = ""
@@ -68,13 +92,40 @@ def main():
         if "poligono" in c: c["poligono"] = [[x * k, y * k] for x, y in c["poligono"]]
         if "poligonos" in c: c["poligonos"] = [[[x * k, y * k] for x, y in pl] for pl in c["poligonos"]]
     mascaras = []
+    # cada capa puede traer su propia imagen (p. ej. una edición de Flow con el resto en magenta) → se escala al tamaño de la principal
+    def cargar(ruta):
+        x = cv2.imread(ruta); return x if x.shape[:2] == (h, w) else cv2.resize(x, (w, h), interpolation=cv2.INTER_LANCZOS4)
+    for c in capas: c["_im"] = cargar(c["imagen"]) if c.get("imagen") else im
     for c in capas:
+        if c.get("croma"):
+            # recorte por croma: lo magenta (#FF00FF) es transparente; el borde rosado se limpia y se rellena con el color de dentro
+            hsv = cv2.cvtColor(c["_im"], cv2.COLOR_BGR2HSV)
+            mag = ((hsv[..., 0] > 130) & (hsv[..., 0] < 170) & (hsv[..., 1] > 90) & (hsv[..., 2] > 90)).astype(np.uint8)
+            mk = cv2.morphologyEx((1 - mag) * 255, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+            n, cc, st, _ = cv2.connectedComponentsWithStats(mk, 8)
+            for i in range(1, n):
+                if st[i, cv2.CC_STAT_AREA] < 150: mk[cc == i] = 0
+            # solo se rellena lo magenta y 1 px de borde (más se comería las ramas finas y el follaje oscuro)
+            c["_im"] = cv2.inpaint(c["_im"], cv2.dilate(mag * 255, np.ones((3, 3), np.uint8)), 3, cv2.INPAINT_TELEA)
+            c["_mk"] = mk
+        elif c.get("diferencia"):
+            # lo que hay en esta imagen y NO en la otra (p. ej. las matas del primer término que la edición del medio quitó), dentro de una zona
+            otra = cargar(c["diferencia"]); a = cv2.cvtColor(cv2.GaussianBlur(c["_im"], (7, 7), 0), cv2.COLOR_BGR2LAB).astype(np.float32)
+            b = cv2.cvtColor(cv2.GaussianBlur(otra, (7, 7), 0), cv2.COLOR_BGR2LAB).astype(np.float32)
+            d = (np.linalg.norm(a - b, axis=-1) > c.get("umbral", 22)).astype(np.uint8) * 255
+            zona = mascara_poligonos(h, w, [[[x * k, y * k] for x, y in pl] for pl in c["zona"]])
+            d = cv2.morphologyEx(d & zona, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8)); d = cv2.morphologyEx(d, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+            c["_mk"] = d
+    for c in capas:
+        if "_mk" in c: mascaras.append(c["_mk"]); continue
         polis = c.get("poligonos") or ([c["poligono"]] if "poligono" in c else None)
-        mascaras.append(None if polis is None else ajustar(im, mascara_poligonos(h, w, polis)))
+        mk = None if polis is None else ajustar(im, mascara_poligonos(h, w, polis))
+        if mk is not None and c.get("quitarCielo"): mk = quitar_cielo(im, mk, c.get("banda", 70) * k, c.get("umbral", 14))
+        mascaras.append(mk)
     for i, c in enumerate(capas):
         # lo que tapan las capas de delante se rellena con los colores de alrededor (sin agujeros al moverse)
-        tapa = np.zeros((h, w), np.uint8)
-        for m in mascaras[i + 1:]:
+        tapa = np.zeros((h, w), np.uint8); im = c["_im"]
+        for m in ([] if c.get("imagen") else mascaras[i + 1:]):
             if m is not None: tapa |= cv2.dilate(m, np.ones((9, 9), np.uint8))
         if tapa.any() and c.get("relleno") == "arriba":
             # cielo y lejanías: lo tapado se rellena continuando hacia abajo el color que hay encima (el degradado del cielo sigue)
@@ -100,6 +151,7 @@ def main():
             try: os.remove(os.path.join(dest, "_tmp_" + c["id"] + ext))
             except OSError: pass
         print(c["id"], round(os.path.getsize(os.path.join(dest, c["id"] + ".svg")) / 1024), "KB")
+    for c in capas: c.pop("_im", None); c.pop("_mk", None)
     json.dump({"nombre": cfg["nombre"], "ancho": w, "alto": h, "capas": [c["id"] for c in capas], "origen": cfg["imagen"]},
               open(os.path.join(dest, "lamina.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     regenerar()
