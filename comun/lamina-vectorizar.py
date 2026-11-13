@@ -105,8 +105,17 @@ def main():
             n, cc, st, _ = cv2.connectedComponentsWithStats(mk, 8)
             for i in range(1, n):
                 if st[i, cv2.CC_STAT_AREA] < 150: mk[cc == i] = 0
+            # agujeros pequeños dentro del dibujo (brillos rosados que parecían magenta) se tapan
+            n, cc, st, _ = cv2.connectedComponentsWithStats(255 - mk, 8)
+            for i in range(1, n):
+                if st[i, cv2.CC_STAT_AREA] < 900: mk[cc == i] = 255   # y se pintan con el tono oscuro (siguen en «mag»)
             # solo se rellena lo magenta y 1 px de borde (más se comería las ramas finas y el follaje oscuro)
-            c["_im"] = cv2.inpaint(c["_im"], cv2.dilate(mag * 255, np.ones((3, 3), np.uint8)), 3, cv2.INPAINT_TELEA)
+            # lo magenta se pinta con el tono oscuro del borde del dibujo (no con un relleno claro): si al vectorizar se simplifica
+            # un pincho o una hoja fina, lo que asoma se lee como contorno y no como un hueco blanco
+            fuera = cv2.dilate(mag, np.ones((3, 3), np.uint8)) > 0
+            borde = (cv2.dilate(mag, np.ones((9, 9), np.uint8)) > 0) & ~fuera
+            tono = np.percentile(c["_im"][borde].reshape(-1, 3), 15, axis=0) if borde.any() else np.array([40, 28, 34])
+            c["_im"] = c["_im"].copy(); c["_im"][fuera] = tono.astype(np.uint8)
             c["_mk"] = mk
         elif c.get("diferencia"):
             # lo que hay en esta imagen y NO en la otra (p. ej. las matas del primer término que la edición del medio quitó), dentro de una zona
