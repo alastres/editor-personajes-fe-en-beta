@@ -1,0 +1,52 @@
+{
+  "duracion": 5,
+  "fondo": {
+    "tipo": "dia"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -360,
+      "zoom": 1.1
+    }
+  ],
+  "actores": [
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0.1,
+          "giro": 30,
+          "curva": [
+            0.5,
+            -0.4,
+            0.6,
+            1
+          ]
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "saludo",
+          "dur": 2
+        },
+        {
+          "t": 2,
+          "accion": "arrodillarse",
+          "dur": 2
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "objetos": [],
+  "nombre": "Prueba de transición entre acciones",
+  "id": "prueba-mezcla"
+}

@@ -19,7 +19,7 @@
   function colores(j) { const c = Object.assign({}, j.colores || {}); const auto = c.auto || {}; delete c.auto;
     for (const g in DERIVA) if (auto[g] && c[g]) Object.assign(c, DERIVA[g](c[g]));
     return c; }
-  function op(j, extra = {}) { const o = Object.assign({ id: j.id }, j.opciones || {}, { colores: colores(j), piezas: j.piezas || [], variantes: j.variantes || {} }, extra);
+  function op(j, extra = {}) { const o = Object.assign({ id: j.id }, j.opciones || {}, { colores: colores(j), piezas: j.piezas || [], variantes: j.variantes || {}, emociones: j.emociones || {} }, extra);
     for (const k of Object.keys(o)) if (o[k] === null) delete o[k];   // null = «lo que diga el tipo de cuerpo»
     return o; }
   // =================================================================================================
@@ -63,7 +63,12 @@
     frena: (x) => 1 - Math.pow(1 - x, 3),                                     // llega despacio (salida)
     rebote: (x) => { const c = 1.70158 * 1.4; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); },   // se pasa y vuelve
   };
-  const curva = (k) => CURVAS[k?.curva] || CURVAS.suave;
+  // curva propia: [x1, y1, x2, y2] como cubic-bezier (editor gráfico de curvas); se resuelve x → t por Newton y bisección
+  const _bez = new Map();
+  function bezier([x1, y1, x2, y2]) { const B = (a, b, t) => 3 * a * (1 - t) * (1 - t) * t + 3 * b * (1 - t) * t * t + t * t * t, dB = (a, b, t) => 3 * a * (1 - t) * (1 - t) + 6 * (b - a) * (1 - t) * t + 3 * (1 - b) * t * t;
+    return (x) => { if (x <= 0) return 0; if (x >= 1) return 1; let t = x; for (let i = 0; i < 6; i++) { const d = dB(x1, x2, t); if (Math.abs(d) < 1e-6) break; t -= (B(x1, x2, t) - x) / d; if (t < 0 || t > 1) { t = x; break; } }
+      if (Math.abs(B(x1, x2, t) - x) > 1e-4) { let lo = 0, hi = 1; for (let i = 0; i < 30; i++) { t = (lo + hi) / 2; if (B(x1, x2, t) < x) lo = t; else hi = t; } } return B(y1, y2, t); }; }
+  const curva = (k) => { const c = k?.curva; if (Array.isArray(c) && c.length === 4) { const key = c.join(","); let f = _bez.get(key); if (!f) { f = bezier(c); _bez.set(key, f); } return f; } return CURVAS[c] || CURVAS.suave; };
   function accionPose(a, t) {
     const ks = [...(a.claves || [])].sort((x, y) => x.t - y.t); if (!ks.length) return completa({});
     const D = Math.max(0.1, a.duracion || ks[ks.length - 1].t || 1); let u = a.bucle ? ((t % D) + D) % D : Math.max(0, Math.min(D, t));

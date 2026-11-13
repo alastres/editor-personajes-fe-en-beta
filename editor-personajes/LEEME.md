@@ -241,3 +241,12 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
   - Se guarda en las palabras de la voz (`corte`, `junta`), así que también afecta a los labios por fonemas.
 - **Mover escenas:** arrastra el bloque de una escena sobre otra posición. Los cortes se quedan en las mismas frases de la voz y lo que se mueve es el contenido (escena, desde, transición, quién habla).
 - **Música:** «Ajustes del montaje de la música» permite fijar dónde empieza el final de la pista (`outro`), cuánto baja bajo la voz, cuánto sube en los silencios y el nivel en la tarjeta final (opciones de `montar-musica.py`).
+
+## Animación: transiciones, curvas propias, formas de andar, emociones y poses (fase 18)
+- **Transición entre acciones:** cada bloque de una escena entra y sale mezclándose (0,3 s por defecto) en vez de cambiar de golpe. Se ajusta por bloque en «Transición al entrar y salir» (0 = cambio seco; en el JSON, `mezcla`).
+- **Curva propia:** en el selector de curva (Personajes → Animación y Escenas), «Propia…» abre un editor con dos puntos que se arrastran, como un cubic-bezier. Trae atajos (Suave, Acelerar, Frenar, Se pasa, Anticipa, Muelle) y una bola que muestra el ritmo. Se guarda en la clave como `curva: [x1, y1, x2, y2]` y ✎ la vuelve a editar.
+- **Formas de andar** (Escenas, personaje): Normal, Cansado (inclinado, mirando abajo, triste), Alegre (con bote), Con prisa (zancada larga, inclinado hacia delante) y Sigiloso; más la zancada. En el JSON, `andar: { estilo, zancada }`.
+- **Emociones propias** (Animación → Cara → «Crear o editar una emoción propia»): mueves los rasgos (sonrisa, boca, cejas, ojos, párpados, rubor, mirada) y se guardan en el personaje con su nombre (`emociones`). Aparecen con ★ junto a las ocho que trae y sirven en acciones y escenas.
+- **Poses guardadas:** «Guardar pose» guarda la pose del cabezal en el personaje (`poses`). Con clic se pone en el cabezal y con clic derecho se borra.
+- **Copiar y pegar** la pose del cabezal entre claves, acciones o personajes (botones junto a «Borrar clave»).
+- **Rendimiento:** la distancia recorrida (para el paso de los pies) se calcula una vez y se guarda, en vez de integrarse desde 0 en cada fotograma.

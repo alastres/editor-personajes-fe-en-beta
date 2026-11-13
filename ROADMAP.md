@@ -52,11 +52,11 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 ## P2 · Mejora mucho la calidad o la rapidez
 
 ### Animación
-- [ ] **Transición entre acciones:** mezcla de unas décimas al pasar de un bloque al siguiente, en vez del cambio seco.
-- [ ] **Editor gráfico de curvas:** curva Bézier propia por clave, además de las predefinidas.
-- [ ] **Ciclos de andar y correr ajustables:** cadencia, zancada, estilo (cansado, alegre, con prisa).
-- [ ] **Emociones propias:** crear expresiones moviendo cejas, ojos y boca, y guardarlas como las ocho que trae.
-- [ ] **Biblioteca de poses** (instantáneas reutilizables) y copiar y pegar claves entre acciones.
+- [x] *(13 nov 2026)* **Transición entre acciones:** mezcla de unas décimas al pasar de un bloque al siguiente, en vez del cambio seco.
+- [x] *(13 nov 2026)* **Editor gráfico de curvas:** curva Bézier propia por clave, además de las predefinidas.
+- [x] *(13 nov 2026)* **Ciclos de andar y correr ajustables:** cadencia, zancada, estilo (cansado, alegre, con prisa).
+- [x] *(13 nov 2026)* **Emociones propias:** crear expresiones moviendo cejas, ojos y boca, y guardarlas como las ocho que trae.
+- [x] *(13 nov 2026)* **Biblioteca de poses** (instantáneas reutilizables) y copiar y pegar claves entre acciones.
 
 ### Diseño
 - [ ] **Sustituir partes base del muñeco:** cabeza, ojos, bocas, peinados o manos dibujados en el taller, con sus variantes. Ahora solo se puede añadir encima o quitar el pelo.
@@ -77,7 +77,7 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 - [ ] **Vista previa rápida** a baja resolución y render solo de un fragmento.
 - [ ] **Progreso real del render,** cola de varios y aviso al terminar.
 - [ ] **Formato horizontal (16:9)** para los vídeos largos, además del vertical.
-- [ ] **Rendimiento en escenas largas:** cachear el recorrido y la simulación.
+- [x] *(13 nov 2026)* **Rendimiento en escenas largas:** cachear el recorrido y la simulación. *(Hecho el recorrido, con una tabla acumulada; la física ya estaba acotada a 1 s de pre-simulación.)*
 
 ---
 

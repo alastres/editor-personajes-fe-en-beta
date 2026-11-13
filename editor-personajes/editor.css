@@ -217,3 +217,12 @@ body.con-taller { overflow: hidden; }
 .chk-grande { display: flex !important; gap: 8px; align-items: center; font-size: 13px; color: var(--texto) !important; cursor: pointer; margin-bottom: 6px; }
 #pz-fis-det[hidden] { display: none; }
 .fisica-campo { border: 1px dashed var(--borde); border-radius: 8px; padding: 8px; }
+
+/* ---- editor gráfico de curvas */
+.editor-curva { position: fixed; z-index: 60; background: var(--panel, #1e1a2c); border: 1px solid var(--borde, #3a3450); border-radius: 12px; padding: 10px 12px; box-shadow: 0 10px 30px #000a; width: 300px; }
+.editor-curva .ec-titulo { font-weight: 600; margin-bottom: 4px; }
+.editor-curva svg { display: block; margin: 0 auto; touch-action: none; }
+.editor-curva .ec-presets { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.editor-curva .ec-presets button { font-size: 11px; padding: 3px 7px; }
+.editor-curva .ec-botones { display: flex; justify-content: flex-end; gap: 6px; }
+button.mini { padding: 2px 7px; margin-left: 4px; }

@@ -56,7 +56,9 @@
           <output id="t-tiempo">0,00 s</output>
           <button id="t-clave" title="Añadir una clave en el cabezal (K)">+ Clave</button>
           <button id="t-borrar" title="Borrar la clave elegida">Borrar clave</button>
-          <label class="chk" title="Cómo va de esta clave a la siguiente">Curva <select id="t-curva"><option value="suave">Suave</option><option value="lineal">Lineal</option><option value="mantener">Mantener</option><option value="acelera">Acelerar</option><option value="frena">Frenar</option><option value="rebote">Rebote</option></select></label>
+          <button id="t-copiar" title="Copiar la pose del cabezal (sirve para otra acción u otro personaje)">Copiar</button>
+          <button id="t-pegar" title="Pegar la pose copiada en el cabezal (crea una clave si no la hay)">Pegar</button>
+          <label class="chk" title="Cómo va de esta clave a la siguiente">Curva <select id="t-curva"><option value="suave">Suave</option><option value="lineal">Lineal</option><option value="mantener">Mantener</option><option value="acelera">Acelerar</option><option value="frena">Frenar</option><option value="rebote">Rebote</option><option value="propia">Propia…</option></select><button id="t-curva-ed" title="Editar la curva propia" class="mini">✎</button></label>
           <label class="chk"><input type="checkbox" id="t-cebolla" checked /> Papel cebolla</label>
           <span id="t-ayuda" class="tenue"></span>
         </div>
@@ -212,6 +214,7 @@
   <script src="biblioteca.js"></script>
   <script src="dibujo.js"></script>
   <script src="editor.js"></script>
+  <script src="curvas.js"></script>
   <script src="editor-anim.js"></script>
 </body>
 </html>

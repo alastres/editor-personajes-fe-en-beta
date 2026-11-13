@@ -330,5 +330,21 @@
         }
       }
     }
+  ],
+  "emociones": {
+    "asombro": {
+      "abre": 0.6,
+      "cejaY": 9
+    }
+  },
+  "poses": [
+    {
+      "nombre": "Asombrado",
+      "pose": {
+        "cara": {
+          "asombro": 1
+        }
+      }
+    }
   ]
 }

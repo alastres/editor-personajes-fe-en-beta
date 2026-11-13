@@ -21,9 +21,13 @@
     const i = ks.findIndex((k) => k.t > t), a = ks[i - 1], b = ks[i], fx = (window.Personajes?.curva ? Personajes.curva(a) : suave), k = fx((t - a.t) / (b.t - a.t)), o = Object.assign({}, a);
     for (const c of campos) o[c] = lerp(a[c] ?? 0, b[c] ?? a[c] ?? 0, k); return o; }
   // distancia recorrida hasta t (para que los pies avancen al ritmo del desplazamiento)
-  function recorrido(lista, t) { let d = 0, prev = null; const paso = 1 / 60;
-    for (let u = 0; u <= t + 1e-6; u += paso) { const q = claves(lista, u, ["x", "p"]); if (prev) d += Math.hypot(q.x - prev.x, (q.p - prev.p) * 500); prev = q; }
-    return d; }
+  // (tabla acumulada por recorrido, en caché: antes se integraba desde 0 en cada fotograma y las escenas largas iban lentas)
+  const _rec = new WeakMap();
+  function recorrido(lista, t) { if (!lista || !lista.length) return 0; const paso = 1 / 60, firma = JSON.stringify(lista);
+    let c = _rec.get(lista); if (!c || c.firma !== firma) { c = { firma, d: [0], prev: claves(lista, 0, ["x", "p"]) }; _rec.set(lista, c); }
+    const n = Math.max(0, Math.floor((t + 1e-6) / paso));
+    while (c.d.length <= n) { const u = c.d.length * paso, q = claves(lista, u, ["x", "p"]); c.d.push(c.d[c.d.length - 1] + Math.hypot(q.x - c.prev.x, ((q.p || 0) - (c.prev.p || 0)) * 500)); c.prev = q; }
+    return c.d[n]; }
 
   // ---- fondos (siluetas planas por capas, como los del short ¿Y si…?)
   const FONDOS = {
@@ -163,6 +167,12 @@
     for (const e of esc.efectos || []) { if (e.tipo !== "destello") continue; const u = t - e.t, d = e.dur || 0.5; if (u < 0 || u > d) continue;
       const k = u < 0.06 ? u / 0.06 : (1 - (u - 0.06) / (d - 0.06)) ** 1.5; el("rect", { x: 0, y: 0, width: ANCHO, height: ALTO, fill: e.color || "#fff6e0", opacity: (k * (e.fuerza ?? 1) * 0.85).toFixed(3) }, g); } }
 
+  const ESTILOS_ANDAR = {
+    cansado: { zancada: 0.8, amp: 0.75, inclina: 0.12, miraY: 0.35, hombros: -4, cara: { triste: 0.35 } },
+    alegre: { zancada: 1.05, bote: 14, cara: { alegre: 0.5 } },
+    prisa: { zancada: 1.2, inclina: 0.1, amp: 1.1 },
+    sigiloso: { zancada: 0.7, amp: 0.7, inclina: 0.08, hombros: 6, cara: { miedo: 0.25 } } };
+
   // op.voz = { envolvente, desfase, habla }: voz que viene de fuera (el montaje de un short). desfase = segundo del short en el que empieza
   // la escena menos el punto de la escena desde el que se ve; habla = id del actor cuya boca la sigue (o "auto": el primer actor)
   function crear(svg, esc, PJ, op = {}) {
@@ -208,11 +218,17 @@
         const q2 = claves(a.recorrido, t + 0.05, ["x", "p"]) || q, v = Math.hypot(q2.x - q.x, ((q2.p || 0) - (q.p || 0)) * 500) / 0.05;
         const anda = cl(v / 60), corre = cl((v - 330) / 200);
         // bloques activos en t, por capas: «todo» o «cuerpo» abajo, «brazos» encima (se puede saludar mientras se anda)
-        const activos = (a.bloques || []).filter((b) => t >= b.t && t < b.t + (b.dur || 2)).sort((x, y) => (x.capa === "brazos") - (y.capa === "brazos") || x.t - y.t);
+        // transición entre acciones: cada bloque entra y sale mezclándose (b.mezcla segundos, 0,3 por defecto; 0 = cambio seco).
+        // Un bloque que acaba de terminar sigue pesando hasta desvanecerse, con la pose de su último instante.
+        const TRm = (b) => b.mezcla ?? 0.3;
+        const activos = (a.bloques || []).filter((b) => t >= b.t && t < b.t + (b.dur || 2) + TRm(b)).sort((x, y) => (x.capa === "brazos") - (y.capa === "brazos") || x.t - y.t);
         const base = { giro: q.giro ?? 20 }; let pz = Personajes.completa({}), ctrl = {}, loco = null;
-        for (const b of activos) { const ac = Personajes.buscarAccion(A.j, b.accion); if (!ac) continue;
-          pz = Personajes.enCapas(pz, Personajes.accionPose(ac, t - b.t + (b.desde || 0)), b.capa || "todo"); Object.assign(ctrl, b.controles || {});
-          if ((b.capa || "todo") !== "brazos" && ac.locomocion?.amp) loco = { ac, t0: b.t }; }
+        for (const b of activos) { const ac = Personajes.buscarAccion(A.j, b.accion); if (!ac) continue; const d = b.dur || 2, m = TRm(b), fin = b.t + d;
+          const w = Math.min(b.t <= 0.001 || m <= 0 ? 1 : suave(cl((t - b.t) / m)), t < fin ? 1 : m <= 0 ? 0 : suave(cl(1 - (t - fin) / m)));
+          if (w <= 0.001) continue;
+          const pb = Personajes.accionPose(ac, Math.min(t, fin - 1e-3) - b.t + (b.desde || 0)), capa = b.capa || "todo";
+          pz = Personajes.enCapas(pz, w >= 0.999 ? pb : Personajes.mezclar(pz, pb, w), capa);
+          if (t < fin) { Object.assign(ctrl, b.controles || {}); if (capa !== "brazos" && ac.locomocion?.amp) loco = { ac, t0: b.t }; } }
         const pp = Personajes.conControles(pz, A.j.controles, ctrl);
         // agarrar: la mano va (por IK) a la mano de otro personaje o a un objeto, con medio segundo de transición
         for (const L of ["Izq", "Der"]) { const g = enClave((a.agarra || []).filter((k) => (k.mano || "Der") === L), t); if (!g) continue;
@@ -231,7 +247,13 @@
           if (d && w > 0.001) { const lim = (v, m) => Math.max(-m, Math.min(m, v)), rel = lim(d.yaw - e.torso, rad(65)), relO = lim(d.yaw - e.torso, rad(85));
             e.cabeza = lerp(e.cabeza, e.torso + rel, w); e.ojos = lerp(e.ojos, e.torso + relO, w); e.miraY = lerp(e.miraY || 0, d.y, w); } }
         if (loco) { const lo = loco.ac.locomocion; Object.assign(e, { amp: lo.amp, correr: lo.correr || 0, fase: (t - loco.t0) * (lo.cad || (lo.correr ? 1.45 : 0.95)) }); }
-        if (anda > 0.02 && !e.amp) Object.assign(e, { amp: anda, correr: corre, fase: recorrido(a.recorrido, t) / (corre > 0.5 ? 260 : 170) });
+        // forma de andar del actor: zancada (más larga = menos pasos y más amplios) y estilo (cansado, alegre, con prisa, sigiloso)
+        if (anda > 0.02 && !e.amp) { const an = a.andar || {}, z = an.zancada || 1, est = ESTILOS_ANDAR[an.estilo] || {}, zz = z * (est.zancada || 1);
+          Object.assign(e, { amp: anda * Math.min(1.4, zz) * (est.amp || 1), correr: corre, fase: recorrido(a.recorrido, t) / ((corre > 0.5 ? 260 : 170) * zz) });
+          if (est.inclina) e.inclina = (e.inclina || 0) + est.inclina * anda; if (est.miraY) e.miraY = (e.miraY || 0) + est.miraY * anda;
+          if (est.bote) e.altura = (e.altura || 0) + est.bote * anda * Math.abs(Math.sin(2 * Math.PI * e.fase));
+          if (est.cara) { e.cara = Object.assign({}, e.cara); for (const k in est.cara) e.cara[k] = Math.max(e.cara[k] || 0, est.cara[k] * anda); }
+          if (est.hombros) e.hombros = (e.hombros || 0) + est.hombros * anda; }
         // los brazos de una capa «brazos» mandan sobre el braceo de andar; sin ella, al andar los brazos bracean
         e.parpadeo = Math.max(0.1, Math.min(1, Math.abs(((t + a.id.length * 0.7) % 3.4) - 3.3) / 0.08));
         // hablar: si un audio de la escena es de este actor, su boca sigue la envolvente (30 valores por segundo, 0…1)
@@ -269,5 +291,5 @@
     }
     return { dibujar, actores, objetos, camara, raiz };
   }
-  window.Escena = { crear, claves, FONDOS, fondoDe, PARTICULAS, ANCHO, ALTO };
+  window.Escena = { crear, claves, FONDOS, fondoDe, PARTICULAS, ESTILOS_ANDAR, ANCHO, ALTO };
 })();

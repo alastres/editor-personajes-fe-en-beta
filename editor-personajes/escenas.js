@@ -149,8 +149,10 @@
       const acc = [...(PJ[a.personaje]?.acciones || []), ...Object.values(window.ACCIONES || {}).map((x) => Object.assign({}, x, { comun: true }))];
       $("#a-accion").replaceChildren(...(acc.length ? acc.map((x) => h("option", { value: x.id }, (x.comun ? "★ " : "") + (x.nombre || x.id))) : [h("option", { value: "" }, "— sin acciones: créalas en Personajes → Animación —")]));
       $("#b-add-bloque").disabled = !acc.length;
-      const b = selBloque !== null ? a.bloques[selBloque] : null; $("#bloque-det").hidden = !b; if (b) { deslizar("b-dur", b.dur || 2, (v) => v.toFixed(1) + " s");
+      const b = selBloque !== null ? a.bloques[selBloque] : null; $("#bloque-det").hidden = !b; if (b) { deslizar("b-dur", b.dur || 2, (v) => v.toFixed(1) + " s"); deslizar("b-mezcla", b.mezcla ?? 0.3, (v) => v.toFixed(2) + " s");
         seg("#b-capa", { todo: "Todo el cuerpo", cuerpo: "Solo cuerpo", brazos: "Solo brazos" }, b.capa || "todo", (k) => cambio((x) => { const bb = x.actores.find((y) => y.id === a.id).bloques[selBloque]; if (k === "todo") delete bb.capa; else bb.capa = k; }, null, false)); }
+      seg("#a-estilo", { "": "Normal", cansado: "Cansado", alegre: "Alegre", prisa: "Con prisa", sigiloso: "Sigiloso" }, a.andar?.estilo || "", (k) => cambio((x) => { const y = x.actores.find((z) => z.id === a.id); y.andar = Object.assign({}, y.andar); if (k) y.andar.estilo = k; else delete y.andar.estilo; }, null, false));
+      deslizar("a-zancada", a.andar?.zancada ?? 1, (v) => Math.round(v * 100) + "%");
       // mirar a / agarrar: a quién o a qué (otros personajes, sus manos, el atrezo)
       const otros = esc.actores.filter((x) => x.id !== a.id), nom = (x) => PJ[x.personaje]?.nombre || x.personaje, objs = esc.objetos || [];
       $("#a-mirar").replaceChildren(h("option", { value: "nada" }, "Nadie (su pose)"), h("option", { value: "camara" }, "A cámara"), h("option", { value: "habla" }, "A quien habla"),
@@ -204,13 +206,16 @@
         cambio((x) => { x.audios[i].habla = v || undefined; if (env) x.audios[i].envolvente = env; if (pal) x.audios[i].palabras = pal; }, null, false); });
       ua.append(h("li", { class: "fila-audio" }, h("span", {}, "♪"), h("div", { class: "audio-info" }, h("span", { title: au.archivo }, au.archivo.split("/").pop()), quien), vol, h("button", { class: "x", title: "Quitar", onclick: () => cambio((x) => { x.audios.splice(i, 1); }) }, "✕"))); }
     $("#t-tiempo").textContent = fmtT(tiempo) + " / " + fmtT(D());
-    const kc = claveCabezal(); $("#t-curva").disabled = !kc; if (kc) $("#t-curva").value = kc.k.curva || "suave";
+    const kc = claveCabezal(); $("#t-curva").disabled = !kc; if (kc) $("#t-curva").value = Array.isArray(kc.k.curva) ? "propia" : kc.k.curva || "suave"; $("#t-curva-ed").disabled = !kc;
   }
   // clave del cabezal a la que se aplica la curva: la del recorrido del personaje elegido; si no hay, la de cámara
   function claveCabezal() { const a = actor(), cerca = (k) => Math.abs(k.t - tiempo) < 0.02;
     const ka = a && (a.recorrido || []).find(cerca); if (ka) return { tipo: "rec", k: ka, id: a.id }; const kc = esc.camara.find(cerca); return kc ? { tipo: "cam", k: kc } : null; }
-  $("#t-curva").addEventListener("change", (ev) => { const c = claveCabezal(); if (!c) return; const v = ev.target.value;
-    cambio((x) => { const lst = c.tipo === "cam" ? x.camara : x.actores.find((y) => y.id === c.id).recorrido, k = lst.find((q) => Math.abs(q.t - tiempo) < 0.02); if (v === "suave") delete k.curva; else k.curva = v; }, null, false); });
+  const ponCurva = (v) => { const c = claveCabezal(); if (!c) return;
+    cambio((x) => { const lst = c.tipo === "cam" ? x.camara : x.actores.find((y) => y.id === c.id).recorrido, k = lst.find((q) => Math.abs(q.t - tiempo) < 0.02); if (v === "suave") delete k.curva; else k.curva = v; }, null, false); };
+  const editarCurva = () => { const c = claveCabezal(); if (!c) return; EditorCurva.abrir($("#t-curva"), c.k.curva || "suave", (v) => ponCurva(v)); };
+  $("#t-curva").addEventListener("change", (ev) => { if (ev.target.value === "propia") editarCurva(); else ponCurva(ev.target.value); });
+  $("#t-curva-ed").addEventListener("click", editarCurva);
   $("#e-nombre").addEventListener("input", (ev) => cambio((x) => { x.nombre = ev.target.value; }, "e-nombre", false));
   $("#e-dur").addEventListener("input", (ev) => cambio((x) => { x.duracion = Number(ev.target.value); }, "e-dur", false));
   $("#b-add-actor").addEventListener("click", () => { const pid = $("#add-personaje").value; if (!pid) return; let n = 1, id = pid; while (esc.actores.some((a) => a.id === id)) id = pid + "-" + ++n;
@@ -224,11 +229,13 @@
   $("#b-add-bloque").addEventListener("click", () => { const a = actor(), acc = $("#a-accion").value; if (!a || !acc) return; const def = Personajes.buscarAccion(PJ[a.personaje], acc)?.duracion || 2;
     cambio((x) => { const ax = x.actores.find((y) => y.id === a.id); ax.bloques = ax.bloques || []; ax.bloques.push({ t: +tiempo.toFixed(2), accion: acc, dur: +Math.min(def * 2, D() - tiempo || def).toFixed(1) || def }); ax.bloques.sort((m, n) => m.t - n.t); selBloque = ax.bloques.findIndex((b) => b.accion === acc && Math.abs(b.t - tiempo) < 0.02); }, null, false); });
   $("#b-dur").addEventListener("input", (ev) => { const a = actor(); if (!a || selBloque === null) return; cambio((x) => { x.actores.find((y) => y.id === a.id).bloques[selBloque].dur = Number(ev.target.value); }, "b-dur" + selBloque, false); });
+  $("#b-mezcla").addEventListener("input", (ev) => { const a = actor(); if (!a || selBloque === null) return; cambio((x) => { x.actores.find((y) => y.id === a.id).bloques[selBloque].mezcla = +ev.target.value; }, "bmz" + selBloque, false); });
   $("#b-quitar-bloque").addEventListener("click", () => { const a = actor(); if (!a || selBloque === null) return; const i = selBloque; selBloque = null; cambio((x) => { x.actores.find((y) => y.id === a.id).bloques.splice(i, 1); }, null, false); });
   $("#b-quitar-clave").addEventListener("click", () => { const a = actor(); if (!a) return; cambio((x) => { const r = x.actores.find((y) => y.id === a.id).recorrido; const i = r.findIndex((k) => Math.abs(k.t - tiempo) < 0.02); if (i >= 0 && r.length > 1) r.splice(i, 1); }, null, false); });
   for (const k of ["tono", "vineta", "cant"]) $("#am-" + k).addEventListener("input", (ev) => cambio((x) => { x.ambiente = Object.assign({}, x.ambiente, { [k === "cant" ? "cantidad" : k]: +ev.target.value }); }, "am" + k, false));
   const ponEfecto = (tipo) => { if (!esc) return; cambio((x) => { (x.efectos = x.efectos || []).push({ t: +tiempo.toFixed(2), tipo, dur: tipo === "sacudida" ? 0.6 : 0.5, fuerza: 1 }); x.efectos.sort((a, b) => a.t - b.t); }, null, false); aviso((tipo === "destello" ? "Destello" : "Sacudida") + " en " + fmtT(tiempo)); };
   $("#b-destello").addEventListener("click", () => ponEfecto("destello")); $("#b-sacudida").addEventListener("click", () => ponEfecto("sacudida"));
+  $("#a-zancada").addEventListener("input", (ev) => { const a = actor(); if (!a) return; cambio((x) => { const y = x.actores.find((z) => z.id === a.id); y.andar = Object.assign({}, y.andar, { zancada: +ev.target.value }); }, "azan" + a.id, false); });
   // clave de mirar / agarrar en el cabezal (si ya hay una en ese instante, se cambia)
   const ponClaveActor = (lista, valor) => { const a = actor(); if (!a) return; cambio((x) => { const y = x.actores.find((z) => z.id === a.id), l = (y[lista] = y[lista] || []);
       const i = l.findIndex((k) => Math.abs(k.t - tiempo) < 0.02 && (lista !== "agarra" || k.mano === valor.mano)); const k = Object.assign({ t: +tiempo.toFixed(2) }, valor);

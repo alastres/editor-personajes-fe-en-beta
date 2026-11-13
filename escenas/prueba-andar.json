@@ -1,0 +1,112 @@
+{
+  "nombre": "Prueba de formas de andar",
+  "duracion": 4,
+  "fondo": {
+    "tipo": "dia"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -300,
+      "zoom": 0.75
+    }
+  ],
+  "actores": [
+    {
+      "id": "a",
+      "personaje": "pedro",
+      "escala": 0.8,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -900,
+          "p": 0.1,
+          "giro": 80
+        },
+        {
+          "t": 4,
+          "x": -500,
+          "p": 0.1,
+          "giro": 80
+        }
+      ],
+      "bloques": [],
+      "andar": {
+        "estilo": "cansado"
+      }
+    },
+    {
+      "id": "b",
+      "personaje": "pablo",
+      "escala": 0.8,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -500,
+          "p": 0.1,
+          "giro": 80
+        },
+        {
+          "t": 4,
+          "x": -100,
+          "p": 0.1,
+          "giro": 80
+        }
+      ],
+      "bloques": [],
+      "andar": {
+        "estilo": "alegre"
+      }
+    },
+    {
+      "id": "c",
+      "personaje": "tu",
+      "escala": 0.8,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -100,
+          "p": 0.1,
+          "giro": 80
+        },
+        {
+          "t": 4,
+          "x": 300,
+          "p": 0.1,
+          "giro": 80
+        }
+      ],
+      "bloques": [],
+      "andar": {
+        "estilo": "prisa"
+      }
+    },
+    {
+      "id": "d",
+      "personaje": "maria-magdalena",
+      "escala": 0.8,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 300,
+          "p": 0.1,
+          "giro": 80
+        },
+        {
+          "t": 4,
+          "x": 700,
+          "p": 0.1,
+          "giro": 80
+        }
+      ],
+      "bloques": [],
+      "andar": {
+        "estilo": "sigiloso"
+      }
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "id": "prueba-andar"
+}

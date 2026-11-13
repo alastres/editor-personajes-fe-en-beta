@@ -217,7 +217,7 @@
     const EXP = Object.assign({}, EXP0);
     function ponerCara(pesos) {
       Object.assign(EXP, EXP0);
-      for (const n in pesos) { const em = EMOCIONES[n], w = pesos[n]; if (!em || !w) continue;
+      for (const n in pesos) { const em = (op.emociones || {})[n] || EMOCIONES[n], w = pesos[n]; if (!em || !w) continue;   // las del personaje primero
         for (const k in em) EXP[k] += (em[k] - (k === "ancho" || k === "ojoK" ? 1 : 0)) * w; }
     }
     const KAP = 0.5523, RC = 58;

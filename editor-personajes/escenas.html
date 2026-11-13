@@ -43,7 +43,7 @@
           <button id="t-play" class="primario" title="Reproducir / parar (espacio)">▶</button>
           <button id="t-inicio" title="Al principio">⏮</button>
           <output id="t-tiempo">0,00 s</output>
-          <label class="chk" title="Curva del tramo que empieza en la clave del cabezal (recorrido del personaje elegido o cámara)">Curva <select id="t-curva"><option value="suave">Suave</option><option value="lineal">Lineal</option><option value="mantener">Mantener</option><option value="acelera">Acelerar</option><option value="frena">Frenar</option><option value="rebote">Rebote</option></select></label>
+          <label class="chk" title="Curva del tramo que empieza en la clave del cabezal (recorrido del personaje elegido o cámara)">Curva <select id="t-curva"><option value="suave">Suave</option><option value="lineal">Lineal</option><option value="mantener">Mantener</option><option value="acelera">Acelerar</option><option value="frena">Frenar</option><option value="rebote">Rebote</option><option value="propia">Propia…</option></select><button id="t-curva-ed" title="Editar la curva propia" class="mini">✎</button></label>
           <span id="t-ayuda" class="tenue"></span>
         </div>
         <div id="pistas" class="pistas"></div>
@@ -84,11 +84,14 @@
           <div class="deslizador"><label>Profundidad (0 delante … 1 al fondo)</label><input type="range" id="a-p" min="0" max="1" step="0.01" /><output></output></div>
           <div class="deslizador"><label>Hacia dónde mira</label><input type="range" id="a-giro" min="-180" max="180" step="1" /><output></output></div>
           <div class="deslizador"><label>Tamaño</label><input type="range" id="a-escala" min="0.4" max="2" step="0.01" /><output></output></div>
+          <div class="campo"><label>Forma de andar <span class="tenue">(cuando el recorrido le mueve)</span></label><div class="seg pequeno" id="a-estilo"></div></div>
+          <div class="deslizador"><label>Zancada</label><input type="range" id="a-zancada" min="0.6" max="1.5" step="0.05" /><output></output></div>
           <div class="campo"><label>Poner una acción en el cabezal</label>
             <div class="fila-anadir"><select id="a-accion"></select><button id="b-add-bloque">Añadir</button></div></div>
           <div id="bloque-det" hidden>
             <div class="campo"><label>Capa <span class="tenue">(«brazos» se suma encima: saludar mientras anda)</span></label><div class="seg pequeno" id="b-capa"></div></div>
             <div class="deslizador"><label>Duración de la acción elegida</label><input type="range" id="b-dur" min="0.3" max="20" step="0.1" /><output></output></div>
+            <div class="deslizador"><label>Transición al entrar y salir <span class="tenue">(0 = cambio seco)</span></label><input type="range" id="b-mezcla" min="0" max="1.5" step="0.05" /><output></output></div>
             <button id="b-quitar-bloque" class="peligro">Quitar esta acción</button>
           </div>
           <div class="campo"><label>Mirar a <span class="tenue">(desde el cabezal; cabeza y ojos le siguen solos)</span></label>
@@ -160,6 +163,7 @@
   <script src="/acciones/todas.js"></script>
   <script src="/comun/escena.js"></script>
   <script src="dibujo.js"></script>
+  <script src="curvas.js"></script>
   <script src="escenas.js"></script>
 </body>
 </html>
