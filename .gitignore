@@ -28,3 +28,4 @@
 */papelera/
 *.bak
 !/ilustraciones/
+!/comun/lamina-vectorizar.py
