@@ -9,56 +9,95 @@
   "fondo": {
     "tipo": "alba"
   },
-  "camara": [
-    {
-      "t": 0,
-      "x": 0,
-      "y": -440,
-      "zoom": 1.4
-    },
-    {
-      "t": 4.43,
-      "x": 0,
-      "y": -460,
-      "zoom": 1.85,
-      "curva": "frena"
-    }
-  ],
   "ambiente": {
     "tono": 0.3,
     "vineta": 0.45
   },
+  "objetos": [
+    {
+      "id": "tumba",
+      "tipo": "tumba",
+      "x": 260,
+      "p": 0.4,
+      "escala": 1,
+      "params": {
+        "abierta": 1,
+        "luz": 1
+      }
+    }
+  ],
+  "camara": [
+    {
+      "t": 0,
+      "x": 80,
+      "y": -420,
+      "zoom": 1.1
+    },
+    {
+      "t": 2.089,
+      "x": 80,
+      "y": -420,
+      "zoom": 1.1660000000000001
+    },
+    {
+      "t": 2.09,
+      "x": -120,
+      "y": -332.23,
+      "zoom": 1.7
+    },
+    {
+      "t": 2.909,
+      "x": -120,
+      "y": -332.23,
+      "zoom": 1.802
+    },
+    {
+      "t": 2.9099999999999997,
+      "x": -120,
+      "y": -409,
+      "zoom": 2.7
+    },
+    {
+      "t": 4.43,
+      "x": -120,
+      "y": -409,
+      "zoom": 2.8620000000000005
+    }
+  ],
   "actores": [
     {
-      "id": "tu",
-      "personaje": "tu",
+      "id": "maria",
+      "personaje": "maria-magdalena",
       "escala": 1,
       "recorrido": [
         {
           "t": 0,
-          "x": 0,
-          "p": 0,
-          "giro": -12
+          "x": -120,
+          "p": 0.05,
+          "giro": 45
         }
       ],
       "bloques": [
         {
           "t": 0,
-          "accion": "explicar",
-          "dur": 4.43,
-          "capa": "brazos",
-          "desde": 3
+          "accion": "pensativo",
+          "dur": 2.9099999999999997,
+          "capa": "cara"
         },
         {
-          "t": 0,
-          "accion": "pensativo",
+          "t": 2.9099999999999997,
+          "accion": "alegre",
           "dur": 4.43,
-          "capa": "cuerpo"
+          "capa": "cara"
         }
       ],
       "mirar": [
         {
           "t": 0,
+          "a": "tumba"
+        },
+        {
+          "t": 2.9099999999999997,
           "a": "camara"
         }
       ]

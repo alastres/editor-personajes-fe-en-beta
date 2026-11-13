@@ -94,6 +94,8 @@
   // CAPAS: un bloque de «brazos» solo cambia brazos, manos y palmas, encima de la capa de cuerpo (o de andar)
   const DE_BRAZOS = /^(b(Izq|Der)|m(Izq|Der)|p(Izq|Der))/;
   function enCapas(p, encima, capa) { if (!capa || capa === "todo") return completa(encima); const o = completa(p), q = completa(encima);
+    // capa «cara»: solo la expresión y la mirada (una emoción encima de sentarse o andar, sin tocar piernas ni brazos)
+    if (capa === "cara") { for (const k of ["cara", "miraX", "miraY", "inclina", "ladeo", "cabeza"]) if (encima && k in encima) o[k] = q[k]; return o; }
     for (const k in q) if ((capa === "brazos") === DE_BRAZOS.test(k)) o[k] = q[k]; return o; }
   function accion(j, nombre, t, base = {}, controles = {}) {
     const a = buscarAccion(j, nombre); if (!a) { console.warn("acción no encontrada", nombre); return pose({}, base); }

@@ -3,8 +3,8 @@
   "duracion": 2.96,
   "textos": [
     {
-      "t": 0.4,
-      "dur": 2.36,
+      "t": 0.3,
+      "dur": 2.4,
       "texto": "Juan 20:29",
       "arriba": true
     }
@@ -14,58 +14,66 @@
   "texto": "«Bienaventurados los que no vieron, y creyeron».",
   "id": "ysi2-evidencia-11",
   "fondo": {
-    "tipo": "alba"
+    "tipo": "interior"
+  },
+  "ambiente": {
+    "tono": 0.45,
+    "vineta": 0.4,
+    "particulas": "polvo",
+    "cantidad": 0.9
   },
   "camara": [
     {
       "t": 0,
-      "x": -150,
-      "y": -420,
-      "zoom": 1.15
+      "x": -60,
+      "y": -332.23,
+      "zoom": 1.5
+    },
+    {
+      "t": 1.399,
+      "x": -60,
+      "y": -332.23,
+      "zoom": 1.59
+    },
+    {
+      "t": 1.4,
+      "x": -60,
+      "y": -330,
+      "zoom": 2.6
     },
     {
       "t": 2.96,
-      "x": 80,
-      "y": -430,
-      "zoom": 1.25
+      "x": -60,
+      "y": -330,
+      "zoom": 2.7560000000000002
     }
   ],
-  "ambiente": {
-    "tono": 0.35,
-    "vineta": 0.3,
-    "particulas": "polvo",
-    "cantidad": 0.8
-  },
   "actores": [
     {
-      "id": "tu",
-      "personaje": "tu",
+      "id": "tomas",
+      "personaje": "discipulo-1",
       "escala": 1,
       "recorrido": [
         {
           "t": 0,
-          "x": -320,
-          "p": 0.1,
-          "giro": 60
-        },
-        {
-          "t": 2.96,
-          "x": 140,
-          "p": 0.1,
-          "giro": 60
+          "x": -60,
+          "p": 0.05,
+          "giro": 45
         }
       ],
       "bloques": [
         {
           "t": 0,
-          "accion": "alegre",
+          "accion": "arrodillarse",
+          "dur": 2.96
+        },
+        {
+          "t": 0,
+          "accion": "triste",
           "dur": 2.96,
-          "capa": "cuerpo"
+          "capa": "cara"
         }
-      ],
-      "andar": {
-        "estilo": "alegre"
-      }
+      ]
     }
   ]
 }

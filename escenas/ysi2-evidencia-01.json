@@ -10,63 +10,95 @@
     "tipo": "luna"
   },
   "rol": "gancho",
-  "camara": [
-    {
-      "t": 0,
-      "x": 120,
-      "y": -760,
-      "zoom": 1.45,
-      "curva": "frena"
-    },
-    {
-      "t": 4.05,
-      "x": 60,
-      "y": -640,
-      "zoom": 1.3
-    }
-  ],
   "ambiente": {
     "vineta": 0.45,
-    "tono": -0.2,
-    "particulas": "luciernagas",
-    "cantidad": 0.4
+    "tono": -0.2
   },
   "efectos": [
     {
-      "t": 0.15,
+      "t": 0.1,
       "tipo": "destello",
-      "dur": 0.4,
-      "fuerza": 0.5
+      "dur": 0.5,
+      "fuerza": 0.6
+    }
+  ],
+  "objetos": [
+    {
+      "id": "tumba",
+      "tipo": "tumba",
+      "x": 260,
+      "p": 0.35,
+      "escala": 1,
+      "params": {
+        "abierta": 1,
+        "luz": 1
+      }
+    }
+  ],
+  "camara": [
+    {
+      "t": 0,
+      "x": 60,
+      "y": -430,
+      "zoom": 1.15
+    },
+    {
+      "t": 2.459,
+      "x": 60,
+      "y": -430,
+      "zoom": 1.2189999999999999
+    },
+    {
+      "t": 2.46,
+      "x": 260,
+      "y": -230,
+      "zoom": 2.1
+    },
+    {
+      "t": 3.279,
+      "x": 260,
+      "y": -230,
+      "zoom": 2.2260000000000004
+    },
+    {
+      "t": 3.28,
+      "x": -170,
+      "y": -409,
+      "zoom": 2.7
+    },
+    {
+      "t": 4.05,
+      "x": -170,
+      "y": -409,
+      "zoom": 2.8620000000000005
     }
   ],
   "actores": [
     {
-      "id": "tu",
-      "personaje": "tu",
+      "id": "hombre",
+      "personaje": "discipulo-1",
       "escala": 1,
       "recorrido": [
         {
           "t": 0,
-          "x": 0,
-          "p": 0,
-          "giro": 25
+          "x": -170,
+          "p": 0.05,
+          "giro": 55
         }
       ],
       "bloques": [
         {
           "t": 0,
-          "accion": "mirar-cielo",
-          "dur": 3.3299999999999996,
-          "capa": "cuerpo"
-        },
-        {
-          "t": 3.3299999999999996,
-          "accion": "pensativo",
-          "dur": 3,
-          "capa": "cuerpo"
+          "accion": "asombro",
+          "dur": 4.05,
+          "capa": "cara"
         }
       ],
       "mirar": [
+        {
+          "t": 0,
+          "a": "tumba"
+        },
         {
           "t": 3.23,
           "a": "camara"

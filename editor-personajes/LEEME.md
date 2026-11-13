@@ -306,3 +306,5 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - **Rótulos arriba:** en Escenas, el botón ↓/↑ de cada rótulo lo sube a la parte de arriba, lejos de los subtítulos (en el JSON, `arriba: true`). Sirve para la cita de un versículo («Lucas 16:31»).
 - **Acciones comunes nuevas** para actuar en escena (capa cuerpo o brazos): Asombro, Enfado, Triste, Pensativo, Mirar al cielo, Alegre, Tender la mano, Manos arriba y Mano en el pecho.
 - Lo que falló o faltó en la prueba está en `ROADMAP.md`, en Fase 2, punto 1.
+- **Capa «cara»** en los bloques (Escenas → Capa → «Solo cara», ☺ en la línea de tiempo): pone solo la expresión y la mirada, sin tocar piernas ni brazos. Así una emoción se suma a arrodillarse, sentarse o andar; con «Solo cuerpo» las piernas volvían a la postura de pie. Las acciones de emoción del short la usan.
+- **Borrador 2** (voz en off, varios planos con corte en cada escena), después del veredicto del usuario sobre el 1: «aburrido, faltan cambios de cámara; el narrador distrae».

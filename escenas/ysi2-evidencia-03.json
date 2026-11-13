@@ -10,21 +10,6 @@
     "tipo": "mar",
     "oleaje": 1.4
   },
-  "camara": [
-    {
-      "t": 0,
-      "x": 0,
-      "y": -520,
-      "zoom": 0.95
-    },
-    {
-      "t": 3.24,
-      "x": 0,
-      "y": -500,
-      "zoom": 1.12,
-      "curva": "frena"
-    }
-  ],
   "ambiente": {
     "vineta": 0.3
   },
@@ -40,6 +25,32 @@
       "tipo": "destello",
       "dur": 0.6,
       "fuerza": 0.5
+    }
+  ],
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -520,
+      "zoom": 0.95
+    },
+    {
+      "t": 1.719,
+      "x": 0,
+      "y": -520,
+      "zoom": 1.007
+    },
+    {
+      "t": 1.72,
+      "x": 20,
+      "y": -240,
+      "zoom": 1.7
+    },
+    {
+      "t": 3.24,
+      "x": 20,
+      "y": -240,
+      "zoom": 1.802
     }
   ],
   "actores": [
@@ -60,7 +71,7 @@
           "t": 0.3,
           "accion": "asombro",
           "dur": 4,
-          "capa": "cuerpo"
+          "capa": "cara"
         }
       ]
     },
@@ -87,7 +98,7 @@
           "t": 0.3,
           "accion": "asombro",
           "dur": 4,
-          "capa": "cuerpo"
+          "capa": "cara"
         }
       ]
     },
@@ -108,7 +119,7 @@
           "t": 0.5,
           "accion": "asombro",
           "dur": 4,
-          "capa": "cuerpo"
+          "capa": "cara"
         }
       ]
     }

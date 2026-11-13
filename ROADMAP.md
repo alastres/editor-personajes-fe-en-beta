@@ -121,6 +121,7 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [x] *(13 nov 2026)* **Los rótulos quedaban tapados por los subtítulos** (misma altura): ahora un rótulo puede ir arriba (`arriba: true`, botón ↓/↑ en Escenas).
 - [ ] **Faltan efectos y atrezo bíblicos:** el mar no se abre, no hay becerro de oro (se usó una hoguera), ni maná propiamente dicho (partículas de nieve).
 - [ ] **Falta reparto:** sacerdotes con su ropa, Moisés, Jesús. Se usaron Pablo y los discípulos.
+- [ ] **Veredicto del usuario sobre el borrador 1:** «se torna aburrido porque le faltan cambios de cámara», y el narrador en pantalla «distrae y consume tiempo vital del espectador». Borrador 2: voz en off y varios planos con corte dentro de cada escena (general → medio → primer plano → detalle, cada 1,5–2,5 s, en las palabras clave). El editor no tiene **cortes de cámara dentro de una escena**: se simulan con dos claves separadas 1 ms. Falta una pista «Planos» con encuadres con nombre (general, medio, primer plano de X, detalle de Y) que siga al personaje.
 - [ ] **El director lo hizo Claude a mano** con un script (`ysi2-evidencia/dirigir.js`): reparto, miradas, emociones, atrezo y cámara por escena, anclados a palabras. Es justo lo que debería proponer el «director automático» del punto 2.
 
 ### 2 · Director automático (lo que más tiempo quita por vídeo)

@@ -10,67 +10,170 @@
     "tipo": "alba"
   },
   "rol": "cierre",
+  "ambiente": {
+    "tono": 0.35,
+    "vineta": 0.35,
+    "particulas": "polvo",
+    "cantidad": 0.8
+  },
   "camara": [
     {
       "t": 0,
       "x": 0,
-      "y": -420,
-      "zoom": 1.3
+      "y": -430,
+      "zoom": 1
+    },
+    {
+      "t": 3.109,
+      "x": 0,
+      "y": -430,
+      "zoom": 1.06
+    },
+    {
+      "t": 3.11,
+      "x": 60,
+      "y": -334.46,
+      "zoom": 1.6
+    },
+    {
+      "t": 3.929,
+      "x": 60,
+      "y": -334.46,
+      "zoom": 1.6960000000000002
+    },
+    {
+      "t": 3.9299999999999997,
+      "x": 150,
+      "y": -650,
+      "zoom": 0.85
     },
     {
       "t": 6.1,
-      "x": 0,
-      "y": -450,
-      "zoom": 1.6,
-      "curva": "frena"
+      "x": 150,
+      "y": -650,
+      "zoom": 0.901
     }
   ],
-  "ambiente": {
-    "tono": 0.35,
-    "vineta": 0.4,
-    "particulas": "polvo",
-    "cantidad": 0.8
-  },
   "actores": [
     {
-      "id": "tu",
-      "personaje": "tu",
+      "id": "maria",
+      "personaje": "maria-magdalena",
       "escala": 1,
       "recorrido": [
         {
           "t": 0,
-          "x": 0,
-          "p": 0,
-          "giro": 10
+          "x": -300,
+          "p": 0.05,
+          "giro": 70
+        },
+        {
+          "t": 6.1,
+          "x": 80,
+          "p": 0.05,
+          "giro": 70
         }
       ],
       "bloques": [
         {
           "t": 0,
-          "accion": "explicar",
-          "dur": 2.41,
-          "capa": "brazos",
-          "desde": 1
+          "accion": "alegre",
+          "dur": 6.1,
+          "capa": "cara"
+        }
+      ],
+      "andar": {
+        "estilo": "alegre"
+      }
+    },
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -80,
+          "p": 0.12,
+          "giro": 70
         },
         {
-          "t": 2.41,
-          "accion": "tender-mano",
-          "dur": 6.1,
-          "capa": "brazos"
-        },
+          "t": 6.1,
+          "x": 300,
+          "p": 0.12,
+          "giro": 70
+        }
+      ],
+      "bloques": [
         {
           "t": 0,
           "accion": "alegre",
           "dur": 6.1,
-          "capa": "cuerpo"
+          "capa": "cara"
         }
       ],
-      "mirar": [
+      "andar": {
+        "estilo": "alegre"
+      }
+    },
+    {
+      "id": "disc",
+      "personaje": "discipulo-2",
+      "escala": 1,
+      "recorrido": [
         {
           "t": 0,
-          "a": "camara"
+          "x": 140,
+          "p": 0.3,
+          "giro": 70
+        },
+        {
+          "t": 6.1,
+          "x": 520,
+          "p": 0.3,
+          "giro": 70
         }
-      ]
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "alegre",
+          "dur": 6.1,
+          "capa": "cara"
+        }
+      ],
+      "andar": {
+        "estilo": "alegre"
+      }
+    },
+    {
+      "id": "mujer",
+      "personaje": "mujer-2",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 330,
+          "p": 0.2,
+          "giro": 70
+        },
+        {
+          "t": 6.1,
+          "x": 710,
+          "p": 0.2,
+          "giro": 70
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "alegre",
+          "dur": 6.1,
+          "capa": "cara"
+        }
+      ],
+      "andar": {
+        "estilo": "alegre"
+      }
     }
   ]
 }

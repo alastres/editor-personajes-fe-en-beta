@@ -7,64 +7,78 @@
   "texto": "El problema casi nunca es la falta de pruebas. Es el corazón.",
   "id": "ysi2-evidencia-09",
   "fondo": {
-    "tipo": "luna"
+    "tipo": "interior"
+  },
+  "ambiente": {
+    "tono": -0.4,
+    "vineta": 0.65
   },
   "camara": [
     {
       "t": 0,
       "x": 0,
-      "y": -440,
-      "zoom": 1.5
+      "y": -330,
+      "zoom": 1.4
+    },
+    {
+      "t": 2.3289999999999997,
+      "x": 0,
+      "y": -330,
+      "zoom": 1.484
+    },
+    {
+      "t": 2.3299999999999996,
+      "x": 0,
+      "y": -410,
+      "zoom": 2.5
+    },
+    {
+      "t": 3.269,
+      "x": 0,
+      "y": -410,
+      "zoom": 2.6500000000000004
+    },
+    {
+      "t": 3.27,
+      "x": 0,
+      "y": -410,
+      "zoom": 3.6
     },
     {
       "t": 4.04,
       "x": 0,
-      "y": -460,
-      "zoom": 1.9,
-      "curva": "frena"
+      "y": -410,
+      "zoom": 3.8160000000000003
     }
   ],
-  "ambiente": {
-    "tono": -0.1,
-    "vineta": 0.5
-  },
   "actores": [
     {
-      "id": "tu",
-      "personaje": "tu",
+      "id": "sacerdote",
+      "personaje": "pablo",
       "escala": 1,
       "recorrido": [
         {
           "t": 0,
           "x": 0,
           "p": 0,
-          "giro": 15
+          "giro": 20
         }
       ],
       "bloques": [
         {
           "t": 0,
-          "accion": "explicar",
-          "dur": 3.27,
-          "capa": "brazos",
-          "desde": 2.2
-        },
-        {
-          "t": 3.27,
-          "accion": "mano-pecho",
-          "dur": 3,
-          "capa": "brazos"
-        },
-        {
-          "t": 0,
-          "accion": "pensativo",
+          "accion": "enfado",
           "dur": 4.04,
-          "capa": "cuerpo"
+          "capa": "cara"
         }
       ],
       "mirar": [
         {
           "t": 0,
+          "a": "nada"
+        },
+        {
+          "t": 3.27,
           "a": "camara"
         }
       ]

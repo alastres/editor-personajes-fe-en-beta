@@ -16,20 +16,6 @@
   "fondo": {
     "tipo": "luna"
   },
-  "camara": [
-    {
-      "t": 0,
-      "x": 0,
-      "y": -400,
-      "zoom": 1
-    },
-    {
-      "t": 5.85,
-      "x": 60,
-      "y": -420,
-      "zoom": 1.25
-    }
-  ],
   "ambiente": {
     "tono": -0.3,
     "vineta": 0.45
@@ -38,39 +24,119 @@
     {
       "id": "tumba",
       "tipo": "tumba",
-      "x": 300,
-      "p": 0.6,
-      "escala": 0.8,
+      "x": 320,
+      "p": 0.5,
+      "escala": 0.85,
       "params": {
         "sello": 1
       }
     }
   ],
+  "camara": [
+    {
+      "t": 0,
+      "x": 80,
+      "y": -430,
+      "zoom": 1
+    },
+    {
+      "t": 1.969,
+      "x": 80,
+      "y": -430,
+      "zoom": 1.06
+    },
+    {
+      "t": 1.97,
+      "x": 320,
+      "y": -230,
+      "zoom": 2.2
+    },
+    {
+      "t": 3.299,
+      "x": 320,
+      "y": -230,
+      "zoom": 2.3320000000000003
+    },
+    {
+      "t": 3.3,
+      "x": -120,
+      "y": -334.46,
+      "zoom": 1.5
+    },
+    {
+      "t": 5.069,
+      "x": -120,
+      "y": -334.46,
+      "zoom": 1.59
+    },
+    {
+      "t": 5.07,
+      "x": 100,
+      "y": -700,
+      "zoom": 0.85
+    },
+    {
+      "t": 5.85,
+      "x": 100,
+      "y": -700,
+      "zoom": 0.901
+    }
+  ],
   "actores": [
     {
-      "id": "tu",
-      "personaje": "tu",
+      "id": "sacerdote",
+      "personaje": "pablo",
       "escala": 1,
       "recorrido": [
         {
           "t": 0,
-          "x": -230,
-          "p": 0.05,
-          "giro": 40
+          "x": 60,
+          "p": 0.1,
+          "giro": -80
+        },
+        {
+          "t": 5.85,
+          "x": -420,
+          "p": 0.1,
+          "giro": -80
         }
       ],
       "bloques": [
         {
           "t": 0,
-          "accion": "pensativo",
+          "accion": "enfado",
           "dur": 5.85,
-          "capa": "cuerpo"
+          "capa": "cara"
         }
       ],
-      "mirar": [
+      "andar": {
+        "estilo": "cansado"
+      }
+    },
+    {
+      "id": "sacerdote2",
+      "personaje": "discipulo-1",
+      "escala": 1,
+      "recorrido": [
         {
           "t": 0,
-          "a": "tumba"
+          "x": 200,
+          "p": 0.2,
+          "giro": -80
+        },
+        {
+          "t": 5.85,
+          "x": -300,
+          "p": 0.2,
+          "giro": -80
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "enfado",
+          "dur": 5.85,
+          "capa": "cara"
         }
       ]
     }

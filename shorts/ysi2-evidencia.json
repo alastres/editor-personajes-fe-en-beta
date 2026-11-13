@@ -14,7 +14,7 @@
       "dur": 3.75,
       "desde": 0,
       "transicion": "corte",
-      "habla": "tu"
+      "habla": ""
     },
     {
       "escena": "ysi2-evidencia-03",
@@ -70,7 +70,7 @@
       "dur": 4.04,
       "desde": 0,
       "transicion": "corte",
-      "habla": "tu"
+      "habla": ""
     },
     {
       "escena": "ysi2-evidencia-10",
@@ -94,7 +94,7 @@
       "dur": 5.17,
       "desde": 0,
       "transicion": "corte",
-      "habla": "tu"
+      "habla": ""
     },
     {
       "escena": "ysi2-evidencia-13",
@@ -102,7 +102,7 @@
       "dur": 4.43,
       "desde": 0,
       "transicion": "corte",
-      "habla": "tu"
+      "habla": ""
     },
     {
       "escena": "ysi2-evidencia-14",
@@ -110,7 +110,7 @@
       "dur": 6.1,
       "desde": 0,
       "transicion": "corte",
-      "habla": "tu"
+      "habla": ""
     },
     {
       "escena": "ysi2-evidencia-15",
@@ -118,7 +118,7 @@
       "dur": 3.41,
       "desde": 0,
       "transicion": "corte",
-      "habla": "tu"
+      "habla": ""
     }
   ],
   "sfx": [
