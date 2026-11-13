@@ -215,3 +215,11 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
   - imagen de fondo: un PNG o JPG de una carpeta `fondos`, `imagenes`, `img` o `assets` (por ejemplo, un cielo de Flow), detrás de los montes o cubriéndolo todo, con su opacidad;
   - capas dibujadas en el taller («✎ Dibujar una capa»): la línea naranja es el suelo y la silueta, un personaje; cada capa tiene su lejanía (0 se mueve con el suelo, 1 casi no se mueve).
 - Al cambiar de fondo se quitan los retoques de color y clima, pero se conservan las capas y la imagen. Al exportar, la imagen se copia al proyecto (`assets/archivos/`).
+
+## Ambiente (fase 15)
+- Sección **Ambiente** de Escenas:
+  - **tono:** de frío (azulado) a cálido (anaranjado);
+  - **viñeta:** oscurece los bordes;
+  - **partículas:** polvo, luciérnagas, nieve, chispas o ceniza, con su cantidad.
+- **Efectos en el cabezal:** ✦ destello (un fogonazo de luz: un milagro, un rayo) y ≋ sacudida de cámara (un golpe, un temblor), cada uno con su fuerza y duración.
+- En el JSON: `ambiente: { tono, vineta, particulas, cantidad }` y `efectos: [{ t, tipo, dur, fuerza }]`. Se pinta encima de la escena y debajo de los rótulos.

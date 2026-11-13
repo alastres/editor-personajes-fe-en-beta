@@ -119,6 +119,15 @@
         <button id="b-quitar-cam">Quitar clave de cámara</button>
       </section>
       <section>
+        <h3>Ambiente</h3>
+        <div class="deslizador"><label>Tono (frío … cálido)</label><input type="range" id="am-tono" min="-1" max="1" step="0.05" /><output></output></div>
+        <div class="deslizador"><label>Viñeta</label><input type="range" id="am-vineta" min="0" max="1" step="0.05" /><output></output></div>
+        <div class="campo"><label>Partículas</label><div class="seg pequeno" id="am-part"></div></div>
+        <div class="deslizador"><label>Cantidad de partículas</label><input type="range" id="am-cant" min="0.2" max="2" step="0.05" /><output></output></div>
+        <div class="campo"><label>Efectos en el cabezal</label><div class="fila-botones dos"><button id="b-destello">✦ Destello</button><button id="b-sacudida">≋ Sacudida de cámara</button></div></div>
+        <ul id="efectos" class="piezas"></ul>
+      </section>
+      <section>
         <h3>Rótulos</h3>
         <div class="fila-anadir"><input id="tx-texto" type="text" placeholder="Texto en pantalla" /><button id="b-add-texto">Añadir</button></div>
         <ul id="textos" class="piezas"></ul>

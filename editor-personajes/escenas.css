@@ -35,3 +35,5 @@ button.ancho { width: 100%; padding: 10px; }
 .fila-colores .sep { width: 6px; }
 #f-mas summary { cursor: pointer; color: var(--acento, #f0a33a); margin: 6px 0; }
 #f-capas li { grid-template-columns: 16px 1fr 70px 22px 22px; }
+.piezas li.fila-efecto { grid-template-columns: 16px 1fr 70px 52px 22px; }
+.piezas li.fila-efecto input[type=number] { width: 52px; font: inherit; font-size: 12px; color: var(--texto); background: var(--panel2); border: 1px solid var(--borde); border-radius: 6px; padding: 2px 4px; }

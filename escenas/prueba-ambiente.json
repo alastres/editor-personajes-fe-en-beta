@@ -1,0 +1,63 @@
+{
+  "nombre": "Prueba de ambiente",
+  "duracion": 3,
+  "fondo": {
+    "tipo": "luna"
+  },
+  "ambiente": {
+    "tono": -0.6,
+    "vineta": 0.7,
+    "particulas": "luciernagas",
+    "cantidad": 1.2
+  },
+  "efectos": [
+    {
+      "t": 1,
+      "tipo": "destello",
+      "dur": 0.5,
+      "fuerza": 1
+    },
+    {
+      "t": 1,
+      "tipo": "sacudida",
+      "dur": 0.8,
+      "fuerza": 1.2
+    }
+  ],
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -420,
+      "zoom": 0.9
+    }
+  ],
+  "actores": [
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -100,
+          "p": 0.1,
+          "giro": 25
+        }
+      ],
+      "bloques": []
+    }
+  ],
+  "objetos": [
+    {
+      "id": "hoguera",
+      "tipo": "hoguera",
+      "x": 200,
+      "p": 0.05,
+      "escala": 0.8
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "id": "prueba-ambiente"
+}

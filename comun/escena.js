@@ -137,10 +137,36 @@
     if (F.rayos) { const u = t % 5.3; if (u < 0.12 || (u > 0.2 && u < 0.27)) el("rect", { x: 0, y: 0, width: ANCHO, height: ALTO, fill: "#e8ecff", opacity: 0.35 }, gDelante); }
   }
 
+  // ---- ambiente (en pantalla, encima de todo): tono frío/cálido, viñeta, partículas, destellos; la sacudida mueve la cámara
+  // esc.ambiente = { tono: -1 frío … 1 cálido, vineta: 0…1, particulas: "polvo" | "luciernagas" | "nieve" | "chispas" | "ceniza", cantidad: 0…2 }
+  // esc.efectos = [{ t, tipo: "destello" | "sacudida", dur, fuerza }]
+  const PARTICULAS = {
+    polvo: { c: "#fff0d0", r: [2, 5], vy: -8, vx: 14, o: 0.35, n: 50 }, luciernagas: { c: "#ffe68a", r: [3, 6], vy: -10, vx: 10, o: 0.9, n: 30, brilla: true },
+    nieve: { c: "#ffffff", r: [3, 8], vy: 90, vx: 20, o: 0.8, n: 90 }, chispas: { c: "#ffb050", r: [2, 4], vy: -140, vx: 30, o: 0.9, n: 45, brilla: true },
+    ceniza: { c: "#b8b0b8", r: [2, 6], vy: 40, vx: 30, o: 0.55, n: 60 } };
+  function sacudida(esc, t) { let dx = 0, dy = 0;
+    for (const e of esc.efectos || []) { if (e.tipo !== "sacudida") continue; const u = t - e.t, d = e.dur || 0.6; if (u < 0 || u > d) continue;
+      const k = (e.fuerza ?? 1) * 26 * (1 - u / d) ** 2; dx += k * Math.sin(u * 61 + e.t) * Math.cos(u * 23); dy += k * Math.sin(u * 47 + 1.3 * e.t); }
+    return [dx, dy]; }
+  function pintarAmbiente(g, esc, t) { g.replaceChildren(); const am = esc.ambiente || {}, svg = g.ownerSVGElement, defs = svg.querySelector("defs") || el("defs", {}, svg);
+    const tono = am.tono || 0;
+    if (Math.abs(tono) > 0.01) el("rect", { x: 0, y: 0, width: ANCHO, height: ALTO, fill: tono > 0 ? "#ff8a3a" : "#3a6ad8", opacity: (Math.abs(tono) * 0.22).toFixed(3), style: "mix-blend-mode: soft-light" }, g);
+    if (Math.abs(tono) > 0.01) el("rect", { x: 0, y: 0, width: ANCHO, height: ALTO, fill: tono > 0 ? "#ffb070" : "#7090d8", opacity: (Math.abs(tono) * 0.08).toFixed(3) }, g);
+    const P = PARTICULAS[am.particulas]; if (P) { const n = Math.round(P.n * (am.cantidad ?? 1));
+      for (let i = 0; i < n; i++) { const a = Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1, b = Math.abs(Math.sin(i * 78.233) * 12543.21) % 1, r = P.r[0] + (P.r[1] - P.r[0]) * b;
+        const x = ((a * ANCHO + t * P.vx * (0.5 + b) + 40 * Math.sin(t * 0.7 + i)) % (ANCHO + 40) + ANCHO + 40) % (ANCHO + 40) - 20, y = ((b * ALTO + t * P.vy * (0.6 + a)) % (ALTO + 40) + ALTO + 40) % (ALTO + 40) - 20;
+        const o = P.o * (P.brilla ? 0.4 + 0.6 * Math.abs(Math.sin(t * (1.5 + a * 2) + i)) : 1);
+        el("circle", { cx: f1(x), cy: f1(y), r: f1(r), fill: P.c, opacity: o.toFixed(2) }, g); } }
+    const vn = am.vineta ?? 0; if (vn > 0.01) { if (!svg.querySelector("#esc-vineta")) { const gr = el("radialGradient", { id: "esc-vineta", cx: 0.5, cy: 0.5, r: 0.62 }, defs);
+        el("stop", { offset: 0.38, "stop-color": "#0c0818", "stop-opacity": 0 }, gr); el("stop", { offset: 0.8, "stop-color": "#0c0818", "stop-opacity": 0.55 }, gr); el("stop", { offset: 1, "stop-color": "#0c0818", "stop-opacity": 0.9 }, gr); }
+      el("rect", { x: 0, y: 0, width: ANCHO, height: ALTO, fill: "url(#esc-vineta)", opacity: Math.min(1, vn).toFixed(2) }, g); }
+    for (const e of esc.efectos || []) { if (e.tipo !== "destello") continue; const u = t - e.t, d = e.dur || 0.5; if (u < 0 || u > d) continue;
+      const k = u < 0.06 ? u / 0.06 : (1 - (u - 0.06) / (d - 0.06)) ** 1.5; el("rect", { x: 0, y: 0, width: ANCHO, height: ALTO, fill: e.color || "#fff6e0", opacity: (k * (e.fuerza ?? 1) * 0.85).toFixed(3) }, g); } }
+
   // op.voz = { envolvente, desfase, habla }: voz que viene de fuera (el montaje de un short). desfase = segundo del short en el que empieza
   // la escena menos el punto de la escena desde el que se ve; habla = id del actor cuya boca la sigue (o "auto": el primer actor)
   function crear(svg, esc, PJ, op = {}) {
-    const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), mundo = el("g", {}, raiz), gDelante = el("g", {}, raiz), gTextos = el("g", {}, raiz);
+    const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), mundo = el("g", {}, raiz), gDelante = el("g", {}, raiz), gAmb = el("g", { "pointer-events": "none" }, raiz), gTextos = el("g", {}, raiz);
     let fondoKey = null;
     const actores = (esc.actores || []).map((a) => { const j = PJ[a.personaje]; const g = el("g", { "data-actor": a.id }, mundo);
       if (!j) { const tx = el("text", { fill: "#f66", "font-size": 40 }, g); tx.textContent = "falta el personaje «" + a.personaje + "»"; return { a, g, m: null, j: null }; }
@@ -154,7 +180,7 @@
       const A = window.ATREZO && ATREZO[ob.tipo], clave = JSON.stringify([ob.tipo, params, frio]) + (A && A.anima ? "|" + t.toFixed(3) : "");
       if (clave !== O.k) { O.k = clave; O.g.innerHTML = window.Atrezo ? Atrezo.dibujar({ tipo: ob.tipo, params, frio }, t) : ""; }
       return ob.p || 0; }
-    function camara(t) { return claves(esc.camara, t, ["x", "y", "zoom"]) || { x: 0, y: -360, zoom: 1 }; }
+    function camara(t) { const c = claves(esc.camara, t, ["x", "y", "zoom"]) || { x: 0, y: -360, zoom: 1 }; const [dx, dy] = sacudida(esc, t); if (dx || dy) { c.x += dx / (c.zoom || 1); c.y += dy / (c.zoom || 1); } return c; }
     function dibujar(t) {
       const c = camara(t), z = c.zoom || 1;
       const k = JSON.stringify(esc.fondo || {}) + Math.round(c.x / 4); if (k !== fondoKey) { fondoKey = k; pintarFondo(fondo, esc.fondo, c.x); }
@@ -171,6 +197,7 @@
       for (const A of actores) { if (!A.m) continue; const q = actor(A, t); orden.push({ g: A.g, p: q.p || 0 }); }
       for (const O of objetos) orden.push({ g: O.g, p: objeto(O, t) + (O.ob.detras ? 0.0005 : -0.0005) });
       orden.sort((x, y) => y.p - x.p).forEach((o) => mundo.appendChild(o.g));
+      pintarAmbiente(gAmb, esc, t);
       pintarTextos(t);
     }
     let tAnterior = -1;
@@ -210,5 +237,5 @@
     }
     return { dibujar, actores, objetos, camara, raiz };
   }
-  window.Escena = { crear, claves, FONDOS, fondoDe, ANCHO, ALTO };
+  window.Escena = { crear, claves, FONDOS, fondoDe, PARTICULAS, ANCHO, ALTO };
 })();

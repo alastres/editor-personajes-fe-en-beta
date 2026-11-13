@@ -171,6 +171,15 @@
     seg("#c-planos", Object.fromEntries(Object.entries(PLANOS).map(([k, v]) => [k, v.n])), "", (k) => { const p = PLANOS[k], a2 = actor(), q = a2 ? posActor(a2) : { x: c.x, p: 0 }, s = (a2?.escala || 1) * (1 - 0.38 * (q.p || 0));
       const centroY = -170 * (q.p || 0) + (-330 + p.dy) * s; cambio((x) => tocarClave(x.camara, ["x", "y", "zoom"], { x: Math.round(q.x), y: Math.round(centroY), zoom: +(p.zoom / s).toFixed(2) }), null, false); });
     $("#b-quitar-cam").disabled = !esc.camara.some((k) => Math.abs(k.t - tiempo) < 0.02) || esc.camara.length < 2;
+    // ambiente
+    const am = esc.ambiente || {}; deslizar("am-tono", am.tono || 0, (v) => (v < -0.02 ? "frío " : v > 0.02 ? "cálido " : "neutro ") + Math.round(Math.abs(v) * 100) + "%");
+    deslizar("am-vineta", am.vineta || 0, (v) => Math.round(v * 100) + "%"); deslizar("am-cant", am.cantidad ?? 1, (v) => Math.round(v * 100) + "%");
+    seg("#am-part", { "": "Ninguna", polvo: "Polvo", luciernagas: "Luciérnagas", nieve: "Nieve", chispas: "Chispas", ceniza: "Ceniza" }, am.particulas || "", (k) => cambio((x) => { x.ambiente = Object.assign({}, x.ambiente); if (k) x.ambiente.particulas = k; else delete x.ambiente.particulas; }, null, false));
+    const ue = $("#efectos"); ue.replaceChildren(); if (!(esc.efectos || []).length) ue.append(h("li", { class: "vacio" }, "Pon el cabezal donde ocurre (un milagro, un golpe, un trueno)."));
+    (esc.efectos || []).forEach((e, i) => { const fu = h("input", { type: "range", min: 0.1, max: 2, step: 0.05, value: e.fuerza ?? 1, title: "Fuerza" }), du = h("input", { type: "number", min: 0.1, max: 5, step: 0.1, value: e.dur || (e.tipo === "sacudida" ? 0.6 : 0.5), title: "Duración (s)" });
+      fu.addEventListener("input", () => cambio((x) => { x.efectos[i].fuerza = +fu.value; }, "efu" + i, false)); du.addEventListener("change", () => cambio((x) => { x.efectos[i].dur = +du.value; }, null, false));
+      ue.append(h("li", { class: "fila-efecto", onclick: (ev) => { if (ev.target.tagName !== "INPUT" && ev.target.tagName !== "BUTTON") { tiempo = e.t; dibujar(); pintarPistas(); } } }, h("span", {}, e.tipo === "destello" ? "✦" : "≋"), h("span", {}, (e.tipo === "destello" ? "Destello" : "Sacudida") + " · " + fmtT(e.t)), fu, du,
+        h("button", { class: "x", title: "Quitar", onclick: () => cambio((x) => { x.efectos.splice(i, 1); }, null, false) }, "✕"))); });
     // rótulos
     const ut = $("#textos"); ut.replaceChildren(); for (const [i, tx] of esc.textos.entries()) { const inp = h("input", { type: "text", value: tx.texto, class: "nom-ctrl" }); inp.addEventListener("change", () => cambio((x) => { x.textos[i].texto = inp.value; }, null, false));
       ut.append(h("li", { class: i === selTexto ? "activo" : "", onclick: () => { selTexto = i; tiempo = tx.t; dibujar(); pintarPistas(); } }, h("span", {}, "T"), inp, h("span", { class: "hueso" }, fmtT(tx.t)), h("button", { class: "x", title: "Quitar", onclick: (ev) => { ev.stopPropagation(); cambio((x) => { x.textos.splice(i, 1); }, null, false); } }, "✕"))); }
@@ -206,6 +215,9 @@
   $("#b-dur").addEventListener("input", (ev) => { const a = actor(); if (!a || selBloque === null) return; cambio((x) => { x.actores.find((y) => y.id === a.id).bloques[selBloque].dur = Number(ev.target.value); }, "b-dur" + selBloque, false); });
   $("#b-quitar-bloque").addEventListener("click", () => { const a = actor(); if (!a || selBloque === null) return; const i = selBloque; selBloque = null; cambio((x) => { x.actores.find((y) => y.id === a.id).bloques.splice(i, 1); }, null, false); });
   $("#b-quitar-clave").addEventListener("click", () => { const a = actor(); if (!a) return; cambio((x) => { const r = x.actores.find((y) => y.id === a.id).recorrido; const i = r.findIndex((k) => Math.abs(k.t - tiempo) < 0.02); if (i >= 0 && r.length > 1) r.splice(i, 1); }, null, false); });
+  for (const k of ["tono", "vineta", "cant"]) $("#am-" + k).addEventListener("input", (ev) => cambio((x) => { x.ambiente = Object.assign({}, x.ambiente, { [k === "cant" ? "cantidad" : k]: +ev.target.value }); }, "am" + k, false));
+  const ponEfecto = (tipo) => { if (!esc) return; cambio((x) => { (x.efectos = x.efectos || []).push({ t: +tiempo.toFixed(2), tipo, dur: tipo === "sacudida" ? 0.6 : 0.5, fuerza: 1 }); x.efectos.sort((a, b) => a.t - b.t); }, null, false); aviso((tipo === "destello" ? "Destello" : "Sacudida") + " en " + fmtT(tiempo)); };
+  $("#b-destello").addEventListener("click", () => ponEfecto("destello")); $("#b-sacudida").addEventListener("click", () => ponEfecto("sacudida"));
   $("#b-add-objeto").addEventListener("click", () => { const tipo = $("#add-objeto").value; if (!tipo || !esc) return; let n = 1, id = tipo; while ((esc.objetos || []).some((o) => o.id === id)) id = tipo + "-" + ++n;
     const c = posCam(); cambio((x) => { (x.objetos = x.objetos || []).push({ id, tipo, x: Math.round(c.x + ((x.objetos.length % 3) - 1) * 380), p: 0.35, escala: 1 }); }); selObjeto = id; pintarPanel(); });
   const cambiaObj = (fn, clave) => { const ob = objeto(); if (ob) cambio((x) => fn(x.objetos.find((y) => y.id === ob.id)), clave, false); };
