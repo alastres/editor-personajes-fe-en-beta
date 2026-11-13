@@ -7,7 +7,7 @@
 //   actores: [{ id, personaje, escala,
 //     recorrido: [{ t, x, p, giro }],                               // x en el mundo, p = profundidad (0 delante … 1 al fondo), giro en grados
 //     bloques: [{ t, accion, dur, controles }] }],                  // acciones del personaje (por id o nombre) que empiezan en t
-//   textos: [{ t, dur, texto }] }                                   // rótulos sencillos
+//   textos: [{ t, dur, texto, arriba }] }                           // rótulos sencillos (arriba: en la parte de arriba, lejos de los subtítulos)
 // Mundo: el suelo está en y = 0; un adulto mide ~600. El encuadre es 1080 × 1920 (vertical).
 (function () {
   const NS = "http://www.w3.org/2000/svg";
@@ -303,8 +303,9 @@
       // rótulos (en pantalla, no se mueven con la cámara)
       gTextos.replaceChildren();
       for (const tx of esc.textos || []) { if (t < tx.t || t > tx.t + (tx.dur || 2)) continue; const k2 = cl((t - tx.t) / 0.25) * cl((tx.t + (tx.dur || 2) - t) / 0.25);
-        const w = 40 + String(tx.texto).length * 30; el("rect", { x: ANCHO / 2 - w / 2, y: ALTO === 1920 ? 1400 : ALTO - 210, width: w, height: 92, rx: 16, fill: "#14171e", opacity: (0.88 * k2).toFixed(2) }, gTextos);
-        const tt = el("text", { x: ANCHO / 2, y: ALTO === 1920 ? 1462 : ALTO - 148, "text-anchor": "middle", fill: "#f7f1e5", "font-size": 52, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif", opacity: k2.toFixed(2) }, gTextos); tt.textContent = tx.texto; }
+        const w = 40 + String(tx.texto).length * 30, yR = tx.arriba ? (ALTO === 1920 ? 300 : 90) : (ALTO === 1920 ? 1400 : ALTO - 210);   // arriba: lejos de los subtítulos
+        el("rect", { x: ANCHO / 2 - w / 2, y: yR, width: w, height: 92, rx: 16, fill: "#14171e", opacity: (0.88 * k2).toFixed(2) }, gTextos);
+        const tt = el("text", { x: ANCHO / 2, y: yR + 62, "text-anchor": "middle", fill: "#f7f1e5", "font-size": 52, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif", opacity: k2.toFixed(2) }, gTextos); tt.textContent = tx.texto; }
     }
     return { dibujar, actores, objetos, camara, raiz };
   }

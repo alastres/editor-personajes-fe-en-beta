@@ -1,0 +1,60 @@
+{
+  "nombre": "¿Y si…? evidencia · 15 · Un abrazo y que Dios te bendiga.",
+  "duracion": 3.41,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Un abrazo y que Dios te bendiga.",
+  "id": "ysi2-evidencia-15",
+  "fondo": {
+    "tipo": "alba"
+  },
+  "rol": "despedida",
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -330,
+      "zoom": 0.95
+    }
+  ],
+  "ambiente": {
+    "tono": 0.25,
+    "vineta": 0.3
+  },
+  "actores": [
+    {
+      "id": "tu",
+      "personaje": "tu",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": 15
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0.8525,
+          "accion": "saludo",
+          "dur": 2.046,
+          "capa": "brazos"
+        },
+        {
+          "t": 0,
+          "accion": "alegre",
+          "dur": 3.41,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "camara"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "nombre": "¿Y si…? evidencia · 6 · Siglos después, Jesús resucita a Lázaro ",
+  "duracion": 3.63,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Siglos después, Jesús resucita a Lázaro delante de todos.",
+  "id": "ysi2-evidencia-06",
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 60,
+      "y": -420,
+      "zoom": 1.1
+    },
+    {
+      "t": 3.63,
+      "x": 120,
+      "y": -430,
+      "zoom": 1.25
+    }
+  ],
+  "ambiente": {
+    "vineta": 0.3,
+    "tono": 0.15,
+    "particulas": "polvo",
+    "cantidad": 0.6
+  },
+  "efectos": [
+    {
+      "t": 1.49,
+      "tipo": "destello",
+      "dur": 0.6,
+      "fuerza": 0.6
+    }
+  ],
+  "objetos": [
+    {
+      "id": "tumba",
+      "tipo": "tumba",
+      "x": 300,
+      "p": 0.55,
+      "escala": 0.9,
+      "claves": [
+        {
+          "t": 0,
+          "abierta": 0,
+          "luz": 0,
+          "sello": 0
+        },
+        {
+          "t": 1.49,
+          "abierta": 1,
+          "luz": 1,
+          "sello": 0
+        }
+      ]
+    }
+  ],
+  "actores": [
+    {
+      "id": "lazaro",
+      "personaje": "discipulo-2",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 300,
+          "p": 0.62,
+          "giro": -10
+        },
+        {
+          "t": 2.09,
+          "x": 300,
+          "p": 0.6,
+          "giro": -10
+        },
+        {
+          "t": 3.63,
+          "x": 170,
+          "p": 0.32,
+          "giro": -20
+        }
+      ],
+      "bloques": []
+    },
+    {
+      "id": "maria",
+      "personaje": "maria-magdalena",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -230,
+          "p": 0.1,
+          "giro": 35
+        }
+      ],
+      "bloques": [
+        {
+          "t": 1.49,
+          "accion": "asombro",
+          "dur": 3.63,
+          "capa": "cuerpo"
+        },
+        {
+          "t": 1.69,
+          "accion": "manos-arriba",
+          "dur": 3.63,
+          "capa": "brazos"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "tumba"
+        },
+        {
+          "t": 1.99,
+          "a": "lazaro"
+        }
+      ]
+    },
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -20,
+          "p": 0.2,
+          "giro": 30
+        }
+      ],
+      "bloques": [
+        {
+          "t": 1.69,
+          "accion": "asombro",
+          "dur": 3.63,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "tumba"
+        },
+        {
+          "t": 2.19,
+          "a": "lazaro"
+        }
+      ]
+    }
+  ]
+}

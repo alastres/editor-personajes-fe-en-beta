@@ -1,0 +1,71 @@
+{
+  "nombre": "¿Y si…? evidencia · 11 · «Bienaventurados los que no vieron, y cr",
+  "duracion": 2.96,
+  "textos": [
+    {
+      "t": 0.4,
+      "dur": 2.36,
+      "texto": "Juan 20:29",
+      "arriba": true
+    }
+  ],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "«Bienaventurados los que no vieron, y creyeron».",
+  "id": "ysi2-evidencia-11",
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": -150,
+      "y": -420,
+      "zoom": 1.15
+    },
+    {
+      "t": 2.96,
+      "x": 80,
+      "y": -430,
+      "zoom": 1.25
+    }
+  ],
+  "ambiente": {
+    "tono": 0.35,
+    "vineta": 0.3,
+    "particulas": "polvo",
+    "cantidad": 0.8
+  },
+  "actores": [
+    {
+      "id": "tu",
+      "personaje": "tu",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -320,
+          "p": 0.1,
+          "giro": 60
+        },
+        {
+          "t": 2.96,
+          "x": 140,
+          "p": 0.1,
+          "giro": 60
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "alegre",
+          "dur": 2.96,
+          "capa": "cuerpo"
+        }
+      ],
+      "andar": {
+        "estilo": "alegre"
+      }
+    }
+  ]
+}

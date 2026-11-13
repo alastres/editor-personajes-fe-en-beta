@@ -1,0 +1,81 @@
+{
+  "nombre": "¿Y si…? evidencia · 4 · Cada mañana comían pan que llovía del ci",
+  "duracion": 2.84,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Cada mañana comían pan que llovía del cielo.",
+  "id": "ysi2-evidencia-04",
+  "fondo": {
+    "tipo": "desierto"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": -60,
+      "y": -420,
+      "zoom": 1.2
+    },
+    {
+      "t": 2.84,
+      "x": 40,
+      "y": -410,
+      "zoom": 1.32
+    }
+  ],
+  "ambiente": {
+    "tono": 0.25,
+    "vineta": 0.25,
+    "particulas": "nieve",
+    "cantidad": 0.55
+  },
+  "actores": [
+    {
+      "id": "mujer",
+      "personaje": "mujer-2",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -220,
+          "p": 0.1,
+          "giro": 30
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0.4,
+          "accion": "agacharse",
+          "dur": 2.84
+        }
+      ]
+    },
+    {
+      "id": "israelita",
+      "personaje": "discipulo-1",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 200,
+          "p": 0.15,
+          "giro": -25
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "mirar-cielo",
+          "dur": 2.84,
+          "capa": "cuerpo"
+        },
+        {
+          "t": 0.6,
+          "accion": "tender-mano",
+          "dur": 2.84,
+          "capa": "brazos"
+        }
+      ]
+    }
+  ]
+}

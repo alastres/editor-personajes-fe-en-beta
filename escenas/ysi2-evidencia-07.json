@@ -1,0 +1,118 @@
+{
+  "nombre": "¿Y si…? evidencia · 7 · ¿Y qué deciden los principales sacerdote",
+  "duracion": 4.09,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "¿Y qué deciden los principales sacerdotes? Matar también a Lázaro.",
+  "id": "ysi2-evidencia-07",
+  "fondo": {
+    "tipo": "interior"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": -60,
+      "y": -430,
+      "zoom": 1.3
+    },
+    {
+      "t": 2.67,
+      "x": -160,
+      "y": -470,
+      "zoom": 1.8,
+      "curva": "frena"
+    },
+    {
+      "t": 4.09,
+      "x": -170,
+      "y": -470,
+      "zoom": 1.85
+    }
+  ],
+  "ambiente": {
+    "tono": -0.5,
+    "vineta": 0.6
+  },
+  "efectos": [
+    {
+      "t": 2.67,
+      "tipo": "sacudida",
+      "dur": 0.6,
+      "fuerza": 0.6
+    }
+  ],
+  "actores": [
+    {
+      "id": "sacerdote",
+      "personaje": "pablo",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -170,
+          "p": 0.05,
+          "giro": 30
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 4.09,
+          "capa": "brazos",
+          "desde": 2
+        },
+        {
+          "t": 0,
+          "accion": "pensativo",
+          "dur": 2.67,
+          "capa": "cuerpo"
+        },
+        {
+          "t": 2.4699999999999998,
+          "accion": "enfado",
+          "dur": 4.09,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "sacerdote2"
+        },
+        {
+          "t": 2.67,
+          "a": "camara"
+        }
+      ]
+    },
+    {
+      "id": "sacerdote2",
+      "personaje": "discipulo-1",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 140,
+          "p": 0.25,
+          "giro": -30
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "enfado",
+          "dur": 4.09,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "sacerdote"
+        }
+      ]
+    }
+  ]
+}

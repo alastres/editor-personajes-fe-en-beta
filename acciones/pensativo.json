@@ -1,0 +1,25 @@
+{
+  "id": "pensativo",
+  "nombre": "Pensativo (cara)",
+  "duracion": 0.6,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "prueba ysi2 (director a mano)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.6,
+      "pose": {
+        "cara": {
+          "pensativo": 1
+        },
+        "miraY": 0.1
+      }
+    }
+  ]
+}

@@ -112,6 +112,17 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [ ] Producir un short del canal («¿Y si…?» o «Preguntas sobre Dios») de principio a fin **solo con el editor**, sin código ni otros programas.
 - [ ] Apuntar aquí cada fricción que salga y reordenar el resto de la fase según lo que haga falta de verdad.
 
+**Prueba 1 (13 nov 2026): «¿Y si tuvieras toda la evidencia de que Dios es real?»** (`shorts/ysi2-evidencia`, guion en `ysi2-evidencia/`, sin voz todavía). Fricciones encontradas:
+- [ ] **Empezar sin voz:** Montaje exige un audio; hubo que fabricar un WAV en silencio para estimar los tiempos. Falta «Estimar desde el guion» sin archivo.
+- [ ] **Escenas por frase mal cortadas:** la pregunta del gancho se partió en dos («…real…» | «le creerías?»), y otras se juntaron (tres frases en una escena de 7 s). Cortar por líneas del guion y no partir nunca una pregunta.
+- [ ] **El generador pone al narrador en todas las escenas,** hablando a cámara: en «¿Y si…?» el narrador va en off. Falta elegir «voz en off» y que la boca solo se mueva si el personaje habla de verdad.
+- [ ] **Montaje solo ofrece 4 fondos** (Noche, Amanecer, Día, Interior), no los nuevos (luna, mar, desierto, atardecer, tormenta).
+- [ ] **Emociones en escena:** para que alguien se asombre o se enfade hubo que crear acciones (`acciones/asombro.json`, `enfado`, `triste`, `pensativo`, `mirar-cielo`, `alegre`, `tender-mano`, `manos-arriba`, `mano-pecho`). Falta una pista «Emoción» por actor, con claves, como «Mirar a».
+- [x] *(13 nov 2026)* **Los rótulos quedaban tapados por los subtítulos** (misma altura): ahora un rótulo puede ir arriba (`arriba: true`, botón ↓/↑ en Escenas).
+- [ ] **Faltan efectos y atrezo bíblicos:** el mar no se abre, no hay becerro de oro (se usó una hoguera), ni maná propiamente dicho (partículas de nieve).
+- [ ] **Falta reparto:** sacerdotes con su ropa, Moisés, Jesús. Se usaron Pablo y los discípulos.
+- [ ] **El director lo hizo Claude a mano** con un script (`ysi2-evidencia/dirigir.js`): reparto, miradas, emociones, atrezo y cámara por escena, anclados a palabras. Es justo lo que debería proponer el «director automático» del punto 2.
+
 ### 2 · Director automático (lo que más tiempo quita por vídeo)
 - [ ] **Actuación propuesta desde el guion:** cada frase elige acción por el verbo («se arrodilló» → arrodillarse), emoción y a quién mira; luego se retoca.
 - [ ] **Planos automáticos** cada 2–3,5 s, con variedad de cámara: cenital, por detrás, sobre el hombro, contrapicado (cambio por corte, nunca morfando).

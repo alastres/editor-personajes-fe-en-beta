@@ -1,0 +1,28 @@
+{
+  "id": "tender-mano",
+  "nombre": "Tender la mano",
+  "duracion": 0.6,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "prueba ysi2 (director a mano)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.6,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.3,
+        "bDerFrente": 1.15,
+        "bDerCodo": 0.35,
+        "mDer": {
+          "abierta": 1
+        }
+      }
+    }
+  ]
+}

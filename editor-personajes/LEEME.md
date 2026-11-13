@@ -300,3 +300,9 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - **Pruebas automáticas** (`pruebas.html`, enlazada desde la ayuda): dibuja cada personaje en 4 poses y 4 giros y lo compara con la referencia guardada. Lo que cambia sale en rojo junto a su referencia. Si el cambio es el que querías, «Guardar como referencia». La referencia va en `.pruebas/`, fuera de Git.
 - **Ayuda (? o F1):** lista de atajos de cada página y un recorrido guiado, que sale solo la primera vez.
 - **Paquetes de personaje:** «Exportar» descarga `personaje-<id>.json` (con piezas, acciones, controles, emociones y poses). «Importar» lo añade sin pisar ninguno: si el nombre existe, lo renombra.
+
+## Prueba con un short real: «¿Y si tuvieras toda la evidencia?» (13 nov 2026)
+- Short `shorts/ysi2-evidencia` (15 escenas, unos 63 s; voz todavía de relleno). El guion y la narración para ElevenLabs están en `ysi2-evidencia/`, y la dirección de las escenas en `ysi2-evidencia/dirigir.js`.
+- **Rótulos arriba:** en Escenas, el botón ↓/↑ de cada rótulo lo sube a la parte de arriba, lejos de los subtítulos (en el JSON, `arriba: true`). Sirve para la cita de un versículo («Lucas 16:31»).
+- **Acciones comunes nuevas** para actuar en escena (capa cuerpo o brazos): Asombro, Enfado, Triste, Pensativo, Mirar al cielo, Alegre, Tender la mano, Manos arriba y Mano en el pecho.
+- Lo que falló o faltó en la prueba está en `ROADMAP.md`, en Fase 2, punto 1.

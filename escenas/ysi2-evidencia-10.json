@@ -1,0 +1,103 @@
+{
+  "nombre": "¿Y si…? evidencia · 10 · Tomás también pidió pruebas, y Jesús se ",
+  "duracion": 4.19,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Tomás también pidió pruebas, y Jesús se las dio. Pero le dijo:",
+  "id": "ysi2-evidencia-10",
+  "fondo": {
+    "tipo": "interior"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": -80,
+      "y": -430,
+      "zoom": 1.25
+    },
+    {
+      "t": 4.19,
+      "x": -40,
+      "y": -450,
+      "zoom": 1.5,
+      "curva": "frena"
+    }
+  ],
+  "ambiente": {
+    "tono": 0.3,
+    "vineta": 0.45,
+    "particulas": "polvo",
+    "cantidad": 0.7
+  },
+  "efectos": [
+    {
+      "t": 2.7199999999999998,
+      "tipo": "destello",
+      "dur": 0.8,
+      "fuerza": 0.7
+    }
+  ],
+  "actores": [
+    {
+      "id": "tomas",
+      "personaje": "discipulo-1",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -120,
+          "p": 0.05,
+          "giro": 50
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "pensativo",
+          "dur": 2.92,
+          "capa": "cuerpo"
+        },
+        {
+          "t": 2.92,
+          "accion": "asombro",
+          "dur": 4.19,
+          "capa": "cuerpo"
+        },
+        {
+          "t": 2.52,
+          "accion": "tender-mano",
+          "dur": 4.19,
+          "capa": "brazos"
+        }
+      ]
+    },
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 260,
+          "p": 0.35,
+          "giro": -20
+        }
+      ],
+      "bloques": [
+        {
+          "t": 2.92,
+          "accion": "asombro",
+          "dur": 4.19,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "tomas"
+        }
+      ]
+    }
+  ]
+}

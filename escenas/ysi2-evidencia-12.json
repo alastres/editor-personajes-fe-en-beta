@@ -1,0 +1,98 @@
+{
+  "nombre": "¿Y si…? evidencia · 12 · Tú ya tienes más de lo que crees: la cre",
+  "duracion": 5.17,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Tú ya tienes más de lo que crees: la creación, la historia, una tumba vacía.",
+  "id": "ysi2-evidencia-12",
+  "fondo": {
+    "tipo": "dia"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": -420,
+      "y": -420,
+      "zoom": 1.2
+    },
+    {
+      "t": 3.51,
+      "x": -60,
+      "y": -420,
+      "zoom": 1.2
+    },
+    {
+      "t": 5.17,
+      "x": 240,
+      "y": -440,
+      "zoom": 1.35,
+      "curva": "frena"
+    }
+  ],
+  "ambiente": {
+    "tono": 0.2,
+    "vineta": 0.25
+  },
+  "objetos": [
+    {
+      "id": "olivo",
+      "tipo": "olivo",
+      "x": -520,
+      "p": 0.5,
+      "escala": 1.1
+    },
+    {
+      "id": "palmera",
+      "tipo": "palmera",
+      "x": -820,
+      "p": 0.8,
+      "escala": 1
+    },
+    {
+      "id": "tumba",
+      "tipo": "tumba",
+      "x": 300,
+      "p": 0.5,
+      "escala": 0.95,
+      "params": {
+        "abierta": 1,
+        "luz": 0.6
+      }
+    }
+  ],
+  "actores": [
+    {
+      "id": "tu",
+      "personaje": "tu",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -80,
+          "p": 0.05,
+          "giro": 30
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 2.65,
+          "capa": "brazos",
+          "desde": 0.8
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "camara"
+        },
+        {
+          "t": 4.12,
+          "a": "tumba"
+        }
+      ]
+    }
+  ]
+}

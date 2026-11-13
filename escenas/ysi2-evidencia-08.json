@@ -1,0 +1,78 @@
+{
+  "nombre": "¿Y si…? evidencia · 8 · Jesús ya lo había advertido: «Tampoco se",
+  "duracion": 5.85,
+  "textos": [
+    {
+      "t": 1.97,
+      "dur": 2.4,
+      "texto": "Lucas 16:31",
+      "arriba": true
+    }
+  ],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Jesús ya lo había advertido: «Tampoco se persuadirán aunque alguno se levantare de los muertos».",
+  "id": "ysi2-evidencia-08",
+  "fondo": {
+    "tipo": "luna"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -400,
+      "zoom": 1
+    },
+    {
+      "t": 5.85,
+      "x": 60,
+      "y": -420,
+      "zoom": 1.25
+    }
+  ],
+  "ambiente": {
+    "tono": -0.3,
+    "vineta": 0.45
+  },
+  "objetos": [
+    {
+      "id": "tumba",
+      "tipo": "tumba",
+      "x": 300,
+      "p": 0.6,
+      "escala": 0.8,
+      "params": {
+        "sello": 1
+      }
+    }
+  ],
+  "actores": [
+    {
+      "id": "tu",
+      "personaje": "tu",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -230,
+          "p": 0.05,
+          "giro": 40
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "pensativo",
+          "dur": 5.85,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "tumba"
+        }
+      ]
+    }
+  ]
+}

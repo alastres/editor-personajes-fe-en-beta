@@ -1,0 +1,67 @@
+{
+  "nombre": "¿Y si…? evidencia · 13 · Así que la pregunta no es si hay pruebas",
+  "duracion": 4.43,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Así que la pregunta no es si hay pruebas. Es qué harías con ellas.",
+  "id": "ysi2-evidencia-13",
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -440,
+      "zoom": 1.4
+    },
+    {
+      "t": 4.43,
+      "x": 0,
+      "y": -460,
+      "zoom": 1.85,
+      "curva": "frena"
+    }
+  ],
+  "ambiente": {
+    "tono": 0.3,
+    "vineta": 0.45
+  },
+  "actores": [
+    {
+      "id": "tu",
+      "personaje": "tu",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": -12
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 4.43,
+          "capa": "brazos",
+          "desde": 3
+        },
+        {
+          "t": 0,
+          "accion": "pensativo",
+          "dur": 4.43,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "camara"
+        }
+      ]
+    }
+  ]
+}

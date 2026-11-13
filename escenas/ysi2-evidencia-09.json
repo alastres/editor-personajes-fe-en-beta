@@ -1,0 +1,73 @@
+{
+  "nombre": "¿Y si…? evidencia · 9 · El problema casi nunca es la falta de pr",
+  "duracion": 4.04,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "El problema casi nunca es la falta de pruebas. Es el corazón.",
+  "id": "ysi2-evidencia-09",
+  "fondo": {
+    "tipo": "luna"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -440,
+      "zoom": 1.5
+    },
+    {
+      "t": 4.04,
+      "x": 0,
+      "y": -460,
+      "zoom": 1.9,
+      "curva": "frena"
+    }
+  ],
+  "ambiente": {
+    "tono": -0.1,
+    "vineta": 0.5
+  },
+  "actores": [
+    {
+      "id": "tu",
+      "personaje": "tu",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": 15
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 3.27,
+          "capa": "brazos",
+          "desde": 2.2
+        },
+        {
+          "t": 3.27,
+          "accion": "mano-pecho",
+          "dur": 3,
+          "capa": "brazos"
+        },
+        {
+          "t": 0,
+          "accion": "pensativo",
+          "dur": 4.04,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "camara"
+        }
+      ]
+    }
+  ]
+}

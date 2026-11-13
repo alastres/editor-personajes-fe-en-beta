@@ -1,0 +1,72 @@
+{
+  "nombre": "¿Y si…? evidencia · 2 · Casi todos decimos que sí. La Biblia cue",
+  "duracion": 3.75,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Casi todos decimos que sí. La Biblia cuenta otra historia.",
+  "id": "ysi2-evidencia-02",
+  "fondo": {
+    "tipo": "luna"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": -20,
+      "y": -410,
+      "zoom": 1.3
+    },
+    {
+      "t": 3.75,
+      "x": 20,
+      "y": -430,
+      "zoom": 1.45
+    }
+  ],
+  "ambiente": {
+    "vineta": 0.3,
+    "tono": -0.2
+  },
+  "actores": [
+    {
+      "id": "tu",
+      "personaje": "tu",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 0,
+          "p": 0,
+          "giro": -20
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 3.75,
+          "capa": "brazos",
+          "desde": 0.4
+        },
+        {
+          "t": 0,
+          "accion": "alegre",
+          "dur": 2.1,
+          "capa": "cuerpo"
+        },
+        {
+          "t": 2.1,
+          "accion": "pensativo",
+          "dur": 3,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "camara"
+        }
+      ]
+    }
+  ]
+}

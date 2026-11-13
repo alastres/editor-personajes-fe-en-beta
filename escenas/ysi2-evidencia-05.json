@@ -1,0 +1,114 @@
+{
+  "nombre": "¿Y si…? evidencia · 5 · Y, mientras Moisés tardaba en bajar del ",
+  "duracion": 5.05,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Y, mientras Moisés tardaba en bajar del monte, se hicieron un becerro de oro.",
+  "id": "ysi2-evidencia-05",
+  "fondo": {
+    "tipo": "atardecer"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -380,
+      "zoom": 1.05
+    },
+    {
+      "t": 5.05,
+      "x": 0,
+      "y": -330,
+      "zoom": 1.35,
+      "curva": "frena"
+    }
+  ],
+  "ambiente": {
+    "tono": 0.6,
+    "vineta": 0.5,
+    "particulas": "chispas",
+    "cantidad": 0.7
+  },
+  "objetos": [
+    {
+      "id": "fuego",
+      "tipo": "hoguera",
+      "x": 0,
+      "p": 0.25,
+      "escala": 1.4,
+      "params": {
+        "fuego": 1.4
+      }
+    }
+  ],
+  "actores": [
+    {
+      "id": "israelita",
+      "personaje": "discipulo-1",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -330,
+          "p": 0.05,
+          "giro": 40
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 5.05,
+          "capa": "brazos",
+          "desde": 1
+        },
+        {
+          "t": 0,
+          "accion": "alegre",
+          "dur": 5.05,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "fuego"
+        }
+      ]
+    },
+    {
+      "id": "israelita2",
+      "personaje": "discipulo-2",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 330,
+          "p": 0.1,
+          "giro": -40
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0.5,
+          "accion": "manos-arriba",
+          "dur": 5.05,
+          "capa": "brazos"
+        },
+        {
+          "t": 0,
+          "accion": "alegre",
+          "dur": 5.05,
+          "capa": "cuerpo"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "fuego"
+        }
+      ]
+    }
+  ]
+}

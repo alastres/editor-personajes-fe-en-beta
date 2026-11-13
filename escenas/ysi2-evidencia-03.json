@@ -1,0 +1,116 @@
+{
+  "nombre": "¿Y si…? evidencia · 3 · Israel vio cómo el mar se abría delante ",
+  "duracion": 3.24,
+  "textos": [],
+  "audios": [],
+  "origen": "montaje:ysi2-evidencia",
+  "texto": "Israel vio cómo el mar se abría delante de ellos.",
+  "id": "ysi2-evidencia-03",
+  "fondo": {
+    "tipo": "mar",
+    "oleaje": 1.4
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -520,
+      "zoom": 0.95
+    },
+    {
+      "t": 3.24,
+      "x": 0,
+      "y": -500,
+      "zoom": 1.12,
+      "curva": "frena"
+    }
+  ],
+  "ambiente": {
+    "vineta": 0.3
+  },
+  "efectos": [
+    {
+      "t": 1.72,
+      "tipo": "sacudida",
+      "dur": 0.9,
+      "fuerza": 0.8
+    },
+    {
+      "t": 1.82,
+      "tipo": "destello",
+      "dur": 0.6,
+      "fuerza": 0.5
+    }
+  ],
+  "actores": [
+    {
+      "id": "mujer",
+      "personaje": "mujer-2",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -280,
+          "p": 0.15,
+          "giro": 165
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0.3,
+          "accion": "asombro",
+          "dur": 4,
+          "capa": "cuerpo"
+        }
+      ]
+    },
+    {
+      "id": "israelita",
+      "personaje": "discipulo-1",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 20,
+          "p": 0.05,
+          "giro": 180
+        }
+      ],
+      "bloques": [
+        {
+          "t": 1.82,
+          "accion": "manos-arriba",
+          "dur": 3,
+          "capa": "brazos"
+        },
+        {
+          "t": 0.3,
+          "accion": "asombro",
+          "dur": 4,
+          "capa": "cuerpo"
+        }
+      ]
+    },
+    {
+      "id": "israelita2",
+      "personaje": "discipulo-2",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 300,
+          "p": 0.25,
+          "giro": 195
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0.5,
+          "accion": "asombro",
+          "dur": 4,
+          "capa": "cuerpo"
+        }
+      ]
+    }
+  ]
+}

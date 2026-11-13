@@ -1,0 +1,26 @@
+{
+  "id": "mirar-cielo",
+  "nombre": "Mirar al cielo",
+  "duracion": 0.6,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "prueba ysi2 (director a mano)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.6,
+      "pose": {
+        "cara": {
+          "sorpresa": 0.45
+        },
+        "miraY": -0.75,
+        "inclina": -0.06
+      }
+    }
+  ]
+}

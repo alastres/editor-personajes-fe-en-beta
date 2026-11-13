@@ -1,0 +1,35 @@
+{
+  "id": "manos-arriba",
+  "nombre": "Manos arriba (asombro)",
+  "duracion": 0.6,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "prueba ysi2 (director a mano)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.6,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.95,
+        "bDerFrente": 0.35,
+        "bDerCodo": 0.7,
+        "mDer": {
+          "abierta": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.95,
+        "bIzqFrente": 0.35,
+        "bIzqCodo": 0.7,
+        "mIzq": {
+          "abierta": 1
+        }
+      }
+    }
+  ]
+}

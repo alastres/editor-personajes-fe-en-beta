@@ -208,7 +208,9 @@
         h("button", { class: "x", title: "Quitar", onclick: () => cambio((x) => { x.efectos.splice(i, 1); }, null, false) }, "✕"))); });
     // rótulos
     const ut = $("#textos"); ut.replaceChildren(); for (const [i, tx] of esc.textos.entries()) { const inp = h("input", { type: "text", value: tx.texto, class: "nom-ctrl" }); inp.addEventListener("change", () => cambio((x) => { x.textos[i].texto = inp.value; }, null, false));
-      ut.append(h("li", { class: i === selTexto ? "activo" : "", onclick: () => { selTexto = i; tiempo = tx.t; dibujar(); pintarPistas(); } }, h("span", {}, "T"), inp, h("span", { class: "hueso" }, fmtT(tx.t)), h("button", { class: "x", title: "Quitar", onclick: (ev) => { ev.stopPropagation(); cambio((x) => { x.textos.splice(i, 1); }, null, false); } }, "✕"))); }
+      ut.append(h("li", { class: i === selTexto ? "activo" : "", onclick: () => { selTexto = i; tiempo = tx.t; dibujar(); pintarPistas(); } }, h("span", {}, "T"), inp, h("span", { class: "hueso" }, fmtT(tx.t)),
+        h("button", { class: "x", title: tx.arriba ? "Arriba (lejos de los subtítulos): pulsa para bajarlo" : "Abajo: pulsa para subirlo y que no lo tapen los subtítulos", onclick: (ev) => { ev.stopPropagation(); cambio((x) => { if (x.textos[i].arriba) delete x.textos[i].arriba; else x.textos[i].arriba = true; }, null, false); } }, tx.arriba ? "↑" : "↓"),
+        h("button", { class: "x", title: "Quitar", onclick: (ev) => { ev.stopPropagation(); cambio((x) => { x.textos.splice(i, 1); }, null, false); } }, "✕"))); }
     // audio
     const ua = $("#audios"); ua.replaceChildren(); for (const [i, au] of esc.audios.entries()) { const vol = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: au.volumen ?? 1, title: "Volumen" });
       vol.addEventListener("input", () => cambio((x) => { x.audios[i].volumen = Number(vol.value); }, "vol" + i, false));
