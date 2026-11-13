@@ -62,8 +62,10 @@
       const C = frio ? { mar: "#24365a", mar2: "#30487a", luz: "#6a8ac0", muro: "#3a5a90", muro2: "#2a4272", espuma: "#c8d8f4", fondo: "#4a4a5e", fondo2: "#3a3a4e", arena: "#5a5468", arena2: "#4a4558" }
         : { mar: "#2e6a8e", mar2: "#3e86a8", luz: "#8ac8dc", muro: "#4a9ab8", muro2: "#2e7298", espuma: "#f0faff", fondo: "#a88a68", fondo2: "#8a6e52", arena: "#d8b884", arena2: "#c4a070" };
       const X = (y) => (y - H) / (Y0 - H);                      // 0 en el horizonte … 1 en la orilla (y más allá)
-      const ancho = (y) => Ae * (14 + 300 * X(y) ** 1.15), alto = (y) => Ae * (24 + 860 * X(y) ** 1.25);
-      let s = P(`M-6000 ${H} L 6000 ${H} L 6000 3000 L -6000 3000 Z`, C.mar);
+      const ancho = (y) => Ae * (14 + 300 * X(y) ** 1.15), alto = (y) => Ae * (24 + 860 * X(y) ** 1.25) * (0.78 + 0.22 * Math.abs(Math.sin(X(y) * 8.5 + 0.6)));
+      let s = o.sol === false ? "" : halo(0, H, 900, frio ? "#a8b8f0" : "#ffcf80", 0.75) + circ(0, H - 30, 120, frio ? "#e8ecff" : "#fff2c8");
+      s += P(`M-6000 ${H} L 6000 ${H} L 6000 3000 L -6000 3000 Z`, C.mar);
+      if (o.sol !== false) for (let k = 0; k < 7; k++) s += caps(0, H + 14 + k * 16, 260 - k * 26 + 20 * Math.sin(t * 2 + k), 6, frio ? "#c8d4f4" : "#ffe6a8", 0.55);   // reflejo del sol
       // reflejos del mar (rayas de luz que se mueven)
       for (let k = 0; k < 18; k++) { const y = H + 8 + (k * k) * 1.4, w = 40 + k * 14, x = ((k * 377 + t * (20 + k)) % 2400) - 1200; s += caps(x, y, w, 3 + k * 0.4, C.luz, 0.35); }
       // camino de fondo marino seco y los dos muros (de lejos a cerca, en tiras, para que el de delante tape al de atrás)
@@ -71,6 +73,7 @@
         const borde = (sg) => ys.map((y) => [sg * ancho(y), y]);
         s += P(`M${borde(-1).map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} L ${borde(1).reverse().map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} Z`, C.fondo);
         for (let i = 2; i < N; i += 3) { const y = ys[i], w = ancho(y) * 0.8; s += caps(((i * 53) % 7 - 3) * w * 0.15, y, w * 0.5, 2 + 6 * X(y), C.fondo2, 0.7); }
+        for (let i = 4; i < N; i += 2) { const y = ys[i], w = ancho(y); s += `<ellipse cx="${f1(((i * 71) % 9 - 4) * w * 0.17)}" cy="${f1(y)}" rx="${f1(4 + 14 * X(y))}" ry="${f1(2 + 7 * X(y))}" fill="${C.fondo2}" opacity="0.9"/>`; }
         for (const sg of [-1, 1]) { const cara = [], cresta = [], hombro = [];
           for (const y of ys) { const x = sg * ancho(y), h = alto(y), ola = 10 * X(y) * Math.sin(t * 3 + y * 0.05 + sg); cara.push([x, y]); cresta.push([x + sg * 6, y - h + ola]); hombro.push([x + sg * (h * 0.9 + 60), y + 4]); }
           // lomo del muro (del borde de arriba baja hacia fuera hasta el nivel del mar)
@@ -78,6 +81,15 @@
           // cara del muro que da al camino (más clara arriba)
           s += P(`M${cara.map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} L ${cresta.slice().reverse().map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} Z`, C.muro);
           s += P(`M${cara.map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} L ${cresta.slice().reverse().map(([x, y], i, a) => { const [cx, cy] = cara[a.length - 1 - i]; return `${f1(x + (cx - x) * 0.45)} ${f1(y + (cy - y) * 0.45)}`; }).join(" L ")} Z`, C.muro2, 0.45);
+          // rayas verticales de agua (claras y oscuras) que siguen la perspectiva
+          for (let i = 0; i < N; i += 2) s += P(`M${f1(cara[i][0])} ${f1(cara[i][1])} L ${f1(cara[i + 1][0])} ${f1(cara[i + 1][1])} L ${f1(cresta[i + 1][0])} ${f1(cresta[i + 1][1])} L ${f1(cresta[i][0])} ${f1(cresta[i][1])} Z`, C.luz, 0.16);
+          for (let i = 1; i < N; i += 4) { const [xa, ya] = cara[i], [xb, yb] = cresta[i]; s += T(`M${f1(xa + (xb - xa) * 0.15)} ${f1(ya + (yb - ya) * 0.15)} L ${f1(xa + (xb - xa) * 0.7)} ${f1(ya + (yb - ya) * 0.7)}`, C.luz, 3 + 6 * X(ys[i]), 0.35); }
+          // rizo: la cresta se enrosca hacia el camino (por encima de él) con espuma festoneada
+          const rizo = cresta.map(([x, y], i) => { const L = Ae * (20 + 110 * X(ys[i])); return [x - sg * L, y + L * 0.55 + 6 * Math.sin(t * 3 + i)]; });
+          s += P(`M${cresta.map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} L ${rizo.slice().reverse().map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} Z`, C.muro2, 0.85);
+          for (let i = 3; i < N; i++) { const [x, y] = rizo[i], r = Ae * (5 + 18 * X(ys[i])); s += circ(x, y, r, C.espuma, 0.9) + circ(x + sg * r * 0.8, y - r * 0.7, r * 0.7, C.espuma, 0.8); }
+          // espuma en la base, donde el muro toca el camino
+          for (let i = 2; i < N + 1; i++) { const [x, y] = cara[i], r = Ae * (4 + 14 * X(ys[i])) * (0.8 + 0.3 * Math.sin(t * 4 + i * 1.7)); s += circ(x - sg * r * 0.3, y - r * 0.4, r, C.espuma, 0.85); }
           // peces nadando dentro del muro
           for (let k = 0; k < 6; k++) { const yy = ys[10 + k * 2] || Y0, h = alto(yy), x = sg * (ancho(yy) + 4), fy = yy - h * (0.3 + 0.1 * (k % 3)) + 6 * Math.sin(t * 2 + k), L = 10 + 26 * X(yy), dx = sg * (k % 2 ? 1 : -1);
             s += `<path d="M${f1(x - L)} ${f1(fy)} Q ${f1(x)} ${f1(fy - L * 0.45)} ${f1(x + L)} ${f1(fy)} Q ${f1(x)} ${f1(fy + L * 0.45)} ${f1(x - L)} ${f1(fy)} Z M${f1(x - L)} ${f1(fy)} l ${f1(-L * 0.5 * dx)} ${f1(-L * 0.35)} l 0 ${f1(L * 0.7)} Z" fill="${C.muro2}" opacity="${(0.7 * Ae).toFixed(2)}"/>`; }
@@ -96,6 +108,82 @@
       const orilla = (k) => `M-6000 ${Y0} ${Array.from({ length: 61 }, (_, i) => { const x = -6000 + i * 200; return `L ${x} ${f1(Y0 + k + 6 * Math.sin(x * 0.01 + t * 1.5))}`; }).join(" ")} L 6000 3000 L -6000 3000 Z`;
       s += P(orilla(-6), C.espuma, 0.7) + P(orilla(4), C.arena) + P(orilla(60), C.arena2, 0.35);
       if (Ae > 0.002) s += P(`M${f1(-ancho(Y0))} ${Y0 + 4} L ${f1(ancho(Y0))} ${Y0 + 4} L ${f1(ancho(Y0) * 1.3)} 3000 L ${f1(-ancho(Y0) * 1.3)} 3000 Z`, C.fondo2, 0.25);
+      return s; } },
+
+
+    // ---- decorados nuevos con las referencias de Flow (13 nov 2026); ver Videos/shorts-flow/ysi2-evidencia/flow-referencias.md
+    // TUMBA EN LADERA: la puerta (a la escala de una persona con escala 1) excavada en una ladera de roca que sube en diagonal hacia la
+    // derecha (espejo = hacia la izquierda), con olivos encima, camino en curva hasta la puerta, charco de luz cuando está abierta y rocas al pie.
+    ladera: { nombre: "Tumba en ladera", anima: true, params: { abierta: [0, 1, 0.01, 0, "Piedra corrida"], luz: [0, 1, 0.01, 0, "Luz de dentro"], sello: [0, 1, 0.01, 0, "Sello"], arboles: [0, 1, 1, 1, "Olivos encima"] }, dibujar(o, t) {
+      const R = pal(o, ["#b8826a", "#94645a", "#d8a88a", "#6e4650", "#f0c8a0", "#c89878", "#a8785e"], ["#5a5878", "#46445e", "#7a789c", "#302e46", "#a8b0e0", "#6a6890", "#3e3c56"]);
+      const H = pal(o, ["#6a8a4a", "#4e7038", "#94b46a", "#5a3a32"], ["#3a4c5e", "#2a3a4a", "#566e86", "#2a2636"]);
+      const abierta = o.abierta || 0, luz = o.luz || 0, sello = o.sello || 0, fuego = o.frio ? "#ffd27a" : "#ffe3a0";
+      const lomo = "M-760 0 C -700 -150 -560 -360 -380 -470 C -220 -570 -60 -650 140 -720 C 380 -820 700 -980 1050 -1060 C 1350 -1120 1700 -1110 2100 -1050 L 2100 0 Z";
+      let s = P(lomo, R[0]);
+      s += P("M380 0 L 380 -780 C 640 -930 940 -1040 1250 -1080 C 1550 -1110 1800 -1090 2100 -1050 L 2100 0 Z", R[1]);   // cara en sombra
+      s += P("M-760 0 C -700 -150 -560 -360 -380 -470 C -300 -520 -240 -540 -190 -560 L -230 0 Z", R[5], 0.55);               // faceta clara delante
+      s += T("M-740 -40 C -680 -170 -560 -360 -380 -470 C -220 -570 -60 -650 140 -720 C 380 -820 700 -980 1050 -1060 C 1350 -1120 1700 -1110 2060 -1056", R[4], 14, 0.65);   // filo de luz
+      for (const [x, y, l, g, r] of [[-420, -300, 160, 16, -30], [560, -620, 220, 18, -18], [900, -760, 180, 16, -12], [1300, -560, 260, 20, -6], [700, -300, 200, 18, 0], [-520, -120, 120, 14, -40], [1150, -880, 160, 14, -8]]) s += caps(x, y, l, g, R[2], 0.55, r);
+      s += T("M520 -200 L 600 -380 L 560 -520 M1180 -320 L 1260 -470", R[3], 6, 0.5);   // grietas
+      // puerta en arco, a la escala de una persona
+      const puerta = "M-135 0 L -135 -390 C -135 -560 135 -560 135 -390 L 135 0 Z";
+      s += P("M-165 0 L -165 -390 C -165 -600 165 -600 165 -390 L 165 0 Z", R[6]) + P(puerta, "#1a1226");
+      if (luz > 0) { s += P(puerta, fuego, 0.92 * luz);
+        for (let k = 0; k < 9; k++) { const a = -Math.PI / 2 + (k - 4) * 0.2 + 0.02 * Math.sin(t * 1.3 + k);
+          s += P(`M0 -260 L ${f1(Math.cos(a - 0.04) * 1700)} ${f1(-260 + Math.sin(a - 0.04) * 1700)} L ${f1(Math.cos(a + 0.04) * 1700)} ${f1(-260 + Math.sin(a + 0.04) * 1700)} Z`, "#fff0c8", (0.07 + 0.05 * (k % 2)) * luz); }
+        s += `<rect x="-95" y="-60" width="190" height="34" rx="14" fill="#f4ead8" opacity="${(0.9 * luz).toFixed(2)}"/>`;
+        s += halo(0, 40, 520, fuego, 0.42 * luz) + `<ellipse cx="0" cy="60" rx="430" ry="80" fill="${fuego}" opacity="${(0.28 * luz).toFixed(2)}"/>`;
+        s += T("M-165 -10 L -165 -390 C -165 -600 165 -600 165 -390 L 165 -10", fuego, 10, 0.55 * luz); }
+      // camino en curva hasta la puerta (hacia la cámara: y positiva)
+      s += P("M-120 0 C -170 110 -60 210 -260 360 C -330 410 -380 470 -400 520 L 220 520 C 230 450 170 380 230 300 C 300 200 120 110 120 0 Z", pal(o, ["#d8b088", "#c49a72"], ["#4a4860", "#3c3a52"])[0], 0.9);
+      // piedra redonda que se corre a la derecha
+      const px = 360 * abierta, rot = 160 * abierta;
+      s += `<ellipse cx="${f1(px)}" cy="-8" rx="200" ry="26" fill="#000" opacity="0.2"/>`;
+      s += `<g transform="translate(${f1(px)} -200) rotate(${f1(rot)})"><circle r="200" fill="${R[2]}"/>${P("M-200 0 A 200 200 0 0 0 200 0 Z", R[1], 0.5)}<circle r="200" fill="none" stroke="${R[1]}" stroke-width="20"/><circle r="80" fill="${R[1]}" opacity="0.7"/>${caps(-60, -120, 120, 16, R[4], 0.6, -20)}</g>`;
+      if (sello > 0) s += T(`M${f1(px - 190)} -270 L ${f1(px + 190)} -120`, "#be3f1c", 12, cl(sello)) + circ(px, -200, 40, "#be3f1c", cl(sello)) + circ(px, -200, 18, "#e86a4a", cl(sello));
+      // olivos retorcidos encima de la ladera
+      if (o.arboles ?? 1) for (const [x, y, k] of [[520, -830, 1.1], [980, -1060, 1.3], [-330, -500, 0.8]]) {
+        const sw = 6 * Math.sin(t * 0.8 + x);
+        s += `<g transform="translate(${x} ${y}) scale(${k})">` + T(`M0 0 C -20 -60 30 -110 0 -170 M0 -110 C 40 -140 70 -160 90 -200`, H[3], 18) +
+          P(`M${f1(-120 + sw)} -200 a 90 60 0 1 1 180 0 a 70 50 0 1 1 120 20 a 80 50 0 1 1 -160 40 a 90 50 0 1 1 -140 -60 Z`, H[1]) +
+          P(`M${f1(-90 + sw)} -230 a 70 45 0 1 1 140 0 a 60 40 0 1 1 100 10 a 60 30 0 0 1 -240 -10 Z`, H[0]) + caps(-20 + sw, -250, 90, 14, H[2], 0.7, -10) + "</g>"; }
+      // rocas al pie
+      s += P("M-900 30 C -880 -60 -760 -110 -640 -80 C -560 -60 -540 0 -560 40 Z", R[1]) + caps(-740, -70, 90, 12, R[2], 0.6, -15);
+      s += P("M300 40 C 320 -30 420 -60 520 -40 C 600 -20 620 20 610 50 Z", R[6]) + caps(430, -30, 80, 10, R[2], 0.6, -8);
+      return s; } },
+
+    // CIPRÉS alto y oscuro, con su filo de luz a un lado; se mece un poco
+    cipres: { nombre: "Ciprés", anima: true, params: { alto: [0.6, 1.6, 0.05, 1, "Alto"] }, dibujar(o, t) { const h = 900 * (o.alto ?? 1), C = pal(o, ["#2e4a3a", "#3e6048", "#5e8a5e", "#4a3028"], ["#1e2a36", "#283a48", "#3e5668", "#221e2a"]), sw = 10 * Math.sin(t * 0.7 + h);
+      return sombra(90) + `<rect x="-14" y="-90" width="28" height="90" rx="10" fill="${C[3]}"/>` + P(`M0 -60 C -110 -${f1(h * 0.3)} -90 -${f1(h * 0.7)} ${f1(sw)} -${f1(h)} C 90 -${f1(h * 0.7)} 110 -${f1(h * 0.3)} 0 -60 Z`, C[0]) +
+        P(`M0 -60 C 60 -${f1(h * 0.3)} 70 -${f1(h * 0.65)} ${f1(sw)} -${f1(h)} C 40 -${f1(h * 0.7)} 30 -${f1(h * 0.3)} 0 -60 Z`, C[1]) + caps(30, -h * 0.55, 80, 12, C[2], 0.6, -75); } },
+
+    // MATA CON FLORES (jardín): hojas oscuras y flores de colores; buena en primer término para enmarcar
+    flores: { nombre: "Mata con flores", anima: true, params: {}, dibujar(o, t) { const C = pal(o, ["#2e5a3a", "#3e7448", "#5e9a5a"], ["#1e3036", "#2a4048", "#3e5e68"]), fl = pal(o, ["#ff9ab0", "#ffd36a", "#fff4e0", "#c88ae0"], ["#a87a9a", "#b8a070", "#c8c8d8", "#8a70a8"]);
+      let s = sombra(220, 0.18); for (let k = 0; k < 9; k++) { const a = -Math.PI * (0.15 + 0.7 * k / 8), L = 160 + 70 * ((k * 37) % 3), sw = 8 * Math.sin(t * 1.4 + k);
+        s += P(`M0 0 Q ${f1(Math.cos(a) * L * 0.5 - 30)} ${f1(Math.sin(a) * L * 0.5)} ${f1(Math.cos(a) * L + sw)} ${f1(Math.sin(a) * L)} Q ${f1(Math.cos(a) * L * 0.5 + 30)} ${f1(Math.sin(a) * L * 0.5)} 0 0 Z`, C[k % 2]); }
+      for (let k = 0; k < 11; k++) { const x = -170 + ((k * 61) % 340), y = -60 - ((k * 47) % 140); s += circ(x, y, 12, fl[k % 4]) + circ(x, y, 5, "#ffe08a"); }
+      return s; } },
+
+    // MONTE SINAÍ: cono oscuro con un lado iluminado, nube negra encima y relámpagos (de lejos, con p grande)
+    sinai: { nombre: "Monte Sinaí (nube y rayos)", anima: true, params: { rayos: [0, 1, 1, 1, "Rayos"] }, dibujar(o, t) { const C = pal(o, ["#5a3a5a", "#7a4a62", "#a86a6a", "#2a1e2e"], ["#3a3450", "#4a4466", "#6a6488", "#1a1624"]);
+      let s = P("M-1100 0 L -160 -1500 C -100 -1560 40 -1560 100 -1500 L 1100 0 Z", C[0]) + P("M-160 -1500 C -100 -1560 40 -1560 100 -1500 L 1100 0 L 200 0 L 0 -900 Z", C[1]) + T("M-1080 -20 L -160 -1500 C -100 -1560 40 -1560 100 -1500", C[2], 12, 0.7);
+      for (const [x, y, l] of [[-500, -700, 200], [300, -500, 260], [-200, -1100, 140]]) s += caps(x, y, l, 16, C[2], 0.45, -55);
+      const nube = (dx, dy, k) => { let d = ""; for (const [x, y, r] of [[-360, 0, 190], [-120, -90, 240], [160, -50, 220], [400, 20, 170], [0, 60, 200]]) d += circ(x * k + dx + 40 * Math.sin(t * 0.3), y * k + dy, r * k, C[3], 0.95); return d; };
+      s += nube(-20, -1640, 1.15);
+      if ((o.rayos ?? 1) && (t % 2.3 < 0.14 || (t % 3.7 > 1.2 && t % 3.7 < 1.28))) s += T("M-120 -1560 L -60 -1400 L -150 -1380 L -40 -1180", "#fff6c0", 14) + halo(-80, -1450, 500, "#ffe8a0", 0.5);
+      return s; } },
+
+    // TIENDA de campamento (triángulo de tela con su sombra y la abertura)
+    tienda: { nombre: "Tienda", params: { tono: [0, 2, 1, 0, "Color"] }, dibujar(o) { const T0 = [["#c8946a", "#a07050", "#e8b888"], ["#9a6a8a", "#7a4a6a", "#c08aa8"], ["#d8b878", "#b08a58", "#f0d498"]][Math.round(o.tono || 0)], C = o.frio ? T0.map((c) => c) : T0;
+      return sombra(280) + P("M-280 0 L 0 -340 L 280 0 Z", C[0]) + P("M0 -340 L 280 0 L 60 0 Z", C[1]) + P("M-40 0 L 0 -200 L 40 0 Z", "#2a1a22") + T("M0 -340 L 0 -380 M-280 0 L -340 30 M280 0 L 340 30", "#5a3a32", 6) + caps(-120, -150, 90, 12, C[2], 0.6, -50); } },
+
+    // ARCO DE PIEDRA en primer término (interiores): marco oscuro con abertura en arco; con p negativa enmarca la habitación
+    arco: { nombre: "Arco de piedra (marco)", params: { ancho: [0.6, 1.6, 0.05, 1, "Ancho"] }, dibujar(o) { const w = 330 * (o.ancho ?? 1), C = pal(o, ["#2a1e26", "#3a2a32", "#4a3640", "#8a5a4a"], ["#16121e", "#221a2a", "#2e2436", "#5a4a6a"]);
+      let s = `<path d="M-3000 -4000 H3000 V400 H-3000 Z M${-w} 400 V ${-w * 3} A ${w} ${w} 0 0 1 ${w} ${-w * 3} V 400 Z" fill="${C[0]}" fill-rule="evenodd"/>`;
+      s += `<path d="M${-w - 40} 400 V ${-w * 3} A ${w + 40} ${w + 40} 0 0 1 ${w + 40} ${-w * 3} V 400" fill="none" stroke="${C[2]}" stroke-width="34"/>`;
+      s += `<path d="M${-w - 6} 400 V ${-w * 3} A ${w + 6} ${w + 6} 0 0 1 ${w + 6} ${-w * 3} V 400" fill="none" stroke="${C[3]}" stroke-width="6" opacity="0.6"/>`;
+      for (let k = 0; k < 8; k++) { const a = Math.PI + (k / 7) * Math.PI, r = w + 40; s += T(`M${f1(Math.cos(a) * (r - 17))} ${f1(-w * 3 + Math.sin(a) * (r - 17))} L ${f1(Math.cos(a) * (r + 17))} ${f1(-w * 3 + Math.sin(a) * (r + 17))}`, C[1], 6); }
+      for (let k = 0; k < 6; k++) s += caps(-w - 40, -w * 3 + 120 + k * 150, 30, 6, C[1], 1) + caps(w + 40, -w * 3 + 60 + k * 150, 30, 6, C[1], 1);
       return s; } },
 
     // barca de pesca con vela; se mece sola (meceo 0 = quieta)

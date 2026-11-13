@@ -14,7 +14,28 @@
   "texto": "¿Y si tuvieras toda la evidencia de que Dios es real… le creerías?",
   "id": "ysi2-evidencia-01",
   "fondo": {
-    "tipo": "luna"
+    "tipo": "lamina",
+    "lamina": "tumba-noche-1",
+    "centro": {
+      "x": 72,
+      "y": -628
+    },
+    "escala": 1.35,
+    "capas": [
+      {
+        "id": "lejos",
+        "par": 0.8
+      },
+      {
+        "id": "medio",
+        "par": 0.2
+      },
+      {
+        "id": "delante",
+        "par": -0.35,
+        "delante": true
+      }
+    ]
   },
   "rol": "gancho",
   "ambiente": {
@@ -29,19 +50,7 @@
       "fuerza": 0.6
     }
   ],
-  "objetos": [
-    {
-      "id": "tumba",
-      "tipo": "tumba",
-      "x": 430,
-      "p": 0.5,
-      "escala": 2.3,
-      "params": {
-        "abierta": 1,
-        "luz": 1
-      }
-    }
-  ],
+  "objetos": [],
   "camara": [
     {
       "t": 0,
@@ -63,18 +72,18 @@
     },
     {
       "t": 2.46,
-      "x": 430,
-      "y": -300,
-      "zoom": 1.45,
+      "x": 330,
+      "y": -330,
+      "zoom": 1.6,
       "tilt": 0.18,
       "roll": 0,
       "alto": 450
     },
     {
       "t": 3.279,
-      "x": 430,
-      "y": -325,
-      "zoom": 1.537,
+      "x": 330,
+      "y": -355,
+      "zoom": 1.6960000000000002,
       "tilt": 0.18,
       "roll": 0,
       "alto": 450
@@ -122,7 +131,10 @@
       "mirar": [
         {
           "t": 0,
-          "a": "tumba"
+          "a": {
+            "x": 330,
+            "y": -320
+          }
         },
         {
           "t": 3.23,

@@ -13,6 +13,15 @@
     "tono": -0.5,
     "vineta": 0.6
   },
+  "objetos": [
+    {
+      "id": "arco",
+      "tipo": "arco",
+      "x": 0,
+      "p": -0.6,
+      "escala": 1
+    }
+  ],
   "efectos": [
     {
       "t": 2.67,

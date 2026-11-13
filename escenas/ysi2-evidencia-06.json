@@ -25,11 +25,35 @@
   ],
   "objetos": [
     {
+      "id": "cip1",
+      "tipo": "cipres",
+      "x": -760,
+      "p": 0.9,
+      "escala": 1
+    },
+    {
+      "id": "cip2",
+      "tipo": "cipres",
+      "x": 1150,
+      "p": 1.1,
+      "escala": 1,
+      "params": {
+        "alto": 1.3
+      }
+    },
+    {
+      "id": "flores",
+      "tipo": "flores",
+      "x": -470,
+      "p": -0.5,
+      "escala": 1
+    },
+    {
       "id": "tumba",
-      "tipo": "tumba",
+      "tipo": "ladera",
       "x": 330,
       "p": 0.5,
-      "escala": 2.3,
+      "escala": 1.15,
       "claves": [
         {
           "t": 0,
@@ -73,7 +97,7 @@
     {
       "t": 1.49,
       "x": 330,
-      "y": -330,
+      "y": -430,
       "zoom": 1.45,
       "tilt": 0.18,
       "roll": 0,
@@ -82,7 +106,7 @@
     {
       "t": 2.1590000000000003,
       "x": 330,
-      "y": -350,
+      "y": -450,
       "zoom": 1.537,
       "tilt": 0.18,
       "roll": 0,

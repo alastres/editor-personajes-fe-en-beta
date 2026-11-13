@@ -41,7 +41,7 @@
     luna: { cielo: ["#0e1230", "#222c50", "#3a4470"], montes: ["#3e405a", "#30324a", "#26283c"], suelo: ["#22222e", "#30303e"], astro: { c: "#eef0ff", r: 120, x: 300, y: -1250, halo: "#9aa0d8" }, estrellas: true, nubes: 0.45 },
     tormenta: { cielo: ["#14141e", "#262836", "#3e4050"], montes: ["#34364a", "#2a2c3c", "#202230"], suelo: ["#24242a", "#34343c"], nubes: 1, lluvia: 1, rayos: true },
     mar: { cielo: ["#4a7ab8", "#9ac0dc", "#e8f0ec"], montes: ["#9ab4c4", "#88a4b6", "#7894a8"], lejosAlto: 0.45, suelo: ["#c8b080", "#d8c090"], astro: { c: "#fff8d8", r: 80, x: -320, y: -1300, halo: "#ffe8a0" }, mar: true, nubes: 0.3 },
-    desierto: { cielo: ["#d8905a", "#f0c890", "#fbe8c0"], montes: ["#d8a070", "#c08860", "#a87050"], suelo: ["#d8b078", "#e8c890"], astro: { c: "#fff4d0", r: 95, x: 280, y: -1100, halo: "#ffd890" } },
+    desierto: { cielo: ["#c8806a", "#f0b888", "#fbe0b8"], montes: ["#b8806a", "#c8906a", "#a06a58"], suelo: ["#e0b880", "#f0d29a"], astro: { c: "#fff4d0", r: 120, x: 140, y: -560, halo: "#ffd890" }, dunas: true, luz: "#fff0c8" },
   };
   // fondo de una escena = preset + lo que la escena cambie (colores, astro, nubes, lluvia, mar, lo de lejos, capas dibujadas, imagen)
   const fondoDe = (f) => { const tipo = f?.tipo || "noche", F = Object.assign({}, FONDOS[tipo] || FONDOS.noche, f || {}); F.tipo = tipo;
@@ -64,7 +64,26 @@
   // horizonte (perspectiva de aire). Arriba llevan un filo de luz del color del astro y por dentro rayas de cápsula, como la textura de marca.
   const hor = (F) => F.cielo?.[F.cielo.length - 1] || "#c8b0c0", luzDe = (F) => F.luz || F.astro?.halo || "#ffe0b0";
   function cresta(x, i) { return Math.abs(0.55 * Math.sin(x * 0.013 + i * 7.1) + 0.3 * Math.sin(x * 0.0047 + i * 2.3) + 0.15 * Math.sin(x * 0.031 + i * 1.7)); }
-  function montes(g, F, camX) { const H = hor(F), L = luzDe(F), cs = F.montes, base = F.suelo?.[0] || cs[2];
+  // DUNAS (fondo desierto): montes de pico al fondo con un lado iluminado y capas de dunas cuya cresta lleva un filo de luz y la cara una sombra
+  function dunas(g, F, camX) { const H = hor(F), L = luzDe(F), cs = F.montes, su = F.suelo || ["#d8b078", "#e8c890"];
+    // sierra al fondo: picos irregulares de alturas distintas (no pirámides), con la ladera de la luz más clara
+    for (const [par, esc, col, op] of [[0.9, 1, mixc(cs[0], H, 0.45), 0.9], [0.8, 0.7, mixc(cs[0], H, 0.2), 1]]) { const dx = camX * par; let d = `M${-6000 + dx} -6`, luz = "";
+      for (let k = -60; k <= 60; k++) { const x = k * 100 + dx, r = Math.abs(Math.sin(k * 12.9898 + esc * 7) * 43758.5453) % 1, r2 = Math.abs(Math.sin(k * 3.3 + esc)) ;
+        const h = esc * (90 + 140 * r2 + 70 * r), y = -h; d += ` L ${f1(x)} ${f1(y)}`;
+        if (r > 0.55) luz += `M${f1(x)} ${f1(y)} L ${f1(x + 60)} ${f1(y + h * 0.55)} L ${f1(x + 10)} ${f1(y + h * 0.7)} Z `; }
+      el("path", { d: d + ` L ${6000 + dx} -6 Z`, fill: col, opacity: op }, g); el("path", { d: luz, fill: mixc(col, L, 0.45), opacity: 0.6 }, g); }
+      el("rect", { x: -9000, y: -90, width: 18000, height: 90, fill: H, opacity: 0.35 }, g);
+    for (let i = 0; i < 5; i++) { const par = [0.62, 0.48, 0.34, 0.2, 0.08][i], dx = camX * par, base = [-6, 70, 180, 320, 500][i], A = [70, 100, 130, 170, 210][i], lam = [900, 1100, 1300, 1500, 1800][i];
+      const c = mixc(mixc(su[1], cs[1], 0.25 - i * 0.04), H, [0.4, 0.28, 0.16, 0.06, 0][i]), cS = mixc(c, cs[2], 0.35), cL = mixc(c, "#ffffff", 0.45);
+      const yC = (x) => base - A * (0.55 + 0.45 * Math.sin((x + i * 517) / lam * 2 * Math.PI)) - 20;
+      let top = "", sombra = ""; for (let x = -6000; x <= 6000; x += 60) { const X = x + dx; top += (top ? " L " : "M") + `${f1(X)} ${f1(yC(x))}`; }
+      el("path", { d: `${top} L ${6000 + dx} 3000 L ${-6000 + dx} 3000 Z`, fill: c }, g);
+      // cara en sombra: debajo de cada cresta, en el lado contrario a la luz
+      for (let x = -6000; x <= 6000; x += lam) { const x0 = x - ((i * 517) % lam) + lam * 0.25, X0 = x0 + dx;
+        sombra += `M${f1(X0)} ${f1(yC(x0))} Q ${f1(X0 + lam * 0.35)} ${f1(yC(x0) + A * 0.9)} ${f1(X0 + lam * 0.6)} ${f1(yC(x0 + lam * 0.5) + 6)} L ${f1(X0 + lam * 0.5)} ${f1(yC(x0 + lam * 0.5))} Q ${f1(X0 + lam * 0.25)} ${f1(yC(x0 + lam * 0.25))} ${f1(X0)} ${f1(yC(x0))} Z `; }
+      el("path", { d: sombra, fill: cS, opacity: 0.6 }, g);
+      el("path", { d: top, fill: "none", stroke: cL, "stroke-width": 5 + i * 1.5, "stroke-linecap": "round", opacity: 0.75 }, g); } }
+  function montes(g, F, camX) { if (F.dunas) return dunas(g, F, camX); const H = hor(F), L = luzDe(F), cs = F.montes, base = F.suelo?.[0] || cs[2];
     const capas = [[mixc(cs[0], H, 0.45), 0.86, 420], [mixc(cs[0], H, 0.12), 0.72, 330], [cs[1], 0.52, 230], [mixc(cs[2], base, 0.35), 0.3, 130]];
     capas.forEach(([c, par, alto0], i) => { const alto = alto0 * (F.lejosAlto ?? 1), hz = -8 + i * 4, dx = camX * par, paso = [420, 340, 280, 240][i];
       let top = "", d = `M${-6000 + dx} ${hz}`;
@@ -84,7 +103,7 @@
     el("rect", { x: -9000, y: -520, width: 18000, height: 520, fill: `url(#${id})` }, g); }
   function pintarFondo(g, f, camX) {
     g.replaceChildren(); const tipo = f?.tipo || "noche";
-    if (tipo === "color") { el("rect", { x: -9000, y: -9000, width: 18000, height: 18000, fill: f.color || "#2a2540" }, g); return; }
+    if (tipo === "color" || tipo === "lamina") { el("rect", { x: -9000, y: -9000, width: 18000, height: 18000, fill: f.color || "#1a1630" }, g); g.vivoCielo = null; g.vivoSuelo = null; return; }
     const F = fondoDe(f);
     if (tipo === "interior") { pintarInterior(g, F); return; }
     if (F.imagen?.archivo && F.imagen.cubre) { imagenFondo(g, F.imagen, camX); capasFondo(g, F.capas, camX); g.vivoCielo = el("g", {}, g); g.vivoSuelo = el("g", {}, g); return; }
@@ -108,6 +127,7 @@
     if (lj === "montes") montes(g, F, camX);
     bruma(g, F);
     if (F.mar) { pintarMar(g, F); capasFondo(g, F.capas, camX); g.vivoSuelo = el("g", {}, g); return; }
+    if (F.dunas) { capasFondo(g, F.capas, camX); g.vivoSuelo = el("g", {}, g); return; }   // las dunas llegan hasta delante: no hay suelo plano
     // suelo: degradado (más oscuro y saturado delante), textura de cápsulas, piedras y matas que crecen con la cercanía
     const idS = "esc-suelo-" + F.suelo.join("").replace(/#/g, ""); if (!g.ownerSVGElement.querySelector("#" + idS)) { const defs = g.ownerSVGElement.querySelector("defs"); const gr = el("linearGradient", { id: idS, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
       el("stop", { offset: 0, "stop-color": F.suelo[1] }, gr); el("stop", { offset: 0.35, "stop-color": F.suelo[0] }, gr); el("stop", { offset: 1, "stop-color": mixc(F.suelo[0], "#140c1c", 0.45) }, gr); }
@@ -156,7 +176,7 @@
   function capasFondo(g, capas, camX) { for (const c of capas || []) { if (!c.svg || c.oculta) continue;
     const gc = el("g", { transform: `translate(${f1((c.x || 0) + camX * (c.par || 0))} ${f1(c.y || 0)}) scale(${c.escala || 1})` }, g); gc.insertAdjacentHTML("beforeend", c.svg); } }
   // lo vivo del fondo, cada fotograma: nubes que derivan, olas del mar, llama de la lámpara; lluvia y relámpagos van delante (gDelante)
-  function vivo(g, gDelante, f, t, camX, zoom) { const F = fondoDe(f); gDelante.replaceChildren();
+  function vivo(g, gDelante, f, t, camX, zoom) { const F = fondoDe(f); gDelante.replaceChildren(); if (f?.tipo === "lamina") return;
     if (g.vivoCielo) { g.vivoCielo.replaceChildren(); const n = F.nubes ?? (F.tipo === "dia" || F.tipo === "alba" || F.tipo === "atardecer" || F.tipo === "noche" ? 0.5 : 0), L = luzDe(F);
       if (F.estrellas) { let d = "", d2 = ""; for (let i = 0; i < 90; i++) { const x = -2400 + ((i * 397) % 4800) + camX * 0.95, y = -2600 + (i * 211) % 2000, r = 2 + (i % 3), tw = 0.5 + 0.5 * Math.sin(t * (1.3 + (i % 5) * 0.4) + i);
           (tw > 0.5 ? (d += `M${f1(x - r)} ${y}h${2 * r}`) : (d2 += `M${f1(x - r)} ${y}h${2 * r}`)); }
@@ -261,7 +281,7 @@
   // la escena menos el punto de la escena desde el que se ve; habla = id del actor cuya boca la sigue (o "auto": el primer actor)
   let contadorDof = 0;
   function crear(svg, esc, PJ, op = {}) { formato(op.formato || esc.formato);
-    const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), mundo = el("g", {}, raiz), gDelante = el("g", {}, raiz), gAmb = el("g", { "pointer-events": "none" }, raiz), gTextos = el("g", {}, raiz);
+    const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), lamAtras = el("g", {}, raiz), mundo = el("g", {}, raiz), lamDelante = el("g", {}, raiz), gDelante = el("g", {}, raiz), gAmb = el("g", { "pointer-events": "none" }, raiz), gTextos = el("g", {}, raiz);
     let fondoKey = null;
     const actores = (esc.actores || []).map((a) => { const j = PJ[a.personaje]; const g = el("g", { "data-actor": a.id }, mundo);
       if (!j) { const tx = el("text", { fill: "#f66", "font-size": 40 }, g); tx.textContent = "falta el personaje «" + a.personaje + "»"; return { a, g, m: null, j: null }; }
@@ -297,7 +317,8 @@
       fondo.setAttribute("transform", tr + ` translate(0 ${f1(hz)})`); mundo.setAttribute("transform", tr);
       // PROFUNDIDAD DE CAMPO: en los planos cerrados el fondo se desenfoca (más cuanto más zoom); esc.desenfoque = false lo quita
       const dof = esc.desenfoque === false ? 0 : cl((z - 1.55) / 1.5) * (esc.desenfoque || 1) * 8;
-      if (dof > 0.3) { dofStd.setAttribute("stdDeviation", (dof / z).toFixed(2)); fondo.setAttribute("filter", `url(#${dofId})`); } else fondo.removeAttribute("filter");
+      if (dof > 0.3) { dofStd.setAttribute("stdDeviation", (dof / z).toFixed(2)); fondo.setAttribute("filter", `url(#${dofId})`); lamAtras.setAttribute("filter", `url(#${dofId})`); } else { fondo.removeAttribute("filter"); lamAtras.removeAttribute("filter"); }
+      pintarPlacas(c, tr);
       if ((esc.fondo?.tipo || "noche") !== "color") vivo(fondo, gDelante, esc.fondo, t, c.x, z);
       Titere25D.camara({ tilt: c.tilt ?? 0.18 });
       const orden = [];
@@ -312,6 +333,17 @@
       pintarAmbiente(gAmb, esc, t);
       pintarTextos(t);
     }
+    // LÁMINA: fondo hecho de una ilustración vectorial por capas (comun/lamina-vectorizar.py → ilustraciones/<nombre>, window.LAMINAS).
+    // esc.fondo = { tipo: "lamina", lamina: "tumba-noche-1", capas: [{ id: "lejos", par: 0.85 }, { id: "medio", par: 0.25 }, { id: "delante", par: -0.35, delante: true }],
+    //               centro: { x, y } (punto del mundo que mira la cámara cuando la lámina llena la pantalla), escala: 1.15 (margen para moverse) }
+    // par: 1 = pegada a la cámara (muy lejos) … 0 = se mueve con el mundo … negativo = más cerca que los personajes (se mueve más).
+    const LAM = (esc.fondo?.tipo === "lamina" && window.LAMINAS) ? window.LAMINAS[esc.fondo.lamina] : null, placas = [];
+    if (LAM) for (const c of esc.fondo.capas || LAM.capasDef || Object.keys(LAM.capas).map((id, i, a) => ({ id, par: [0.85, 0.3, -0.3][i] ?? 0, delante: i === a.length - 1 && a.length > 2 })))
+      { const g = el("g", { "data-capa": c.id }, c.delante ? lamDelante : lamAtras); g.innerHTML = LAM.capas[c.id] || ""; placas.push({ c, g }); }
+    function pintarPlacas(c, tr) { if (!LAM) return; const z = c.zoom || 1, X0 = esc.fondo.centro?.x ?? 0, Y0 = esc.fondo.centro?.y ?? -400;
+      const sc = Math.max(ANCHO / LAM.ancho, ALTO / LAM.alto) * (esc.fondo.escala ?? 1.15), W = LAM.ancho * sc, H = LAM.alto * sc;
+      for (const { c: k, g } of placas) { const par = k.par ?? 0, kz = Math.pow(z, -par);
+        g.setAttribute("transform", `${tr} translate(${f1(c.x)} ${f1(c.y)}) scale(${kz.toFixed(4)}) translate(${f1(-c.x)} ${f1(-c.y)}) translate(${f1((c.x - X0) * par)} ${f1((c.y - Y0) * par)}) translate(${f1(X0 - W / 2)} ${f1(Y0 - H / 2)}) scale(${sc.toFixed(4)})`); } }
     let tAnterior = -1;
     const dofId = "esc-dof-" + (++contadorDof), defsD = (svg.ownerSVGElement || svg).querySelector("defs") || el("defs", {}, svg.ownerSVGElement || svg);
     const dofF = el("filter", { id: dofId, x: "-5%", y: "-5%", width: "110%", height: "110%", filterUnits: "objectBoundingBox" }, defsD), dofStd = el("feGaussianBlur", { stdDeviation: 0 }, dofF);

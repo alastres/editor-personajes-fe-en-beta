@@ -24,20 +24,20 @@
   "objetos": [
     {
       "id": "sellada",
-      "tipo": "tumba",
+      "tipo": "ladera",
       "x": -1900,
       "p": 0.5,
-      "escala": 2.3,
+      "escala": 1.1,
       "params": {
         "sello": 1
       }
     },
     {
       "id": "tumba",
-      "tipo": "tumba",
+      "tipo": "ladera",
       "x": 1900,
       "p": 0.5,
-      "escala": 2.3,
+      "escala": 1.15,
       "params": {
         "abierta": 1,
         "luz": 0.9
@@ -47,18 +47,18 @@
   "camara": [
     {
       "t": 0,
-      "x": -1900,
-      "y": -330,
-      "zoom": 0.95,
+      "x": -1700,
+      "y": -520,
+      "zoom": 0.9,
       "tilt": 0.18,
       "roll": 0,
       "alto": 450
     },
     {
       "t": 1.969,
-      "x": -1820,
-      "y": -360,
-      "zoom": 1.007,
+      "x": -1620,
+      "y": -550,
+      "zoom": 0.9540000000000001,
       "tilt": 0.18,
       "roll": 0,
       "alto": 450

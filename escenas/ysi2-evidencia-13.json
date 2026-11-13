@@ -16,28 +16,36 @@
   "objetos": [
     {
       "id": "tumba",
-      "tipo": "tumba",
-      "x": 430,
+      "tipo": "ladera",
+      "x": 380,
       "p": 0.5,
-      "escala": 2.3,
+      "escala": 1.1,
       "params": {
         "abierta": 1,
         "luz": 1
       }
     },
     {
-      "id": "roca",
-      "tipo": "roca",
-      "x": -380,
+      "id": "cip",
+      "tipo": "cipres",
+      "x": -700,
+      "p": 0.8,
+      "escala": 1
+    },
+    {
+      "id": "flores",
+      "tipo": "flores",
+      "x": -430,
       "p": -0.5,
       "escala": 1
     },
     {
-      "id": "mata",
-      "tipo": "arbusto",
-      "x": 560,
+      "id": "flores2",
+      "tipo": "flores",
+      "x": 600,
       "p": -0.6,
-      "escala": 1.2
+      "escala": 1.2,
+      "espejo": true
     }
   ],
   "camara": [

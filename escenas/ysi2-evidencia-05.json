@@ -17,6 +17,43 @@
   },
   "objetos": [
     {
+      "id": "sinai",
+      "tipo": "sinai",
+      "x": 380,
+      "p": 3.6,
+      "escala": 1
+    },
+    {
+      "id": "t1",
+      "tipo": "tienda",
+      "x": -640,
+      "p": 0.7,
+      "escala": 1,
+      "params": {
+        "tono": 0
+      }
+    },
+    {
+      "id": "t2",
+      "tipo": "tienda",
+      "x": 660,
+      "p": 0.9,
+      "escala": 1,
+      "params": {
+        "tono": 1
+      }
+    },
+    {
+      "id": "t3",
+      "tipo": "tienda",
+      "x": -150,
+      "p": 1.5,
+      "escala": 1,
+      "params": {
+        "tono": 2
+      }
+    },
+    {
       "id": "fuego",
       "tipo": "hoguera",
       "x": 0,

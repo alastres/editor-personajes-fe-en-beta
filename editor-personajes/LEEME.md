@@ -343,3 +343,17 @@ El usuario pidió «control de espacio 3D para profundidad y separar capas en el
 - **Transiciones nuevas** en Montaje: Latigazo (barrido muy rápido con estela) y Golpe de zoom (la escena anterior se acerca y se funde mientras entra la nueva).
 - **Montaje** ofrece ya todos los fondos (luna, atardecer, desierto, mar, tormenta…), no solo cuatro.
 - Las fuentes de la marca están en `comun/vendor/` y se copian al exportar.
+
+## Láminas: ilustraciones vectoriales por capas como fondo (13 nov 2026)
+Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds porque no usas dibujos complejos». La solución es partir de una ilustración (una referencia de Flow en el estilo plano de la marca) y convertirla en **vectores por capas**.
+- **`comun/lamina-vectorizar.py <capas.json>`:**
+  - cada capa (lejos, medio, delante…) se marca con un polígono aproximado en píxeles y GrabCut ajusta el borde a la silueta real;
+  - lo que queda tapado detrás de cada capa se rellena (inpaint), para que no se vean agujeros con el paralaje;
+  - cada capa se vectoriza con vtracer (formas planas) y se recorta con su silueta.
+  - Sale en `ilustraciones/<nombre>/<capa>.svg` y se regenera `ilustraciones/todas.js` (`window.LAMINAS`). Ejemplo: `ysi2-evidencia/laminas/tumba-noche-1.json`.
+- **Fondo «lámina» en la escena:** `fondo: { tipo: "lamina", lamina: "tumba-noche-1", centro: { x, y }, escala: 1.35, capas: [{ id: "lejos", par: 0.8 }, { id: "medio", par: 0.2 }, { id: "delante", par: -0.35, delante: true }] }`.
+  - `par` es el paralaje: 1 = pegada a la cámara, 0 = se mueve con el mundo, negativo = más cerca que los personajes.
+  - Las capas `delante` se dibujan delante de los personajes.
+  - `centro` es el punto del mundo que mira la cámara cuando la lámina llena la pantalla; se ajusta para que el suelo del dibujo quede bajo los pies de los personajes.
+  - El desenfoque de los primeros planos también se aplica a las capas de atrás.
+- El editor y el vídeo cargan `ilustraciones/todas.js` (al exportar, solo las láminas que se usan).

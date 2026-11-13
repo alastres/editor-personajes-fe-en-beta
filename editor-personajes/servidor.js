@@ -82,6 +82,13 @@ async function sincronizar(mensaje) { const log = []; const paso = async (args) 
   r = await paso(["commit", "-m", mensaje || "Actualizar editor de personajes y escenas"]); if (r.cod !== 0) return { ok: false, log: log.join("\n\n"), error: "No se pudo guardar el commit" };
   r = await paso(["push"]); return { ok: r.cod === 0, log: log.join("\n\n"), error: r.cod === 0 ? "" : "No se pudo subir a GitHub" }; }
 
+// láminas vectoriales (ilustraciones/<nombre>/) que usan unas escenas → objeto para window.LAMINAS del vídeo
+function laminasDe(escenas) { const L = {};
+  for (const esc of escenas) { const n = esc?.fondo?.tipo === "lamina" && esc.fondo.lamina; if (!n || L[n]) continue; const d = path.join(RAIZ, "ilustraciones", n), f = path.join(d, "lamina.json"); if (!fs.existsSync(f)) continue;
+    const j = leerJSON(f), capas = {}; for (const c of j.capas) capas[c] = fs.readFileSync(path.join(d, c + ".svg"), "utf8").replace(/^<svg[^>]*>|<\/svg>\s*$/g, "");
+    L[n] = { ancho: j.ancho, alto: j.alto, capas }; }
+  return L; }
+
 // ---- exportar una escena a un proyecto HyperFrames (../escena-<id>/)
 function exportar(id) {
   const esc = leerJSON(path.join(DIRS.escenas, id + ".json")), [W, H] = esc.formato === "16:9" ? [1920, 1080] : [1080, 1920], dir = path.join(RAIZ, "escena-" + id), A = path.join(dir, "assets");
@@ -93,7 +100,7 @@ function exportar(id) {
   const usados = {}; for (const a of esc.actores || []) { const f = path.join(DIRS.personajes, a.personaje + ".json"); if (fs.existsSync(f)) usados[a.personaje] = leerJSON(f); }
   // acciones de la biblioteca común que usan los bloques de la escena
   const comunes = regenerarAcciones(), acc = {}; for (const a of esc.actores || []) for (const b of a.bloques || []) { const c = Object.values(comunes).find((x) => x.id === b.accion || x.nombre === b.accion); if (c) acc[c.id] = c; }
-  fs.writeFileSync(path.join(A, "personajes-escena.js"), "window.PERSONAJES = " + JSON.stringify(usados) + ";\nwindow.ACCIONES = " + JSON.stringify(acc) + ";\nwindow.RUTA_ARCHIVOS = \"assets/archivos/\";\n");
+  fs.writeFileSync(path.join(A, "personajes-escena.js"), "window.PERSONAJES = " + JSON.stringify(usados) + ";\nwindow.LAMINAS = " + JSON.stringify(laminasDe([esc])) + ";\nwindow.ACCIONES = " + JSON.stringify(acc) + ";\nwindow.RUTA_ARCHIVOS = \"assets/archivos/\";\n");
   copiarImagenes([esc], A);
   const D = Math.max(0.5, Number(esc.duracion) || 6).toFixed(3);
   let audios = "";
@@ -217,7 +224,7 @@ async function exportarShort(id, r = {}) {
     for (const a of esc.actores || []) { const fp = path.join(DIRS.personajes, a.personaje + ".json"); if (fs.existsSync(fp)) usados[a.personaje] = leerJSON(fp);
       for (const b of a.bloques || []) { const cc = Object.values(comunes).find((x) => x.id === b.accion || x.nombre === b.accion); if (cc) acc[cc.id] = cc; } } }
   const D = +(sh.duracion || (sh.voz?.duracion || 0) + 0.8 || 6).toFixed(3);
-  fs.writeFileSync(path.join(A, "datos.js"), `window.PERSONAJES = ${JSON.stringify(usados)};\nwindow.ACCIONES = ${JSON.stringify(acc)};\nwindow.ESCENAS = ${JSON.stringify(ESC)};\nwindow.SHORT = ${JSON.stringify(sh)};\nwindow.RUTA_ARCHIVOS = "assets/archivos/";\n`);
+  fs.writeFileSync(path.join(A, "datos.js"), `window.LAMINAS = ${JSON.stringify(laminasDe(Object.values(ESC)))};\nwindow.PERSONAJES = ${JSON.stringify(usados)};\nwindow.ACCIONES = ${JSON.stringify(acc)};\nwindow.ESCENAS = ${JSON.stringify(ESC)};\nwindow.SHORT = ${JSON.stringify(sh)};\nwindow.RUTA_ARCHIVOS = "assets/archivos/";\n`);
   copiarImagenes(Object.values(ESC), A);
   const dentro = (a) => { const f = path.resolve(RAIZ, a || ""); return a && f.startsWith(path.resolve(RAIZ, "..")) && fs.existsSync(f) ? f : null; };
   let audios = "", pista = 10;
@@ -369,6 +376,7 @@ http.createServer(async (req, res) => {
     if (url.startsWith("/comun/")) return servir(res, path.join(COMUN, path.basename(url)), req);
     if (url.startsWith("/personajes/")) return servir(res, path.join(DIRS.personajes, path.basename(url)), req);
     if (url.startsWith("/acciones/")) return servir(res, path.join(DIRS.acciones, path.basename(url)), req);
+    if (url.startsWith("/ilustraciones/")) return servir(res, path.join(RAIZ, "ilustraciones", path.basename(url)), req);
     const f = path.join(AQUI, url === "/" ? "index.html" : path.basename(url));
     return servir(res, f, req);
   } catch (e) { res.writeHead(500); res.end(String(e.message || e)); }

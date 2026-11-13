@@ -9,7 +9,8 @@
   "fondo": {
     "tipo": "dia",
     "lejos": "nada",
-    "nubes": 0.6
+    "nubes": 0.6,
+    "astro": false
   },
   "ambiente": {
     "vineta": 0.3,

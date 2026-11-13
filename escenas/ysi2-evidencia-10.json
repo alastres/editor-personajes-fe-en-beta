@@ -15,6 +15,15 @@
     "particulas": "polvo",
     "cantidad": 0.7
   },
+  "objetos": [
+    {
+      "id": "arco",
+      "tipo": "arco",
+      "x": 60,
+      "p": -0.6,
+      "escala": 1
+    }
+  ],
   "efectos": [
     {
       "t": 2.7199999999999998,

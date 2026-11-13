@@ -73,14 +73,21 @@
     },
     {
       "id": "tumba",
-      "tipo": "tumba",
+      "tipo": "ladera",
       "x": 1250,
       "p": 0.5,
-      "escala": 2.3,
+      "escala": 1.1,
       "params": {
         "abierta": 1,
         "luz": 1
       }
+    },
+    {
+      "id": "cip",
+      "tipo": "cipres",
+      "x": 820,
+      "p": 1.2,
+      "escala": 1
     }
   ],
   "camara": [
@@ -110,16 +117,16 @@
     {
       "t": 4.62,
       "x": 1250,
-      "y": -330,
-      "zoom": 1.25,
+      "y": -440,
+      "zoom": 1.2,
       "tilt": 0.05,
       "curva": "frena"
     },
     {
       "t": 5.17,
       "x": 1250,
-      "y": -340,
-      "zoom": 1.4
+      "y": -450,
+      "zoom": 1.35
     }
   ],
   "actores": []
