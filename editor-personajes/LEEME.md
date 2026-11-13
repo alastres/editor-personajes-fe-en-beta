@@ -274,3 +274,9 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - **Cola:** los renders van de uno en uno; los demás esperan en cola y muestran su puesto. Hay barra de progreso y el porcentaje sale en el título de la pestaña.
 - **Aviso al terminar:** un sonido y, con la pestaña en segundo plano, una notificación del sistema (si se permite) y el título cambiado.
 - **Formato horizontal 16:9** (1920 × 1080) para los vídeos largos: en Escenas («Formato») y en Montaje (el del short, que se aplica a todas sus escenas). El lienzo del editor, la exportación y el PNG siguen el formato. En el JSON: `formato: "16:9"`.
+
+## Piezas que se doblan (fase 22)
+- En una pieza de **brazo** o de **muslo**, «Se dobla con el codo o la rodilla» reparte cada punto del dibujo entre ese hueso y el de abajo (antebrazo o pierna), con pesos suaves alrededor de la articulación. Así una manga larga o una pernera se curva con el codo en vez de quedarse recta.
+- Dibújala en el brazo y más larga, hasta la muñeca (el codo está a 88 unidades del hombro) o hasta el tobillo. «Suavidad del doblez» ensancha o estrecha la franja que se curva.
+- Los trazos se trocean solos para que el doblez salga redondo. Solo se doblan trazados (path) con comandos absolutos, que son los que hace el taller. Ejemplo: «Manga larga (se dobla)» en demo-piezas.
+- En el JSON: `doblar: true`, `doblarZona`.

@@ -293,6 +293,8 @@
       if (F) [["rig", F.rigidez ?? 0.4, (v) => Math.round(v * 100) + "%"], ["amo", F.amortiguacion ?? 0.35, (v) => Math.round(v * 100) + "%"], ["peso", F.peso ?? 1, (v) => v.toFixed(2)], ["px", (F.pivote || [0, 0])[0], (v) => Math.round(v)], ["py", (F.pivote || [0, 0])[1], (v) => Math.round(v)]]
         .forEach(([k, v, fmt]) => { const inp = $("#pz-fis-" + k); if (document.activeElement !== inp) inp.value = v; inp.nextElementSibling.textContent = fmt(v); });
       ["melena", "cinto", "pelo", "barba", "ojos", "cejas", "boca", "nariz", "orejas"].forEach((k) => { $("#pz-oc-" + k).checked = (pz.oculta || []).includes(k); });
+      $("#pz-dob-campo").hidden = !/^(brazo|muslo)/.test(pz.hueso); $("#pz-dob").checked = !!pz.doblar; $("#pz-dob-det").hidden = !pz.doblar;
+      { const zi = $("#pz-dob-zona"), zv = pz.doblarZona ?? 18; if (document.activeElement !== zi) zi.value = zv; zi.nextElementSibling.textContent = Math.round(zv); }
       const Cd = pz.cadena && pz.cadena.activa !== false ? pz.cadena : null; $("#pz-cad").checked = !!Cd; $("#pz-cad-det").hidden = !Cd;
       if (Cd) { for (const [k, v, fmt] of CADENA_UI(Cd)) { const inp = $("#pz-cad-" + k); if (document.activeElement !== inp) inp.value = v; inp.nextElementSibling.textContent = fmt(v); } $("#pz-cad-color").value = Cd.color || "{pelo}"; }
       $("#pz-prof").parentElement.hidden = !/^(pecho|cintura)$/.test(pz.hueso) && !(pz.hueso === "cabeza" && pz.modo === "superficie");
@@ -310,6 +312,8 @@
     try { const svg = limpiarSVG(await f.text()), campo = vistaImp; cambioPz((q) => { q[campo] = svg; }); aviso("Dibujo de " + (campo === "svgPerfil" ? "perfil" : "espaldas") + " importado"); } catch (e) { aviso(`${f.name}: ${e.message}`); } });
   const CADENA_UI = (C) => [["seg", C.segmentos ?? 6, (v) => Math.round(v)], ["largo", C.largo ?? 160, (v) => Math.round(v)], ["gro", C.grosor ?? 18, (v) => Math.round(v)], ["fin", C.fin ?? 4, (v) => Math.round(v)],
     ["rig", C.rigidez ?? 0.25, (v) => Math.round(v * 100) + "%"], ["amo", C.amortiguacion ?? 0.3, (v) => Math.round(v * 100) + "%"], ["ang", C.angulo ?? 0, (v) => Math.round(v) + "°"], ["ax", (C.ancla || [0, 0])[0], (v) => Math.round(v)], ["ay", (C.ancla || [0, 0])[1], (v) => Math.round(v)]];
+  $("#pz-dob").addEventListener("change", (ev) => cambioPz((q) => { if (ev.target.checked) q.doblar = true; else delete q.doblar; }));
+  $("#pz-dob-zona").addEventListener("input", (ev) => cambioPz((q) => { q.doblarZona = +ev.target.value; }, "dobz" + sel));
   $("#pz-cad").addEventListener("change", (ev) => cambioPz((q) => { if (ev.target.checked) q.cadena = Object.assign({ segmentos: 6, largo: 160, grosor: 18, fin: 4, rigidez: 0.25, amortiguacion: 0.3, color: "{pelo}" }, q.cadena || {}, { activa: true }); else if (q.cadena) q.cadena.activa = false; }));
   for (const [k, campo] of [["seg", "segmentos"], ["largo", "largo"], ["gro", "grosor"], ["fin", "fin"], ["rig", "rigidez"], ["amo", "amortiguacion"], ["ang", "angulo"], ["ax", 0], ["ay", 1]])
     $("#pz-cad-" + k).addEventListener("input", (ev) => cambioPz((q) => { q.cadena = q.cadena || { activa: true }; const v = Number(ev.target.value); if (typeof campo === "number") { q.cadena.ancla = [...(q.cadena.ancla || [0, 0])]; q.cadena.ancla[campo] = v; } else q.cadena[campo] = v; }, "cad-" + k + sel));

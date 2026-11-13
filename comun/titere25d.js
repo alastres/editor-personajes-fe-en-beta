@@ -377,6 +377,33 @@
       const fin = pts[n], dr = der.slice().reverse();
       P.cadEl.setAttribute("d", curva(izq) + ` Q ${f1(fin[0] + (fin[0] - pts[n - 1][0]) * 0.4)} ${f1(fin[1] + (fin[1] - pts[n - 1][1]) * 0.4)} ${f1(dr[0][0])} ${f1(dr[0][1])} ` + curva(dr).replace(/^M/, "L") + " Z");
       P.cadEl.setAttribute("fill", String(Cd.color || "{pelo}").replace(/\{(\w+)\}/g, (m0, k) => C[k] || m0)); }
+    // PIEZAS QUE SE DOBLAN (pz.doblar = true; mangas, perneras, faldas cortas): la pieza se dibuja en el hueso de arriba (brazo, muslo) y
+    // cada punto se reparte entre ese hueso y el de abajo (antebrazo, pierna) según lo cerca que esté de la articulación (pesos suaves en una
+    // franja de ±zona). Así la manga se dobla con el codo en vez de quedarse rígida. Solo trazados (path) con M L C Q Z absolutos (los del taller).
+    // J = { eje: 0 (x) | 1 (y), codo: dónde está la articulación en el dibujo del hueso de arriba, desB: lo que hay que restar para pasar al de abajo }
+    // trocea rectas (cada ~12 unidades) y curvas (en 4) para que la pieza se doble suave aunque se dibujara con pocos puntos
+    function subdividir({ cmds, pts }) { const oc = [], op = []; let k = 0, cur = [0, 0], ini = [0, 0];
+      const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      for (const [c, m] of cmds) { const P2 = pts.slice(k, k + m); k += m;
+        if (c === "M") { oc.push(["M", 1]); op.push(P2[0]); cur = ini = P2[0]; }
+        else if (c === "L") { const b = P2[0], n = Math.max(1, Math.ceil(Math.hypot(b[0] - cur[0], b[1] - cur[1]) / 12)); for (let i = 1; i <= n; i++) { oc.push(["L", 1]); op.push(lerp2(cur, b, i / n)); } cur = b; }
+        else if (c === "C" || c === "Q") { const [p1, p2, p3] = c === "C" ? P2 : [lerp2(cur, P2[0], 2 / 3), lerp2(P2[1], P2[0], 2 / 3), P2[1]]; let a = cur, b1 = p1, b2 = p2, d = p3;
+          for (const t of [0.25, 1 / 3, 0.5]) { const q0 = lerp2(a, b1, t), q1 = lerp2(b1, b2, t), q2 = lerp2(b2, d, t), r0 = lerp2(q0, q1, t), r1 = lerp2(q1, q2, t), sp = lerp2(r0, r1, t);
+            oc.push(["C", 3]); op.push(q0, r0, sp); a = sp; b1 = r1; b2 = q2; }
+          oc.push(["C", 3]); op.push(b1, b2, d); cur = d; }
+        else { if (Math.hypot(ini[0] - cur[0], ini[1] - cur[1]) > 12) { const n = Math.ceil(Math.hypot(ini[0] - cur[0], ini[1] - cur[1]) / 12); for (let i = 1; i < n; i++) { oc.push(["L", 1]); op.push(lerp2(cur, ini, i / n)); } }
+          oc.push(["Z", 0]); cur = ini; } }
+      return { cmds: oc, pts: op }; }
+    function doblada(P, MA, MB, J, ve) {
+      if (!P.mallas) { P.mallas = []; for (const pe of P.vis.frente.querySelectorAll("path")) { const dd = pe.getAttribute("d") || ""; if (/[a-z]|[HVSTA]/.test(dd.replace(/e-?\d/g, ""))) continue; P.mallas.push(Object.assign({ e: pe }, subdividir(parsear(dd)))); } }
+      ponerPieza(P, MA, ve); if (P.g.getAttribute("display") === "none") return;
+      P.g.setAttribute("transform", ""); P.dentro.setAttribute("transform", "");
+      const pz = P.pz, sc = pz.escala ?? 1, a0 = ((pz.rot || 0) * Math.PI) / 180, ca = Math.cos(a0), sa = Math.sin(a0), zona = pz.doblarZona ?? 18;
+      const ap = (M, x, y) => [M[0] * x + M[2] * y + M[4], M[1] * x + M[3] * y + M[5]];
+      for (const m of P.mallas) { const pts = m.pts.map(([x0, y0]) => { const x = (pz.x || 0) + sc * (x0 * ca - y0 * sa), y = (pz.y || 0) + sc * (x0 * sa + y0 * ca), u = J.eje ? y : x;
+          const w = cl((u - (J.codo - zona)) / (2 * zona)), ws = w * w * (3 - 2 * w), a = ap(MA, x, y); if (ws <= 0) return a;
+          const b = ap(MB, x - J.desB[0], y - J.desB[1]); return [a[0] + (b[0] - a[0]) * ws, a[1] + (b[1] - a[1]) * ws]; });
+        m.e.setAttribute("d", escribir(m.cmds, pts)); } }
     function ponerPieza(P, mat, ve, detrasForzado, ang) {
       const pz = P.pz, act = activa(pz, ve);
       if (P.cadEl) P.cadEl.setAttribute("display", act && mat && pz.cadena && pz.cadena.activa !== false ? "inline" : "none");
@@ -484,8 +511,10 @@
         // piezas en el muslo (cadera → rodilla) y en la pierna (rodilla → tobillo): el eje y del dibujo sigue el hueso; el origen es su punto medio
         const LADO = sg > 0 ? "Izq" : "Der";
         for (const P of PIEZAS) { const hu = P.pz.hueso; if (hu !== "muslo" + LADO && hu !== "pierna" + LADO) continue;
-          const [A0, B0] = hu.startsWith("muslo") ? [cad, rod] : [rod, tobillo], O = mul(add(A0, B0), 0.5), ey = nrm(sub(B0, A0));
-          ponerPieza(P, planoA(O, W(1, 0, 0, ap), ey), e.variantes, false, ap); }
+          const [A0, B0] = hu.startsWith("muslo") ? [cad, rod] : [rod, tobillo], O = mul(add(A0, B0), 0.5), ey = nrm(sub(B0, A0)), MA = planoA(O, W(1, 0, 0, ap), ey);
+          if (P.pz.doblar && hu.startsWith("muslo")) { const O2 = mul(add(rod, tobillo), 0.5), MB = planoA(O2, W(1, 0, 0, ap), nrm(sub(tobillo, rod))), lm = len(sub(rod, cad)) / 2, lp = len(sub(tobillo, rod)) / 2;
+            doblada(P, MA, MB, { eje: 1, codo: lm, desB: [0, lm + lp] }, e.variantes); }
+          else ponerPieza(P, MA, e.variantes, false, ap); }
         const z = (rod[2] + tobillo[2]) / 2, os = cl(-z / 50) * 0.35;
         L.muslo.setAttribute("stroke", mix(cPierna, C.noche, os)); L.canilla.setAttribute("fill", mix(cPierna, C.noche, os)); L.empeine.setAttribute("fill", mix(moderno ? C.zapato : C.piel, C.noche, os));
         L.luz.setAttribute("opacity", (0.6 * (1 - os * 2.5)).toFixed(2));
@@ -684,7 +713,10 @@
         // piezas en el brazo (desde el hombro) o el antebrazo (desde el codo): +x a lo largo del hueso, siguen su ángulo en pantalla
         for (const P of PIEZAS) { const L = sg > 0 ? "Izq" : "Der", hz = P.pz.hueso; if (hz !== "brazo" + L && hz !== "antebrazo" + L) continue;
           const ante = hz.startsWith("ante"), o = ante ? E0 : S0, d = ante ? d2 : dd, k = (ante ? kC : kH) * KG;
-          ponerPieza(P, [d[0] * k, d[1] * k, -d[1] * k * sg, d[0] * k * sg, o[0], o[1]], e.variantes); }
+          const MA = [d[0] * k, d[1] * k, -d[1] * k * sg, d[0] * k * sg, o[0], o[1]];
+          if (P.pz.doblar && !ante) { const kb = kC * KG, MB = [d2[0] * kb, d2[1] * kb, -d2[1] * kb * sg, d2[0] * kb * sg, E0[0], E0[1]];
+            doblada(P, MA, MB, { eje: 0, codo: 88 / KG, desB: [88 / KG, 0] }, e.variantes); }
+          else ponerPieza(P, MA, e.variantes); }
         for (const P of PIEZAS) { if (P.pz.hueso !== (sg > 0 ? "manoIzq" : "manoDer")) continue;
           const k = kM * KG, u = dh, v = [-dh[1], dh[0]]; ponerPieza(P, [u[0] * k, u[1] * k, v[0] * k * sg, v[1] * k * sg, qm[0], qm[1]], e.variantes); }
         const manoS = sg * 76 + 88 * uL[0] + 86 * fL[0], manoF = 88 * uL[2] + 86 * fL[2], delPecho = Math.abs(manoS) < 72 && manoF > 22;

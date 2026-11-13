@@ -287,6 +287,19 @@
     "angulo": 0,
     "capa": "delante"
    }
+  },
+  {
+   "id": "manga-larga",
+   "nombre": "Manga larga (se dobla)",
+   "hueso": "brazoDer",
+   "svg": "<path d=\"M0 -22 L 175 -18 L 175 18 L 0 22 Z\" fill=\"#be3f1c\"/>",
+   "x": 0,
+   "y": 0,
+   "escala": 1,
+   "rot": 0,
+   "capa": "delante",
+   "activo": true,
+   "doblar": true
   }
  ],
  "variantes": {
