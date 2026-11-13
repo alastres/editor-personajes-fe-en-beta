@@ -1,0 +1,11 @@
+{
+  "nombre": "tumba-formas",
+  "ancho": 1536,
+  "alto": 2752,
+  "capas": [
+    "lejos",
+    "medio",
+    "delante"
+  ],
+  "origen": "dibujada a mano con formas básicas (ysi2-evidencia/laminas/tumba-formas.py)"
+}

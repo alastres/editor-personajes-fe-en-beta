@@ -329,7 +329,7 @@
       // PROFUNDIDAD DE CAMPO: en los planos cerrados el fondo se desenfoca (más cuanto más zoom); esc.desenfoque = false lo quita
       const dof = esc.desenfoque === false ? 0 : cl((z - 1.55) / 1.5) * (esc.desenfoque || 1) * 8;
       if (dof > 0.3) { dofStd.setAttribute("stdDeviation", (dof / z).toFixed(2)); fondo.setAttribute("filter", `url(#${dofId})`); lamAtras.setAttribute("filter", `url(#${dofId})`); } else { fondo.removeAttribute("filter"); lamAtras.removeAttribute("filter"); }
-      pintarPlacas(c, tr);
+      tPlacas = t; pintarPlacas(c, tr);
       if ((esc.fondo?.tipo || "noche") !== "color") vivo(fondo, gDelante, esc.fondo, t, c.x, z);
       Titere25D.camara({ tilt: c.tilt ?? 0.18 });
       const orden = [];
@@ -351,14 +351,17 @@
     const LAM = (esc.fondo?.tipo === "lamina" && window.LAMINAS) ? window.LAMINAS[esc.fondo.lamina] : null, placas = [];
     if (LAM) for (const c of esc.fondo.capas || LAM.capasDef || Object.keys(LAM.capas).map((id, i, a) => ({ id, par: [0.85, 0.3, -0.3][i] ?? 0, delante: i === a.length - 1 && a.length > 2 })))
       { const g = el("g", { "data-capa": c.id }, c.delante ? lamDelante : lamAtras); g.innerHTML = LAM.capas[c.id] || ""; placas.push({ c, g }); }
+    let tPlacas = 0;
     function pintarPlacas(c, tr) { if (!LAM) return; const z = c.zoom || 1, X0 = esc.fondo.centro?.x ?? 0, Y0 = esc.fondo.centro?.y ?? -400;
       const sc = Math.max(ANCHO / LAM.ancho, ALTO / LAM.alto) * (esc.fondo.escala ?? 1.15), W = LAM.ancho * sc, H = LAM.alto * sc;
       for (const { c: k, g } of placas) { const par = k.par ?? 0, kz = Math.pow(z, -par);
+        // opacidad de la capa en el tiempo (fundir dos versiones: el mar cerrado → abierto): k.claves = [{ t, op }]
+        if (k.claves) { const q = claves(k.claves, tPlacas, ["op"]); g.setAttribute("opacity", (q?.op ?? 1).toFixed(3)); }
         g.setAttribute("transform", `${tr} translate(${f1(c.x)} ${f1(c.y)}) scale(${kz.toFixed(4)}) translate(${f1(-c.x)} ${f1(-c.y)}) translate(${f1((c.x - X0) * par)} ${f1((c.y - Y0) * par)}) translate(${f1(X0 - W / 2)} ${f1(Y0 - H / 2)}) scale(${sc.toFixed(4)})`); } }
     let tAnterior = -1;
     const dofId = "esc-dof-" + (++contadorDof), defsD = (svg.ownerSVGElement || svg).querySelector("defs") || el("defs", {}, svg.ownerSVGElement || svg);
     const dofF = el("filter", { id: dofId, x: "-5%", y: "-5%", width: "110%", height: "110%", filterUnits: "objectBoundingBox" }, defsD), dofStd = el("feGaussianBlur", { stdDeviation: 0 }, dofF);
-    function actor(A, t) { const a = A.a;
+    function actor(A, t) { const a = A.a; A.g.setAttribute("display", (a.desde != null && t < a.desde) || (a.hasta != null && t > a.hasta) ? "none" : "inline");
         const q = claves(a.recorrido, t, ["x", "p", "giro"]) || { x: 0, p: 0, giro: 20 }, pr = proy(q.x, q.p), esc0 = (a.escala || 1) * pr.s, X0 = pr.x, Y0 = pr.y;
         A.g.setAttribute("transform", `translate(${f1(X0)} ${f1(Y0)}) scale(${esc0.toFixed(3)})`);
         // velocidad: anda o corre sola si el recorrido la desplaza

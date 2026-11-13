@@ -86,7 +86,9 @@ def vectorizar(rgb, ruta_tmp, op=None):
 
 def main():
     cfg = json.load(open(sys.argv[1], encoding="utf-8"))
-    im = cv2.imread(cfg["imagen"]); h, w = im.shape[:2]
+    im = cv2.imread(cfg["imagen"])
+    if cfg.get("ampliar", 1) != 1: im = cv2.resize(im, None, fx=cfg["ampliar"], fy=cfg["ampliar"], interpolation=cv2.INTER_LANCZOS4)   # imágenes de 768 px: se trazan al doble
+    h, w = im.shape[:2]
     dest = os.path.join(RAIZ, "ilustraciones", cfg["nombre"]); os.makedirs(dest, exist_ok=True)
     capas = cfg["capas"]; k = w / cfg.get("base", w)
     for c in capas:
