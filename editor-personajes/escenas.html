@@ -56,6 +56,23 @@
         <div class="campo"><label>Nombre</label><input id="e-nombre" type="text" /></div>
         <div class="deslizador"><label>Duración</label><input type="range" id="e-dur" min="1" max="90" step="0.5" /><output></output></div>
         <div class="campo"><label>Fondo</label><div class="seg pequeno" id="e-fondo"></div></div>
+        <details id="f-mas" class="detalle">
+          <summary>Personalizar el fondo</summary>
+          <div class="campo"><label>Colores: cielo (arriba, medio, horizonte) · lejos · suelo</label>
+            <div class="fila-colores"><input type="color" id="f-c0" /><input type="color" id="f-c1" /><input type="color" id="f-c2" /><span class="sep"></span><input type="color" id="f-m0" /><input type="color" id="f-m1" /><input type="color" id="f-m2" /><span class="sep"></span><input type="color" id="f-s0" /><input type="color" id="f-s1" /></div></div>
+          <div class="campo"><label>Lo de lejos</label><div class="seg pequeno" id="f-lejos"></div></div>
+          <div class="fila-botones dos"><label class="chk"><input type="checkbox" id="f-astro" /> Sol o luna</label><label class="chk"><input type="checkbox" id="f-estrellas" /> Estrellas</label></div>
+          <div class="fila-botones dos"><label class="chk" title="El suelo se cambia por mar con olas"><input type="checkbox" id="f-mar" /> Mar en vez de suelo</label><label class="chk" title="Relámpagos cada pocos segundos"><input type="checkbox" id="f-rayos" /> Relámpagos</label></div>
+          <div class="deslizador"><label>Nubes</label><input type="range" id="f-nubes" min="0" max="1" step="0.05" /><output></output></div>
+          <div class="deslizador"><label>Lluvia</label><input type="range" id="f-lluvia" min="0" max="1.5" step="0.05" /><output></output></div>
+          <div class="deslizador"><label>Oleaje (con mar)</label><input type="range" id="f-oleaje" min="0" max="3" step="0.05" /><output></output></div>
+          <div class="campo"><label>Imagen de fondo <span class="tenue">(PNG o JPG en una carpeta fondos, imagenes, img o assets)</span></label><select id="f-imagen"></select></div>
+          <div class="fila-botones dos"><label class="chk" title="La imagen tapa también los montes y el suelo"><input type="checkbox" id="f-cubre" /> Que lo cubra todo</label><span></span></div>
+          <div class="deslizador"><label>Opacidad de la imagen</label><input type="range" id="f-imop" min="0" max="1" step="0.05" /><output></output></div>
+          <div class="campo"><label>Capas dibujadas <span class="tenue">(0 = se mueven con el suelo; 1 = muy lejos, casi quietas)</span></label>
+            <ul id="f-capas" class="piezas"></ul><button id="b-capa-dibujar">✎ Dibujar una capa en el taller</button></div>
+          <button id="b-fondo-reset" class="enlace">Volver al fondo tal cual viene</button>
+        </details>
       </section>
       <section>
         <h3>Reparto de la escena</h3>
@@ -128,6 +145,7 @@
   <script src="/comun/atrezo.js"></script>
   <script src="/acciones/todas.js"></script>
   <script src="/comun/escena.js"></script>
+  <script src="dibujo.js"></script>
   <script src="escenas.js"></script>
 </body>
 </html>

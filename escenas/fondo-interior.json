@@ -1,0 +1,40 @@
+{
+  "nombre": "Fondo interior",
+  "duracion": 1.5,
+  "fondo": {
+    "tipo": "interior"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -420,
+      "zoom": 0.8
+    },
+    {
+      "t": 1.5,
+      "x": 120,
+      "y": -420,
+      "zoom": 0.8
+    }
+  ],
+  "actores": [
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -150,
+          "p": 0.1,
+          "giro": 25
+        }
+      ],
+      "bloques": []
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "id": "fondo-interior"
+}

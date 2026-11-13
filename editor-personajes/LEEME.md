@@ -205,3 +205,13 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - **En Escenas**, sección «Atrezo y decorados»: añadir, arrastrar en el escenario (izquierda/derecha = posición, arriba/abajo = profundidad), tamaño, espejo y «detrás de los personajes». Cada tipo tiene sus controles (piedra corrida, luz, fuego…).
 - **Animar:** «Animar con claves en el cabezal» convierte esos controles en claves: por ejemplo, la tumba cerrada en el segundo 1 y abierta y con luz en el 4.
 - En el JSON de la escena van en `objetos: [{ id, tipo, x, p, escala, espejo, detras, params, claves }]`. Para añadir un tipo nuevo basta con una entrada en `ATREZO` con su `nombre`, sus `params` y su `dibujar(o, t)`.
+
+## Fondos y editor de fondos (fase 14)
+- **Fondos nuevos:** Luna (nubes y luna grande), Atardecer (sol poniéndose junto al horizonte), Tormenta (nubes, lluvia y relámpagos), Mar (olas en perspectiva que se mueven), Desierto. El Interior lleva lámpara de aceite con la llama viva y una ventana con luz.
+- **«Personalizar el fondo»** (Escenas, debajo del fondo):
+  - colores del cielo (tres), de lo lejano (tres) y del suelo (dos); solo se guarda lo que cambias;
+  - lo de lejos: montes, ciudad, Roma, olivar o nada;
+  - sol o luna, estrellas, mar en vez de suelo, relámpagos, nubes, lluvia y oleaje;
+  - imagen de fondo: un PNG o JPG de una carpeta `fondos`, `imagenes`, `img` o `assets` (por ejemplo, un cielo de Flow), detrás de los montes o cubriéndolo todo, con su opacidad;
+  - capas dibujadas en el taller («✎ Dibujar una capa»): la línea naranja es el suelo y la silueta, un personaje; cada capa tiene su lejanía (0 se mueve con el suelo, 1 casi no se mueve).
+- Al cambiar de fondo se quitan los retoques de color y clima, pero se conservan las capas y la imagen. Al exportar, la imagen se copia al proyecto (`assets/archivos/`).

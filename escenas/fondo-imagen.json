@@ -1,0 +1,38 @@
+{
+  "nombre": "Fondo con imagen",
+  "duracion": 1.5,
+  "fondo": {
+    "tipo": "dia",
+    "imagen": {
+      "archivo": "tormenta/assets/flow-img/cielo-calma.jpg",
+      "opacidad": 1
+    }
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -420,
+      "zoom": 0.8
+    }
+  ],
+  "actores": [
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -150,
+          "p": 0.1,
+          "giro": 25
+        }
+      ],
+      "bloques": []
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "id": "fondo-imagen"
+}

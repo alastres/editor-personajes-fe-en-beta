@@ -1,5 +1,5 @@
 // TALLER DE DIBUJO del editor de personajes: dibujar piezas con vectores editables, sin salir del editor.
-//   Taller.abrir({ titulo, hueso, vista, dibujo, svg, colores, referencia(svgG, vista), alGuardar({ svg, dibujo }) })
+//   Taller.abrir({ titulo, textoGuardar, hueso, vista, dibujo, svg, colores, referencia(svgG, vista), alGuardar({ svg, dibujo }) })
 // Modelo (se guarda en la pieza como `dibujo`, y el SVG resultante en `svg`):
 //   { formas: [{ puntos: [{ x, y, ix, iy, ox, oy, esquina }], cerrada, relleno, trazo, grosor, opacidad, oculta }] }
 //   ix/iy = tirador de entrada, ox/oy = de salida (coordenadas absolutas del hueso). Relleno y trazo pueden ser tokens:
@@ -253,7 +253,7 @@
     // un dibujo por vista; si la pieza venía de un SVG (biblioteca o importado), se convierte en vectores editables
     for (const v of Object.keys(cfg.vistas || { frente: 1 })) if (!cfg.dibujos[v] && cfg.svgs?.[v]) { try { cfg.dibujos[v] = deSVG(cfg.svgs[v]); } catch { cfg.dibujos[v] = { formas: [] }; } }
     D = clon(cfg.dibujos[cfg.vista] || { formas: [] }); Object.keys(cfg.dibujos).forEach((k) => (cfg.dibujos[k] = clon(cfg.dibujos[k])));
-    sel = null; hist = []; fut = []; $("#tl-titulo", raiz).textContent = op.titulo || "Dibujar pieza"; raiz.hidden = false; document.body.classList.add("con-taller");
+    sel = null; hist = []; fut = []; $("#tl-titulo", raiz).textContent = op.titulo || "Dibujar pieza"; $("#tl-guardar", raiz).textContent = op.textoGuardar || "Guardar pieza"; raiz.hidden = false; document.body.classList.add("con-taller");
     ponerVista(cfg.vista); ponerHerr(D.formas.length ? "sel" : "lazo"); requestAnimationFrame(() => { encajar(); pintar(); }); }
   function cerrar() { plumaFin(); raiz.hidden = true; document.body.classList.remove("con-taller"); }
   function guardar() { plumaFin(); cfg.dibujos[cfg.vista] = D; const out = {};

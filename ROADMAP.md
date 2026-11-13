@@ -42,7 +42,7 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 
 ### Escenario
 - [x] *(13 nov 2026, 12 objetos en `comun/atrezo.js`)* **Atrezo y decorados en escena.** Objetos no atados a un personaje (árboles, tumba, barca, mesa, casas), colocados en profundidad y con parallax. Reutilizar los decorados que ya existen en el short «¿Y si…?» (olivo, tumba, mar, Roma, ciudad).
-- [ ] **Más fondos y un editor de fondos.** Dibujarlos en el taller, por capas de parallax, o importar una imagen. Nocturno con luna, interior con lámpara, mar.
+- [x] *(13 nov 2026: luna, atardecer, tormenta, mar, desierto; colores, lejos, nubes, lluvia, imagen y capas del taller)* **Más fondos y un editor de fondos.** Dibujarlos en el taller, por capas de parallax, o importar una imagen. Nocturno con luna, interior con lámpara, mar.
 - [ ] **Ambiente:** tono frío o cálido, viñeta, partículas, destello y sacudida de cámara (los efectos del short v2).
 
 ### Rig

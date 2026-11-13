@@ -7,7 +7,9 @@
   const fmtT = (t) => t.toFixed(2).replace(".", ",") + " s", cl = (x, a, b) => Math.max(a, Math.min(b, x));
   const aviso = (txt) => { const a = $("#aviso"); a.textContent = txt; a.classList.add("ver"); clearTimeout(aviso.t); aviso.t = setTimeout(() => a.classList.remove("ver"), 2800); };
   const estado = (txt, cls = "") => { const e = $("#estado"); e.textContent = txt; e.className = "estado " + cls; };
-  const FONDOS_N = { noche: "Noche", alba: "Amanecer", dia: "Día", interior: "Interior", color: "Color liso" };
+  const FONDOS_N = { noche: "Noche", luna: "Luna", alba: "Amanecer", dia: "Día", atardecer: "Atardecer", desierto: "Desierto", mar: "Mar", tormenta: "Tormenta", interior: "Interior", color: "Color liso" };
+  const LEJOS_N = { montes: "Montes", ciudad: "Ciudad", roma: "Roma", olivar: "Olivar", nada: "Nada" };
+  let IMAGENES = [];
   const PLANOS = { general: { n: "General", zoom: 0.8, dy: -60 }, medio: { n: "Medio", zoom: 1.45, dy: -40 }, primer: { n: "Primer plano", zoom: 2.5, dy: -130 } };
 
   let lista = [], actual = null, esc = null, guardadoTxt = "", historia = [], futuro = [], tGuardar = null, PJ = {}, motor = null;
@@ -19,6 +21,7 @@
   const actor = (id = selActor) => esc?.actores.find((a) => a.id === id);
 
   // ---- personajes (para dibujar y para las listas de acciones)
+  async function cargarImagenes() { try { IMAGENES = await (await fetch("/api/imagenes")).json(); } catch { IMAGENES = []; } }
   async function cargarPersonajes() { const l = await (await fetch("/api/personajes")).json(); PJ = {};
     await Promise.all(l.map(async (p) => { try { PJ[p.id] = await (await fetch(`/api/personajes/${p.id}`)).json(); } catch {} }));
     $("#add-personaje").replaceChildren(...Object.values(PJ).map((j) => h("option", { value: j.id }, j.nombre || j.id))); }
@@ -84,6 +87,43 @@
   function tocarClave(listaK, campos, valores) { let i = listaK.findIndex((k) => Math.abs(k.t - tiempo) < 0.02);
     if (i < 0) { const base = Escena.claves(listaK, tiempo, campos) || {}; const k = { t: +tiempo.toFixed(2) }; for (const c of campos) k[c] = base[c] ?? valores[c] ?? 0; listaK.push(k); listaK.sort((a, b) => a.t - b.t); i = listaK.indexOf(k); }
     Object.assign(listaK[i], valores); }
+  // ---- personalizar el fondo
+  function pintarFondoPanel() { const F = Escena.fondoDe(esc.fondo), f = esc.fondo || {}, col = (id, v) => { const i = $("#" + id); if (v && document.activeElement !== i) i.value = v; };
+    const conCielo = !["interior", "color"].includes(F.tipo); $("#f-mas").hidden = F.tipo === "color";
+    (F.cielo || []).forEach((c, i) => col("f-c" + i, c)); (F.montes || []).forEach((c, i) => col("f-m" + i, c)); (F.suelo || []).forEach((c, i) => col("f-s" + i, c));
+    seg("#f-lejos", LEJOS_N, F.lejos || "montes", (k) => cambiaFondo((v) => { v.lejos = k; }));
+    $("#f-astro").checked = !!F.astro; $("#f-estrellas").checked = !!F.estrellas; $("#f-mar").checked = !!F.mar; $("#f-rayos").checked = !!F.rayos;
+    deslizar("f-nubes", F.nubes || 0, (v) => Math.round(v * 100) + "%"); deslizar("f-lluvia", F.lluvia || 0, (v) => Math.round(v * 100) + "%"); deslizar("f-oleaje", F.oleaje ?? 1, (v) => v.toFixed(2));
+    for (const id of ["f-c0", "f-c1", "f-c2", "f-astro", "f-estrellas", "f-nubes", "f-lluvia", "f-rayos", "f-lejos"]) $("#" + id).closest(".campo, .deslizador, label, .seg") && ($("#" + id).disabled = !conCielo);
+    const sel = $("#f-imagen"), v = f.imagen?.archivo || ""; sel.replaceChildren(h("option", { value: "" }, "— sin imagen —"), ...IMAGENES.map((a) => h("option", { value: a }, a))); sel.value = v;
+    $("#f-cubre").checked = !!f.imagen?.cubre; deslizar("f-imop", f.imagen?.opacidad ?? 1, (x) => Math.round(x * 100) + "%");
+    const ul = $("#f-capas"); ul.replaceChildren(); if (!(f.capas || []).length) ul.append(h("li", { class: "vacio" }, "Dibuja montañas, un templo, árboles lejanos…"));
+    (f.capas || []).forEach((c, i) => { const par = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: c.par || 0, title: "Lejanía (parallax)" });
+      par.addEventListener("input", () => cambiaFondo((x) => { x.capas[i].par = +par.value; }, "fcpar" + i));
+      ul.append(h("li", {}, h("span", {}, "≋"), h("span", {}, c.nombre || "Capa " + (i + 1)), par, h("button", { class: "x", title: "Editar el dibujo", onclick: () => dibujarCapa(i) }, "✎"),
+        h("button", { class: "x", title: "Quitar", onclick: () => cambiaFondo((x) => { x.capas.splice(i, 1); }) }, "✕"))); }); }
+  const cambiaFondo = (fn, clave) => cambio((x) => { x.fondo = x.fondo || { tipo: "noche" }; fn(x.fondo); }, clave, !clave);
+  // los colores parten de los del fondo elegido: solo se guarda lo que se cambia
+  const ponColor = (grupo, i, id) => $("#" + id).addEventListener("input", (ev) => cambiaFondo((v) => { const F = Escena.fondoDe(v); v[grupo] = [...(v[grupo] || F[grupo])]; v[grupo][i] = ev.target.value; }, "fcol" + id));
+  [0, 1, 2].forEach((i) => { ponColor("cielo", i, "f-c" + i); ponColor("montes", i, "f-m" + i); }); [0, 1].forEach((i) => ponColor("suelo", i, "f-s" + i));
+  $("#f-astro").addEventListener("change", (ev) => cambiaFondo((v) => { if (ev.target.checked) { if (v.astro === false) delete v.astro; if (!Escena.fondoDe(v).astro) v.astro = {}; } else v.astro = false; }));
+  $("#f-estrellas").addEventListener("change", (ev) => cambiaFondo((v) => { v.estrellas = ev.target.checked; }));
+  $("#f-mar").addEventListener("change", (ev) => cambiaFondo((v) => { v.mar = ev.target.checked; }));
+  $("#f-rayos").addEventListener("change", (ev) => cambiaFondo((v) => { v.rayos = ev.target.checked; }));
+  for (const k of ["nubes", "lluvia", "oleaje"]) $("#f-" + k).addEventListener("input", (ev) => cambiaFondo((v) => { v[k] = +ev.target.value; }, "f" + k));
+  $("#f-imagen").addEventListener("change", (ev) => cambiaFondo((v) => { if (ev.target.value) v.imagen = Object.assign({}, v.imagen, { archivo: ev.target.value }); else delete v.imagen; }));
+  $("#f-cubre").addEventListener("change", (ev) => cambiaFondo((v) => { if (v.imagen) v.imagen.cubre = ev.target.checked; }));
+  $("#f-imop").addEventListener("input", (ev) => cambiaFondo((v) => { if (v.imagen) v.imagen.opacidad = +ev.target.value; }, "fimop"));
+  $("#b-fondo-reset").addEventListener("click", () => cambio((x) => { x.fondo = { tipo: x.fondo?.tipo || "noche" }; }));
+  // dibujar una capa del fondo en el taller: referencia = suelo (y = 0) y la silueta de un personaje para la escala
+  function dibujarCapa(i) { if (!window.Taller) return aviso("El taller de dibujo no está cargado"); const c = i === undefined ? null : esc.fondo?.capas?.[i];
+    Taller.abrir({ titulo: c ? `Editar ${c.nombre || "capa " + (i + 1)} del fondo` : "Dibujar una capa del fondo (la línea es el suelo; la silueta, un personaje)", textoGuardar: "Guardar capa", dibujos: c?.dibujo ? { frente: c.dibujo } : {}, colores: {},
+      referencia: (g) => { const NS = "http://www.w3.org/2000/svg", mk = (t, at) => { const e = document.createElementNS(NS, t); for (const k in at) e.setAttribute(k, at[k]); g.appendChild(e); };
+        mk("rect", { x: -3000, y: 0, width: 6000, height: 800, fill: "#ffffff", opacity: 0.05 }); mk("line", { x1: -3000, y1: 0, x2: 3000, y2: 0, stroke: "#f0a33a", "stroke-opacity": 0.6, "stroke-width": 3 });
+        mk("rect", { x: -55, y: -600, width: 110, height: 600, rx: 55, fill: "#ffffff", opacity: 0.12 }); mk("circle", { cx: 0, cy: -520, r: 70, fill: "#ffffff", opacity: 0.12 }); },
+      alGuardar: (out) => { const r = out.frente; if (!r) return; cambiaFondo((v) => { v.capas = v.capas || []; const nueva = { nombre: c?.nombre || "Capa " + (v.capas.length + 1), svg: r.svg, dibujo: r.dibujo, par: c?.par ?? 0.4 };
+        if (c) Object.assign(v.capas[i], nueva); else v.capas.push(nueva); }); } }); }
+  $("#b-capa-dibujar").addEventListener("click", () => dibujarCapa());
   // valores del objeto en el cabezal: los de sus claves (si está animado) o los fijos, con los de fábrica de su tipo
   function paramsObjeto(ob) { const defs = ATREZO[ob.tipo]?.params || {}, o = {}; for (const [k, d] of Object.entries(defs)) o[k] = ob.params?.[k] ?? d[3];
     const q = ob.claves?.length ? Escena.claves(ob.claves, tiempo, Object.keys(defs)) : null; if (q) for (const k in defs) if (q[k] !== undefined) o[k] = +(+q[k]).toFixed(3); return o; }
@@ -97,7 +137,9 @@
     if (!esc) return;
     if (document.activeElement !== $("#e-nombre")) $("#e-nombre").value = esc.nombre || "";
     deslizar("e-dur", D(), (v) => v.toFixed(1) + " s");
-    seg("#e-fondo", FONDOS_N, esc.fondo?.tipo || "noche", (k) => cambio((x) => { x.fondo = Object.assign({}, x.fondo, { tipo: k }); }));
+    // al cambiar de fondo se quitan los retoques de color y clima, pero se conservan las capas dibujadas y la imagen
+    seg("#e-fondo", FONDOS_N, esc.fondo?.tipo || "noche", (k) => cambio((x) => { const v = x.fondo || {}; x.fondo = { tipo: k }; if (v.capas) x.fondo.capas = v.capas; if (v.imagen) x.fondo.imagen = v.imagen; if (k === "color") x.fondo.color = v.color; }));
+    pintarFondoPanel();
     // actores
     const ul = $("#actores"); ul.replaceChildren(); if (!esc.actores.length) ul.append(h("li", { class: "vacio" }, "Añade personajes de tu reparto."));
     for (const a of esc.actores) ul.append(h("li", { class: a.id === selActor ? "activo" : "", onclick: () => { selActor = a.id; selBloque = null; pintarPanel(); pintarPistas(); } },
@@ -269,7 +311,7 @@
     if (ev.code === "Space" && !escribe) { ev.preventDefault(); reproducir(); } });
 
   // ---- arranque
-  (async () => { await cargarPersonajes(); await cargarLista(); cargarAudios(); escuchar();
+  (async () => { await Promise.all([cargarPersonajes(), cargarImagenes()]); await cargarLista(); cargarAudios(); escuchar();
     let ini = new URLSearchParams(location.search).get("escena"); if (!ini) try { ini = localStorage.getItem("es-actual"); } catch {} const id = lista.find((x) => x.id === ini) ? ini : lista[0]?.id; if (id) await abrir(id); else pintarPistas();
     if (actual) consultar(); })();
 })();

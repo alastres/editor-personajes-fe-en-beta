@@ -9,6 +9,7 @@
 //   GET  /api/eventos                                    SSE: avisa cuando un JSON cambia en disco ({ tipo, id })
 //   POST /api/escenas/:id/exportar                       crea el proyecto HyperFrames ../escena-<id>/
 //   POST /api/escenas/:id/render   · GET …/render        lanza el render (MP4 en ../escena-<id>/out/) y consulta su estado
+//   GET  /api/imagenes                                   imágenes para fondos (carpetas fondos, imagenes, img, assets)
 //   GET  /api/audios                                     audios disponibles para las escenas (wav/mp3 bajo shorts-flow)
 //   GET  /video/<id>.mp4                                 el último render de una escena
 // Shorts (montaje: una voz + varias escenas):
@@ -69,7 +70,8 @@ function exportar(id) {
   const usados = {}; for (const a of esc.actores || []) { const f = path.join(DIRS.personajes, a.personaje + ".json"); if (fs.existsSync(f)) usados[a.personaje] = leerJSON(f); }
   // acciones de la biblioteca común que usan los bloques de la escena
   const comunes = regenerarAcciones(), acc = {}; for (const a of esc.actores || []) for (const b of a.bloques || []) { const c = Object.values(comunes).find((x) => x.id === b.accion || x.nombre === b.accion); if (c) acc[c.id] = c; }
-  fs.writeFileSync(path.join(A, "personajes-escena.js"), "window.PERSONAJES = " + JSON.stringify(usados) + ";\nwindow.ACCIONES = " + JSON.stringify(acc) + ";\n");
+  fs.writeFileSync(path.join(A, "personajes-escena.js"), "window.PERSONAJES = " + JSON.stringify(usados) + ";\nwindow.ACCIONES = " + JSON.stringify(acc) + ";\nwindow.RUTA_ARCHIVOS = \"assets/archivos/\";\n");
+  copiarImagenes([esc], A);
   const D = Math.max(0.5, Number(esc.duracion) || 6).toFixed(3);
   let audios = "";
   (esc.audios || []).forEach((au, i) => { const src = path.resolve(RAIZ, au.archivo || ""); if (!au.archivo || !fs.existsSync(src) || !src.startsWith(path.resolve(RAIZ, ".."))) return;
@@ -182,7 +184,8 @@ async function exportarShort(id, r = {}) {
     for (const a of esc.actores || []) { const fp = path.join(DIRS.personajes, a.personaje + ".json"); if (fs.existsSync(fp)) usados[a.personaje] = leerJSON(fp);
       for (const b of a.bloques || []) { const cc = Object.values(comunes).find((x) => x.id === b.accion || x.nombre === b.accion); if (cc) acc[cc.id] = cc; } } }
   const D = +(sh.duracion || (sh.voz?.duracion || 0) + 0.8 || 6).toFixed(3);
-  fs.writeFileSync(path.join(A, "datos.js"), `window.PERSONAJES = ${JSON.stringify(usados)};\nwindow.ACCIONES = ${JSON.stringify(acc)};\nwindow.ESCENAS = ${JSON.stringify(ESC)};\nwindow.SHORT = ${JSON.stringify(sh)};\n`);
+  fs.writeFileSync(path.join(A, "datos.js"), `window.PERSONAJES = ${JSON.stringify(usados)};\nwindow.ACCIONES = ${JSON.stringify(acc)};\nwindow.ESCENAS = ${JSON.stringify(ESC)};\nwindow.SHORT = ${JSON.stringify(sh)};\nwindow.RUTA_ARCHIVOS = "assets/archivos/";\n`);
+  copiarImagenes(Object.values(ESC), A);
   const dentro = (a) => { const f = path.resolve(RAIZ, a || ""); return a && f.startsWith(path.resolve(RAIZ, "..")) && fs.existsSync(f) ? f : null; };
   let audios = "", pista = 10;
   // voz → assets/voz/narracion.wav (montar-musica.py mide en ella el nivel de la voz)
@@ -265,6 +268,14 @@ function envolvente(f) { return new Promise((ok, mal) => {
     const orden = [...rms].sort((x, y) => x - y), ref = orden[Math.floor(orden.length * 0.95)] || 1, suelo = orden[Math.floor(orden.length * 0.2)] || 0;
     ok({ duracion: n / 8000, silencio: (orden[orden.length - 1] || 0) < 0.003, envolvente: rms.map((v) => +Math.max(0, Math.min(1, (v - suelo * 1.2) / Math.max(1e-6, ref - suelo * 1.2))).toFixed(2)) }); }); }); }
 // audios que se pueden poner en una escena: voces y músicas de los proyectos de shorts-flow
+// imágenes para fondos (png/jpg/webp en carpetas fondos, imagenes, img o assets; nada de capturas ni renders)
+function imagenes() { const out = []; const mirar = (d, prof) => { if (prof > 5) return; let ls = []; try { ls = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
+    for (const e of ls) { if (e.name.startsWith(".") || /^(node_modules|out|snaps.*|revision|referencias.*|papelera)$/.test(e.name)) continue; const f = path.join(d, e.name);
+      if (e.isDirectory()) mirar(f, prof + 1); else if (/\.(png|jpe?g|webp)$/i.test(e.name) && /[\\/](fondos|imagenes|img|assets)[\\/]/i.test(f) && !/[\\/](short|escena)-[^\\/]+[\\/]/.test(f)) out.push(path.relative(RAIZ, f).replace(/\\/g, "/")); } };
+  mirar(RAIZ, 0); return out.slice(0, 600); }
+// copia la imagen de fondo de las escenas al proyecto exportado (assets/archivos/<misma ruta>)
+function copiarImagenes(escenas, A) { for (const esc of escenas) { const a = esc?.fondo?.imagen?.archivo; if (!a) continue; const f = path.resolve(RAIZ, a);
+    if (!f.startsWith(RAIZ) || !fs.existsSync(f)) continue; const dst = path.join(A, "archivos", a); fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.copyFileSync(f, dst); } }
 function audios() { const out = []; const mirar = (d, prof) => { if (prof > 4) return; let ls = []; try { ls = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
     for (const e of ls) { if (e.name.startsWith(".") || e.name === "node_modules" || e.name === "out") continue; const f = path.join(d, e.name);
       if (e.isDirectory()) mirar(f, prof + 1); else if (/\.(wav|mp3)$/i.test(e.name) && /voz|musica|audio|sfx/i.test(f) && !/[\\/](short|escena)-[^\\/]+[\\/]/.test(f)) out.push(path.relative(RAIZ, f).replace(/\\/g, "/")); } };
@@ -275,6 +286,7 @@ http.createServer(async (req, res) => {
   try {
     if (url === "/api/eventos") { res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive" }); res.write(": hola\n\n"); clientes.add(res); req.on("close", () => clientes.delete(res)); return; }
     if (url === "/api/audios") return enviarJSON(res, audios());
+    if (url === "/api/imagenes") return enviarJSON(res, imagenes());
     if (url === "/api/envolvente") { const q = new URL(req.url, "http://x").searchParams.get("archivo") || "", f = path.resolve(RAIZ, q);
       if (!f.startsWith(path.resolve(RAIZ, "..")) || !fs.existsSync(f)) { res.writeHead(404); return res.end("no existe"); }
       return enviarJSON(res, await envolvente(f)); }

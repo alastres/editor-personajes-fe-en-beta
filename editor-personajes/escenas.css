@@ -29,3 +29,9 @@ button.ancho { width: 100%; padding: 10px; }
 .audio-info { display: grid; gap: 3px; min-width: 0; }
 .audio-info span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .audio-info select { font: inherit; font-size: 12px; color: var(--texto); background: var(--panel2); border: 1px solid var(--borde); border-radius: 6px; padding: 3px 4px; }
+
+.fila-colores { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.fila-colores input[type=color] { width: 30px; height: 26px; padding: 0; border: 1px solid var(--borde); border-radius: 6px; background: none; cursor: pointer; }
+.fila-colores .sep { width: 6px; }
+#f-mas summary { cursor: pointer; color: var(--acento, #f0a33a); margin: 6px 0; }
+#f-capas li { grid-template-columns: 16px 1fr 70px 22px 22px; }
