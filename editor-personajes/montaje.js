@@ -11,7 +11,7 @@
   const FONDOS = { noche: "Noche", alba: "Amanecer", dia: "Día", interior: "Interior" }, TRANS = { corte: "Corte", fundido: "Fundido", barrido: "Barrido" };
 
   let lista = [], actual = null, sh = null, guardadoTxt = "", historia = [], futuro = [], tGuardar = null, PJ = {}, ESC = {}, todasEsc = [], audios = [];
-  let motor = null, tiempo = 0, play = false, tAnt = null, selClip = null, gen = { personaje: "", fondo: "alba", trans: "corte" };
+  let motor = null, tiempo = 0, play = false, tAnt = null, selClip = null, selSub = null, gen = { personaje: "", fondo: "alba", trans: "corte" };
   const nuevo = (nombre) => ({ nombre, duracion: 6, voz: null, guion: "", clips: [], subtitulos: { activos: true, resaltar: [] }, musica: null, sfx: [] });
   const normaliza = (x) => Object.assign({ clips: [], sfx: [], subtitulos: { activos: true, resaltar: [] } }, x);
   const D = () => Math.max(1, sh?.duracion || 6);
@@ -26,7 +26,7 @@
   // ---- E/S de shorts
   async function cargarLista() { lista = await (await fetch("/api/shorts")).json(); pintarLista(); }
   async function abrir(id) { const r = await fetch(`/api/shorts/${id}`); if (!r.ok) return aviso("No se pudo abrir " + id);
-    actual = id; sh = normaliza(await r.json()); guardadoTxt = JSON.stringify(sh); historia = []; futuro = []; tiempo = 0; parar(); selClip = null;
+    actual = id; sh = normaliza(await r.json()); guardadoTxt = JSON.stringify(sh); historia = []; futuro = []; tiempo = 0; parar(); selClip = null; selSub = null;
     try { localStorage.setItem("mt-actual", id); } catch {} await escenasDelShort(); pintarLista(); reconstruir(); estado("Guardado", "ok"); consultar(); }
   async function guardar() { if (!sh) return; const txt = JSON.stringify(sh); if (txt === guardadoTxt) return; estado("Guardando…");
     const r = await fetch(`/api/shorts/${actual}`, { method: "PUT", body: txt }); if (r.ok) { guardadoTxt = txt; estado("Guardado", "ok"); pintarLista(); } else estado("Error al guardar", "cambio"); }
@@ -127,7 +127,26 @@
     sh.sfx.forEach((x, i) => { const t = h("input", { type: "number", step: "0.05", min: 0, value: x.t, title: "Segundo" }), v = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: x.volumen ?? 0.4, title: "Volumen" });
       t.addEventListener("change", () => cambio((s) => { s.sfx[i].t = +(+t.value).toFixed(2); }, null, false)); v.addEventListener("input", () => cambio((s) => { s.sfx[i].volumen = +v.value; }, "sv" + i, false));
       ul.append(h("li", { class: "fila-sfx" }, h("span", {}, "♪"), h("span", { title: x.archivo }, x.archivo.split("/").pop()), t, v, h("button", { class: "x", title: "Quitar", onclick: () => cambio((s) => { s.sfx.splice(i, 1); }, null, false) }, "✕"))); });
+    const lin = selSub !== null && sh.voz?.palabras ? Montaje.lineas(sh.voz.palabras).find((l) => sh.voz.palabras.indexOf(l.w[0]) === selSub) : null;
+    $("#u-linea").hidden = !lin; $("#u-vacio").hidden = !!lin;
+    if (lin && document.activeElement !== $("#u-texto")) $("#u-texto").value = lin.w.map((w) => w.word).join(" ");
+    const mo = sh.musica?.opciones || {}; for (const [id, k] of [["m-outro", "outro"], ["m-bajo", "bajo_voz"], ["m-hueco", "hueco"], ["m-final", "final"]]) if (document.activeElement !== $("#" + id)) $("#" + id).value = mo[k] ?? "";
     $("#t-tiempo").textContent = fmtT(tiempo) + " / " + fmtT(D()); }
+  // corregir una línea de subtítulos: mismo número de palabras = solo cambia el texto; si no, se reparten por letras en el mismo tiempo. «|» corta la línea
+  $("#u-guardar").addEventListener("click", () => { const P = sh?.voz?.palabras, lin = P && Montaje.lineas(P).find((l) => P.indexOf(l.w[0]) === selSub); if (!lin) return;
+    const fichas = $("#u-texto").value.replace(/\|/g, " | ").split(/\s+/).filter(Boolean), nuevas = [], cortes = new Set();
+    for (const f of fichas) { if (f === "|") { if (nuevas.length) cortes.add(nuevas.length - 1); } else nuevas.push(f); }
+    if (!nuevas.length) return aviso("La línea no puede quedar vacía");
+    cambio((x) => { const W = x.voz.palabras, i0 = selSub, n = lin.w.length;
+      if (nuevas.length === n) nuevas.forEach((txt, k) => { W[i0 + k].word = txt; delete W[i0 + k].corte; if (cortes.has(k)) W[i0 + k].corte = true; });
+      else { const t0 = W[i0].start, t1 = W[i0 + n - 1].end, tot = nuevas.reduce((s2, w) => s2 + w.length + 1, 0); let acc = 0;
+        const reps = nuevas.map((txt, k) => { const a = t0 + (t1 - t0) * acc / tot; acc += txt.length + 1; const w = { word: txt, start: +a.toFixed(3), end: +(t0 + (t1 - t0) * (acc - 1) / tot).toFixed(3) }; if (cortes.has(k)) w.corte = true; return w; });
+        W.splice(i0, n, ...reps); } });
+    aviso("Subtítulo corregido"); });
+  $("#u-unir").addEventListener("click", () => { const P = sh?.voz?.palabras, lin = P && Montaje.lineas(P).find((l) => P.indexOf(l.w[0]) === selSub); if (!lin) return;
+    cambio((x) => { const w = x.voz.palabras[selSub + lin.w.length - 1]; w.junta = true; delete w.corte; }); aviso("Unida con la siguiente"); });
+  for (const [id, k] of [["m-outro", "outro"], ["m-bajo", "bajo_voz"], ["m-hueco", "hueco"], ["m-final", "final"]])
+    $("#" + id).addEventListener("change", (ev) => cambio((x) => { if (!x.musica) return; const o = (x.musica.opciones = x.musica.opciones || {}); if (ev.target.value === "") delete o[k]; else o[k] = +ev.target.value; }, null, false));
   $("#s-nombre").addEventListener("input", (ev) => cambio((x) => { x.nombre = ev.target.value; }, "s-nombre", false));
   $("#s-dur").addEventListener("input", (ev) => cambio((x) => { x.duracion = +ev.target.value; const u = clipsOrden().pop(); if (u) { const cc = x.clips.find((y) => y.escena === u.escena && y.t === u.t); cc.dur = +Math.max(0.3, x.duracion - cc.t).toFixed(2); } }, "s-dur"));
   $("#v-guion").addEventListener("change", (ev) => cambio((x) => { x.guion = ev.target.value; }, null, false));
@@ -154,7 +173,8 @@
       for (let i = 0; i < n; i++) { const a = Math.floor((i / n) * env.length), b = Math.max(a + 1, Math.floor(((i + 1) / n) * env.length)); let m = 0; for (let k = a; k < b; k++) m = Math.max(m, env[k] || 0); onda.append(h("i", { style: `height:${Math.max(4, m * 100)}%` })); }
       v.append(onda); for (const f of Montaje.frases(sh.voz.palabras)) v.append(h("div", { class: "frase", style: `left:${pct(f.start)}`, title: f.texto })); }
     else v.append(h("span", { class: "marca-t", style: "left:6px" }, "sin voz: elígela y transcríbela en el panel (paso 1)"));
-    if (sh.subtitulos?.activos !== false && sh.voz?.palabras) { const s = fila("Subtítulos"); for (const l of Montaje.lineas(sh.voz.palabras)) s.append(h("div", { class: "bloque sub", style: `left:${pct(l.start)};width:${((l.hasta - l.start) / D()) * 100}%`, title: l.w.map((w) => w.word).join(" ") }, l.w.map((w) => w.word).join(" "))); }
+    if (sh.subtitulos?.activos !== false && sh.voz?.palabras) { const s = fila("Subtítulos"); for (const l of Montaje.lineas(sh.voz.palabras)) { const i0 = sh.voz.palabras.indexOf(l.w[0]);
+      s.append(h("div", { class: "bloque sub" + (i0 === selSub ? " activo" : ""), style: `left:${pct(l.start)};width:${((l.hasta - l.start) / D()) * 100}%`, title: l.w.map((w) => w.word).join(" "), "data-tipo": "sub", "data-i": i0 }, l.w.map((w) => w.word).join(" "))); } }
     const ce = fila("Escenas", "alta"); sh.clips.forEach((c, i) => { const e = ESC[c.escena];
       ce.append(h("div", { class: "bloque clip" + (i === selClip ? " activo" : ""), style: `left:${pct(c.t)};width:${(c.dur / D()) * 100}%`, "data-tipo": "clip", "data-i": i, title: (e?.nombre || c.escena) + " · " + fmtT(c.t) }, (c.transicion && c.transicion !== "corte" ? (c.transicion === "fundido" ? "◐ " : "➜ ") : "") + (e?.texto || e?.nombre || c.escena)));
       if (c.t > 0.01) ce.append(h("div", { class: "borde", style: `left:${pct(c.t)}`, "data-tipo": "borde", "data-i": i, title: "Arrastra para mover el corte" })); });
@@ -169,14 +189,25 @@
     const r = c.getBoundingClientRect(), t = cl(((ev.clientX - r.left) / r.width) * D(), 0, D()), o = ev.target.closest("[data-tipo]");
     if (o?.dataset.tipo === "borde") { const i = +o.dataset.i, ord = clipsOrden(), cc = sh.clips[i], prev = ord[ord.indexOf(cc) - 1]; arr = { borde: i, prev: sh.clips.indexOf(prev), w: r.width, x0: ev.clientX, t0: cc.t }; return; }
     if (o?.dataset.tipo === "sfx") { arr = { sfx: +o.dataset.i, w: r.width, x0: ev.clientX, t0: sh.sfx[+o.dataset.i].t }; return; }
-    if (o?.dataset.tipo === "clip") { selClip = +o.dataset.i; }
+    if (o?.dataset.tipo === "sub") { selSub = +o.dataset.i; }
+    if (o?.dataset.tipo === "clip") { selClip = +o.dataset.i; arr = { clip: selClip, w: r.width, x0: ev.clientX, t0: t, movida: false }; tiempo = +t.toFixed(2); dibujar(); pintarPanel(); pintarPistas(); return; }
     tiempo = +t.toFixed(2); arr = { cabezal: true }; dibujar(); pintarPanel(); pintarPistas(); });
   document.addEventListener("pointermove", (ev) => { if (!arr) return;
     if (arr.cabezal) { const r = $("#pistas .carril").getBoundingClientRect(); tiempo = +cl(((ev.clientX - r.left) / r.width) * D(), 0, D()).toFixed(2); dibujar(); moverCabezal(); return; }
     const t = +cl(arr.t0 + ((ev.clientX - arr.x0) / arr.w) * D(), 0, D()).toFixed(2), a = arr;
     if (a.borde !== undefined) cambio((x) => { const cc = x.clips[a.borde], pv = x.clips[a.prev]; if (!pv) return; const fin = cc.t + cc.dur, nt = cl(t, pv.t + 0.3, fin - 0.3); cc.t = +nt.toFixed(2); cc.dur = +(fin - nt).toFixed(2); pv.dur = +(nt - pv.t).toFixed(2); }, "borde" + a.borde, false);
-    else if (a.sfx !== undefined) cambio((x) => { x.sfx[a.sfx].t = t; }, "sfx" + a.sfx, false); });
-  document.addEventListener("pointerup", () => { if (arr && !arr.cabezal) reconstruir(); arr = null; });
+    else if (a.sfx !== undefined) cambio((x) => { x.sfx[a.sfx].t = t; }, "sfx" + a.sfx, false);
+    else if (a.clip !== undefined) { if (!a.movida && Math.abs(ev.clientX - a.x0) < 6) return; a.movida = true; a.destino = t;
+      const b = document.querySelector(`.bloque.clip[data-i="${a.clip}"]`); if (b) { b.style.transform = `translateX(${ev.clientX - a.x0}px)`; b.classList.add("arrastrando"); }
+      for (const z of document.querySelectorAll(".bloque.clip")) z.classList.toggle("destino", +z.dataset.i !== a.clip && sh.clips[+z.dataset.i].t <= t && t < sh.clips[+z.dataset.i].t + sh.clips[+z.dataset.i].dur); } });
+  // al soltar una escena arrastrada sobre otro hueco, las escenas se reordenan: los tiempos (las frases de la voz) se quedan, el contenido se mueve
+  function moverEscena(i, td) { const ord = clipsOrden(), de = ord.indexOf(sh.clips[i]), a = ord.findIndex((c) => c.t <= td && td < c.t + c.dur); if (a < 0 || a === de) return false;
+    cambio((x) => { const o2 = [...x.clips].sort((m, n) => m.t - n.t), conts = o2.map((c) => ({ escena: c.escena, desde: c.desde, transicion: c.transicion, habla: c.habla }));
+      const [m] = conts.splice(de, 1); conts.splice(a, 0, m); o2.forEach((c, k) => Object.assign(c, conts[k], { transicion: k === 0 ? "corte" : conts[k].transicion })); });
+    selClip = sh.clips.indexOf(clipsOrden()[a]); aviso("Escena movida: los cortes siguen en las mismas frases de la voz"); return true; }
+  document.addEventListener("pointerup", () => { const a = arr; arr = null; if (!a) return;
+    if (a.clip !== undefined) { if (a.movida && moverEscena(a.clip, a.destino)) reconstruir(); else pintarPistas(); return; }
+    if (!a.cabezal) reconstruir(); });
 
   // ---- render
   let sondeo = null;

@@ -84,11 +84,22 @@
         <h3>Subtítulos</h3>
         <label class="chk-grande"><input type="checkbox" id="u-activos" /> Subtítulos con el estilo de la marca</label>
         <div class="campo"><label>Palabras clave en naranja <span class="tenue">(separadas por comas)</span></label><input id="u-resaltar" type="text" placeholder="resucitado, tumba, domingo" /></div>
+        <p class="ayuda" id="u-vacio">Clic en una línea de la pista «Subtítulos» para corregir su texto o dónde corta.</p>
+        <div id="u-linea" class="detalle" hidden>
+          <div class="campo"><label>Línea elegida <span class="tenue">(escribe | donde quieras cortar la línea)</span></label><input id="u-texto" type="text" /></div>
+          <div class="fila-botones dos"><button id="u-guardar" class="primario">Cambiar el texto</button><button id="u-unir">Unir con la siguiente</button></div>
+        </div>
       </section>
       <section>
         <h3>Música</h3>
         <div class="campo"><select id="m-archivo"></select></div>
         <div class="deslizador"><label>Volumen</label><input type="range" id="m-vol" min="0" max="1.5" step="0.05" /><output></output></div>
+        <details class="detalle"><summary>Ajustes del montaje de la música</summary>
+          <div class="campo"><label>Dónde empieza el final de la pista (s) <span class="tenue">(vacío = lo detecta)</span></label><input id="m-outro" type="number" step="0.1" min="0" placeholder="auto" /></div>
+          <div class="campo"><label>dB por debajo de la voz mientras se habla <span class="tenue">(20)</span></label><input id="m-bajo" type="number" step="1" min="6" max="40" placeholder="20" /></div>
+          <div class="campo"><label>dB que sube en los silencios largos <span class="tenue">(6)</span></label><input id="m-hueco" type="number" step="1" min="0" max="20" placeholder="6" /></div>
+          <div class="campo"><label>dB en la tarjeta final <span class="tenue">(10)</span></label><input id="m-final" type="number" step="1" min="-10" max="20" placeholder="10" /></div>
+        </details>
         <p class="ayuda">Al renderizar se monta con <code>montar-musica.py</code> (AUDIO-DE-FONDO.md): se ajusta a la duración, conserva su final y baja cuando se habla. Aquí suena tal cual, a volumen bajo.</p>
       </section>
       <section>

@@ -3,7 +3,7 @@
 //   const mt = Montaje.crear(svg, SHORT, ESCENAS, PERSONAJES);  mt.dibujar(t);
 // Formato (Videos/shorts-flow/shorts/<id>.json):
 // { id, nombre, duracion, guion,
-//   voz: { archivo, duracion, palabras: [{ word, start, end }], envolvente },
+//   voz: { archivo, duracion, palabras: [{ word, start, end, corte?, junta? }], envolvente },
 //   clips: [{ escena, t, dur, desde, transicion: "corte"|"fundido"|"barrido", habla: actor | "auto" | "" }],
 //   subtitulos: { activos, resaltar: ["palabra", …] },
 //   musica: { archivo, volumen }, sfx: [{ t, archivo, volumen }] }
@@ -17,8 +17,10 @@
   function lineas(palabras, max = 20) {
     const out = []; let cur = null;
     for (const w of palabras || []) { const txt = String(w.word).trim(); if (!txt) continue;
-      if (!cur || (cur.letras + txt.length > max && cur.w.length)) { cur = { w: [], letras: 0 }; out.push(cur); }
-      cur.w.push(w); cur.letras += txt.length + 1; if (/[.?!;:,…]["»”]?$/.test(txt) && cur.letras > 6) cur = null; }
+      // a mano: w.corte = la línea termina en esta palabra; w.junta = no cortar después de ella (unir con la siguiente)
+      const ult = cur?.w[cur.w.length - 1];
+      if (!cur || (cur.letras + txt.length > max && cur.w.length && !ult?.junta)) { cur = { w: [], letras: 0 }; out.push(cur); }
+      cur.w.push(w); cur.letras += txt.length + 1; if (w.corte || (/[.?!;:,…]["»”]?$/.test(txt) && cur.letras > 6 && !w.junta)) cur = null; }
     out.forEach((l, i) => { l.start = l.w[0].start; l.end = l.w[l.w.length - 1].end; const sig = out[i + 1]; l.hasta = sig && sig.start - l.end < 0.6 ? sig.start : l.end + 0.35; });
     return out; }
   // frases (para crear escenas desde la voz): cortes en . ? ! o en pausas largas

@@ -233,3 +233,11 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - **Agarrar:** desde el cabezal, la mano derecha o izquierda va por IK a la mano de otro personaje o a un objeto (su asa: `agarre: { x, y }` en el objeto; por defecto, 120 por encima de su base). «Soltar» la devuelve.
 - La IK de manos está ahora en `comun/personajes.js` (`ikMano`, `manoFK`): la comparten el rig del editor y las escenas.
 - En el JSON del actor: `mirar: [{ t, a }]` y `agarra: [{ t, mano, a }]`, donde `a` es "camara", "habla", "nada", el id de un personaje, "id.manoDer" o "id.manoIzq", o el id de un objeto.
+
+## Detalles del Montaje (fase 17)
+- **Corregir subtítulos:** clic en una línea de la pista «Subtítulos» y, en el panel, cambia su texto.
+  - Con el mismo número de palabras solo cambia el texto; con otro número, las palabras se reparten por letras en el mismo tiempo.
+  - Escribe `|` donde quieras cortar la línea; «Unir con la siguiente» evita el corte.
+  - Se guarda en las palabras de la voz (`corte`, `junta`), así que también afecta a los labios por fonemas.
+- **Mover escenas:** arrastra el bloque de una escena sobre otra posición. Los cortes se quedan en las mismas frases de la voz y lo que se mueve es el contenido (escena, desde, transición, quién habla).
+- **Música:** «Ajustes del montaje de la música» permite fijar dónde empieza el final de la pista (`outro`), cuánto baja bajo la voz, cuánto sube en los silencios y el nivel en la tarjeta final (opciones de `montar-musica.py`).

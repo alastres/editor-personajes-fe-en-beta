@@ -25,10 +25,7 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 
 ## P1 · Imprescindible para producir shorts
 
-> El bloque «Del guion al short» está hecho (página **Montaje**). Detalles que quedan de él:
-> - [ ] Subtítulos: editar a mano una palabra o un corte de línea (ahora salen de la transcripción y del guion).
-> - [ ] Mover o reordenar escenas en la pista arrastrando el bloque entero (ahora se mueven los cortes entre escenas).
-> - [ ] Opciones de la música (`outro`, `fin`…) desde la interfaz (ahora en el JSON: `musica.opciones`).
+> Todo el P1 está hecho (13 nov 2026), incluidos los detalles del Montaje: corregir subtítulos a mano (texto y cortes con «|», «Unir con la siguiente»), mover escenas arrastrando el bloque entero y los ajustes de la música en la interfaz.
 
 ### Del guion al short
 - [x] *(13 nov 2026, página Montaje)* **Short de varias escenas.** Encadenar escenas en un short completo, con cortes y transiciones (corte, barrido, fundido) y una sola voz y música de principio a fin.
