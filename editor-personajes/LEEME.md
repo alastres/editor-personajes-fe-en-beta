@@ -191,3 +191,17 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 6. **«Renderizar el short»:** exporta `../short-<id>/` y renderiza en `out/<id>-<marca>.mp4`. Cada render es un archivo nuevo, para no chocar con el que está abierto en el reproductor, y se guardan los dos últimos.
 
 **Ejemplo:** `shorts/oraciones-prueba-de-montaje.json`, hecho con la voz real de «estilo-oraciones»: 67 s, 15 escenas con Pablo, música y campana. El render salió en unos 80 s, a −16,8 LUFS.
+
+## Labios por fonemas y boca legible (fase 12)
+- **Visemas.** Si una voz tiene sus palabras con tiempos (la transcripción de Montaje, o la que se saca en Escenas al decir quién habla en un audio), la boca forma cada sonido en vez de solo abrir y cerrar:
+  - A (abierta), E e I (anchas, con dientes), O y U (redondas y estrechas), M/B/P y la «v» (labios cerrados), F (dientes sobre el labio), S, L, K;
+  - el reparto de fonemas está en `comun/personajes.js` (`VISEMAS`, `fonemas()`, `visemas()`): la «h» no suena, «ch», «ll» y «qu» se tratan como un sonido;
+  - la envolvente del audio da la fuerza: lo que suena flojo abre menos, y los silencios cierran la boca.
+- **Boca nueva del títere** (`titere25d.js`): dientes de arriba y lengua, recortados por la forma de la boca. Con barba, el interior es más claro y lleva un contorno de labio color piel, para que se lea sobre el pelo oscuro.
+- Sin palabras (por ejemplo, un audio que VoiceStudio no transcribe), la boca sigue la envolvente como antes.
+
+## Atrezo y decorados (fase 13)
+- **Biblioteca** `comun/atrezo.js`: olivo, palmera, matorral, roca, tumba (piedra que se corre, luz de dentro, sello), barca (con vela, se mece), mesa (con pan y copa), casa de adobe (luz en la ventana), columnas, cántaro, hoguera (llamas animadas) y pozo. De noche se pintan en tonos fríos.
+- **En Escenas**, sección «Atrezo y decorados»: añadir, arrastrar en el escenario (izquierda/derecha = posición, arriba/abajo = profundidad), tamaño, espejo y «detrás de los personajes». Cada tipo tiene sus controles (piedra corrida, luz, fuego…).
+- **Animar:** «Animar con claves en el cabezal» convierte esos controles en claves: por ejemplo, la tumba cerrada en el segundo 1 y abierta y con luz en el 4.
+- En el JSON de la escena van en `objetos: [{ id, tipo, x, p, escala, espejo, detras, params, claves }]`. Para añadir un tipo nuevo basta con una entrada en `ATREZO` con su `nombre`, sus `params` y su `dibujar(o, t)`.

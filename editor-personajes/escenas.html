@@ -78,6 +78,21 @@
         </div>
       </section>
       <section>
+        <h3>Atrezo y decorados</h3>
+        <div class="fila-anadir"><select id="add-objeto"></select><button id="b-add-objeto" class="primario">Añadir</button></div>
+        <ul id="objetos" class="piezas"></ul>
+        <div id="objeto-det" class="detalle" hidden>
+          <p class="ayuda">Arrástralo en el escenario: izquierda/derecha lo mueve, arriba/abajo lo aleja o acerca. Por la noche se pinta en tonos fríos.</p>
+          <div class="deslizador"><label>Posición X</label><input type="range" id="o-x" min="-2500" max="2500" step="1" /><output></output></div>
+          <div class="deslizador"><label>Profundidad (0 delante … 1 al fondo)</label><input type="range" id="o-p" min="0" max="1.5" step="0.01" /><output></output></div>
+          <div class="deslizador"><label>Tamaño</label><input type="range" id="o-escala" min="0.2" max="3" step="0.01" /><output></output></div>
+          <div class="fila-botones dos"><label class="chk"><input type="checkbox" id="o-espejo" /> Espejo</label><label class="chk" title="A la misma profundidad que un personaje, queda detrás de él"><input type="checkbox" id="o-detras" /> Detrás de los personajes</label></div>
+          <div id="o-params"></div>
+          <label class="chk" title="Con claves, los valores de arriba (piedra, luz, fuego…) cambian con el tiempo: cada cambio crea una clave en el cabezal"><input type="checkbox" id="o-animar" /> Animar con claves en el cabezal</label>
+          <button id="b-quitar-objeto" class="peligro" style="margin-top:10px">Quitar de la escena</button>
+        </div>
+      </section>
+      <section>
         <h3>Cámara</h3>
         <p class="ayuda">Los cambios crean una clave de cámara en el cabezal (se ve en la pista «Cámara»).</p>
         <div class="deslizador"><label>Mirar a X</label><input type="range" id="c-x" min="-1500" max="1500" step="1" /><output></output></div>
@@ -110,6 +125,7 @@
 
   <script src="/comun/titere25d.js"></script>
   <script src="/comun/personajes.js"></script>
+  <script src="/comun/atrezo.js"></script>
   <script src="/acciones/todas.js"></script>
   <script src="/comun/escena.js"></script>
   <script src="escenas.js"></script>

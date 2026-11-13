@@ -213,7 +213,7 @@
     //   · 5 rasgos (recortados por el cráneo) · 6 barba · 7 boca, bigote, nariz · 8 flequillo · 9 cejas.
     // Al girar: la silueta (masa, cráneo) se queda; los rasgos y el borde del flequillo corren sobre el cilindro de radio RC.
     // ---- emociones: cada una mueve boca, cejas, ojos y mejillas; se mezclan por pesos ({ alegre: 1 }, { triste: 0.5, miedo: 0.5 }…)
-    const EXP0 = { sonrisa: 0, abre: 0, ancho: 1, cejaY: 0, cejaIn: 0, cejaOut: 0, ojoK: 1, parpado: 0, entorna: 0, rubor: 0, miraY: 0 };
+    const EXP0 = { sonrisa: 0, abre: 0, ancho: 1, dientes: 0, cejaY: 0, cejaIn: 0, cejaOut: 0, ojoK: 1, parpado: 0, entorna: 0, rubor: 0, miraY: 0 };
     const EXP = Object.assign({}, EXP0);
     function ponerCara(pesos) {
       Object.assign(EXP, EXP0);
@@ -277,11 +277,23 @@
       CF("M50 58 C 50 98 36 130 16 150", BARBA, T_(C.peloL, 7, 0.85), gC, corta);
       CF("M-8 90 L -6 128 M 14 90 L 12 126", BARBA, T_(C.peloS, 5, 0.6), gC, corta);
     }
-    CF("M-12 48 Q 0 50 12 48 Q 0 52 -12 48 Z", { k: 1, z: 6 }, { fill: C.boca, stroke: C.boca, "stroke-width": 6, "stroke-linejoin": "round" }, gC, (x, y) => {
-      const so = EXP.sonrisa, ab = EXP.abre, an = 12 * EXP.ancho;
-      if (Math.abs(x) > 6) return [Math.sign(x) * an, 48 - 6 * so + 2 * ab];               // comisuras: suben al sonreír, bajan tristes
-      const arriba = 50.5 + 4 * so - ab * (4 + 2 * Math.max(0, so));                          // labio de arriba (más recto si ríe)
-      return y < 51 ? [0, arriba] : [0, arriba + 0.5 + 24 * ab + 3 * Math.max(0, so) * ab]; });
+    // boca: interior (más claro con barba, para que se lea sobre el pelo oscuro), dientes de arriba y lengua recortados por ella,
+    // y con barba un contorno de labio de color piel; la forma la dan la emoción, la voz y los visemas (abre, ancho, dientes)
+    const labios = () => { const so = EXP.sonrisa, ab = EXP.abre, an = 12 * EXP.ancho, arriba = 50.5 + 4 * so - ab * (4 + 2 * Math.max(0, so));
+      return { so, ab, an, arriba, abajo: arriba + 0.5 + 24 * ab + 3 * Math.max(0, so) * ab, com: 48 - 6 * so + 2 * ab }; };
+    const formaBoca = (x, y) => { const L = labios();
+      if (Math.abs(x) > 6) return [Math.sign(x) * L.an, L.com];                                // comisuras: suben al sonreír, bajan tristes
+      return y < 51 ? [0, L.arriba] : [0, L.abajo]; };                                         // labio de arriba (más recto si ríe) y de abajo
+    const BOCA = { k: 1, z: 6 }, bocaIn = barba ? mix(C.boca, "#b0404e", 0.45) : C.boca;
+    const clipBoca = el("path", { d: "" }, el("clipPath", { id: id + "-boca" }, defs));
+    const bocaF = CF("M-12 48 Q 0 50 12 48 Q 0 52 -12 48 Z", BOCA, { fill: bocaIn, stroke: bocaIn, "stroke-width": barba ? 3 : 6, "stroke-linejoin": "round" }, gC, formaBoca);
+    bocaF._copia = clipBoca;
+    const gDentro = el("g", { "clip-path": `url(#${id}-boca)` }, gC);
+    CF("M-14 46 L 14 46 L 14 56 L -14 56 Z", BOCA, R_(C.papel, 0.95), gDentro, (x, y) => { const L = labios();
+      return [x * EXP.ancho, y < 50 ? L.arriba - 6 : L.arriba + 1.2 + (2 + 5 * EXP.dientes) * Math.min(1, L.ab * 4)]; });   // dientes de arriba
+    CF(elD(0, 60, 9, 5), BOCA, R_("#d0606e"), gDentro, (x, y) => { const L = labios(); return [x * EXP.ancho, L.abajo - 1 + (y - 60) * 0.9]; });   // lengua
+    if (barba) CF("M-12 48 Q 0 50 12 48 Q 0 52 -12 48 Z", BOCA, T_(mix(C.piel, C.mejilla, 0.35), 3.5), gC, (x, y) => { const L = labios();
+      if (Math.abs(x) > 6) return [Math.sign(x) * (L.an + 1.5), L.com]; return y < 51 ? [0, L.arriba - 1] : [0, L.abajo + 1.5]; });   // labios
     if (barba) CF("M-26 38 C -13 29 13 29 26 38", { k: 1, z: 9 }, T_(C.pelo, 12));
     CF(elD(0, 25, 10, 7.5), { k: 1, z: 12 }, R_(C.nariz));
     // 8 · flequillo: anclado arriba, su borde (la línea de la frente, ~⅓) corre con la cara sin salirse del cráneo
@@ -368,6 +380,7 @@
           return [c[0] + xr, c[1] + y + TILT_H * zr * (1 - w) + EXP.miraY * 9 * Math.min(1, pr.k || 0) * (1 - w)]; });
         const d = escribir(fz.cmds, pts); fz.e.setAttribute("d", d);
         if (fz.e === caraF) clipCara.setAttribute("d", d);
+        if (fz.e._copia) fz.e._copia.setAttribute("d", d);
       }
     }
 
@@ -394,7 +407,8 @@
       const aPie = { 1: e.pieIzq ?? aT, [-1]: e.pieDer ?? aT }, alzaGiro = { 1: e.alzaIzq || 0, [-1]: e.alzaDer || 0 };
       PARP = e.parpadeo ?? 1;
       ponerCara(e.cara || {}); EXP.miraY += e.miraY || 0;
-      if (e.boca) { EXP.abre += 0.75 * e.boca; EXP.ancho *= 1 - 0.3 * e.boca + 0.25 * (e.bocaAncho || 0); }   // hablar: la boca se abre con la voz (escenas: envolvente del audio)
+      if (e.visema) { const v = e.visema; EXP.abre = EXP.abre * 0.3 + v.abre * 0.95; EXP.ancho *= v.ancho; EXP.dientes = v.dientes ?? 0; }   // labios por fonemas
+      else if (e.boca) { EXP.abre += 0.75 * e.boca; EXP.ancho *= 1 - 0.3 * e.boca + 0.25 * (e.bocaAncho || 0); }   // hablar: la boca se abre con la voz (escenas: envolvente del audio)
       // partes del muñeco que tapa una pieza puesta (oculta: ["melena", "cinto"])
       const oculto = new Set(); for (const P of PIEZAS) if (activa(P.pz, e.variantes)) (P.pz.oculta || []).forEach((k) => oculto.add(k));
       const R = e.correr || 0, AG = e.agacha || 0, REC = e.recoge || 0, ALT = e.altura || 0;

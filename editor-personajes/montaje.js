@@ -182,9 +182,10 @@
   let sondeo = null;
   async function consultar() { if (!actual) return; clearTimeout(sondeo); const r = await (await fetch(`/api/shorts/${actual}/render`)).json(), e = $("#render-estado"), b = $("#b-render");
     if (r.estado === "renderizando" || r.estado === "preparando") { e.textContent = `${r.estado === "preparando" ? "Preparando (voz, música, escenas)" : "Renderizando"}… ${r.progreso || ""} (${r.segundos} s)`; b.disabled = true; sondeo = setTimeout(consultar, 1500); return; }
-    b.disabled = false; if (r.estado === "listo") { e.textContent = `Listo en ${r.segundos} s · Videos/shorts-flow/short-${actual}/out/${actual}.mp4${r.nota ? "\n" + r.nota : ""}`; const v = $("#render-video"); v.hidden = false; v.src = r.archivo; }
+    b.disabled = false; if (r.estado === "listo") { e.textContent = `Listo en ${r.segundos} s · ${r.ruta || "Videos/shorts-flow/short-" + actual + "/out/"}${r.nota ? "\n" + r.nota : ""}`; const v = $("#render-video"); v.hidden = false; v.src = r.archivo; }
     else if (r.estado === "error") e.textContent = "Error al renderizar:\n" + r.log; else e.textContent = ""; }
-  $("#b-render").addEventListener("click", async () => { if (!sh) return; if (!sh.clips.length) return aviso("El short no tiene escenas todavía"); await guardar(); { const v = $("#render-video"); v.pause(); v.removeAttribute("src"); v.load(); v.hidden = true; }   // suelta el MP4 anterior (Windows lo bloquea mientras está abierto) await fetch(`/api/shorts/${actual}/render`, { method: "POST" }); consultar(); });
+  $("#b-render").addEventListener("click", async () => { if (!sh) return; if (!sh.clips.length) return aviso("El short no tiene escenas todavía"); await guardar(); { const v = $("#render-video"); v.pause(); v.removeAttribute("src"); v.load(); v.hidden = true; }   // suelta el MP4 anterior (Windows lo bloquea mientras está abierto)
+    await fetch(`/api/shorts/${actual}/render`, { method: "POST" }); consultar(); });
 
   // ---- teclado
   $("#b-deshacer").addEventListener("click", deshacer); $("#b-rehacer").addEventListener("click", rehacer);

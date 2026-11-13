@@ -11,9 +11,10 @@
   const PLANOS = { general: { n: "General", zoom: 0.8, dy: -60 }, medio: { n: "Medio", zoom: 1.45, dy: -40 }, primer: { n: "Primer plano", zoom: 2.5, dy: -130 } };
 
   let lista = [], actual = null, esc = null, guardadoTxt = "", historia = [], futuro = [], tGuardar = null, PJ = {}, motor = null;
-  let tiempo = 0, play = false, tAnt = null, selActor = null, selBloque = null, selTexto = null;
+  let tiempo = 0, play = false, tAnt = null, selActor = null, selBloque = null, selTexto = null, selObjeto = null;
   const nueva = (nombre) => ({ nombre, duracion: 6, fondo: { tipo: "noche" }, camara: [{ t: 0, x: 0, y: -360, zoom: 1 }], actores: [], textos: [], audios: [] });
-  const normaliza = (x) => Object.assign({ duracion: 6, fondo: { tipo: "noche" }, camara: [], actores: [], textos: [], audios: [] }, x);
+  const normaliza = (x) => Object.assign({ duracion: 6, fondo: { tipo: "noche" }, camara: [], actores: [], textos: [], audios: [], objetos: [] }, x);
+  const objeto = (id = selObjeto) => (esc?.objetos || []).find((o) => o.id === id);
   const D = () => Math.max(0.5, esc?.duracion || 6);
   const actor = (id = selActor) => esc?.actores.find((a) => a.id === id);
 
@@ -83,6 +84,9 @@
   function tocarClave(listaK, campos, valores) { let i = listaK.findIndex((k) => Math.abs(k.t - tiempo) < 0.02);
     if (i < 0) { const base = Escena.claves(listaK, tiempo, campos) || {}; const k = { t: +tiempo.toFixed(2) }; for (const c of campos) k[c] = base[c] ?? valores[c] ?? 0; listaK.push(k); listaK.sort((a, b) => a.t - b.t); i = listaK.indexOf(k); }
     Object.assign(listaK[i], valores); }
+  // valores del objeto en el cabezal: los de sus claves (si está animado) o los fijos, con los de fábrica de su tipo
+  function paramsObjeto(ob) { const defs = ATREZO[ob.tipo]?.params || {}, o = {}; for (const [k, d] of Object.entries(defs)) o[k] = ob.params?.[k] ?? d[3];
+    const q = ob.claves?.length ? Escena.claves(ob.claves, tiempo, Object.keys(defs)) : null; if (q) for (const k in defs) if (q[k] !== undefined) o[k] = +(+q[k]).toFixed(3); return o; }
   const posActor = (a) => Escena.claves(a.recorrido, tiempo, ["x", "p", "giro"]) || { x: 0, p: 0, giro: 20 };
   const posCam = () => Escena.claves(esc.camara, tiempo, ["x", "y", "zoom"]) || { x: 0, y: -360, zoom: 1 };
 
@@ -106,6 +110,20 @@
       const b = selBloque !== null ? a.bloques[selBloque] : null; $("#bloque-det").hidden = !b; if (b) { deslizar("b-dur", b.dur || 2, (v) => v.toFixed(1) + " s");
         seg("#b-capa", { todo: "Todo el cuerpo", cuerpo: "Solo cuerpo", brazos: "Solo brazos" }, b.capa || "todo", (k) => cambio((x) => { const bb = x.actores.find((y) => y.id === a.id).bloques[selBloque]; if (k === "todo") delete bb.capa; else bb.capa = k; }, null, false)); }
       $("#b-quitar-clave").disabled = !(a.recorrido || []).some((k) => Math.abs(k.t - tiempo) < 0.02) || a.recorrido.length < 2; }
+    // atrezo
+    $("#add-objeto").replaceChildren(...(window.Atrezo ? Atrezo.lista() : []).map(([k, n]) => h("option", { value: k }, n)));
+    const uo = $("#objetos"); uo.replaceChildren(); if (!(esc.objetos || []).length) uo.append(h("li", { class: "vacio" }, "Árboles, tumba, barca, casas, mesa, hoguera…"));
+    for (const o of esc.objetos || []) uo.append(h("li", { class: o.id === selObjeto ? "activo" : "", onclick: () => { selObjeto = o.id; pintarPanel(); } },
+      h("span", {}, "▲"), h("span", {}, ATREZO[o.tipo]?.nombre || o.tipo), h("span", { class: "hueso" }, o.claves?.length ? `${o.claves.length} claves` : ""), h("span")));
+    const ob = objeto(); $("#objeto-det").hidden = !ob;
+    if (ob) { deslizar("o-x", ob.x || 0, (v) => Math.round(v)); deslizar("o-p", ob.p || 0, (v) => v.toFixed(2)); deslizar("o-escala", ob.escala || 1, (v) => Math.round(v * 100) + "%");
+      $("#o-espejo").checked = !!ob.espejo; $("#o-detras").checked = !!ob.detras; $("#o-animar").checked = !!ob.claves?.length;
+      const defs = ATREZO[ob.tipo]?.params || {}, cont = $("#o-params"), vals = paramsObjeto(ob);
+      if (!cont.contains(document.activeElement)) { cont.replaceChildren();
+        for (const [k, [mn, mx, paso, , etq]] of Object.entries(defs)) { const i = h("input", { type: "range", min: mn, max: mx, step: paso, value: vals[k] }), out = h("output", {}, String(vals[k]));
+          i.addEventListener("input", () => { out.textContent = i.value; cambio((x) => { const o2 = x.objetos.find((y) => y.id === ob.id);
+            if (o2.claves?.length) tocarClave(o2.claves, Object.keys(defs), Object.assign({}, paramsObjeto(o2), { [k]: +i.value })); else (o2.params = o2.params || {})[k] = +i.value; }, "op" + ob.id + k + tiempo.toFixed(2), false); });
+          cont.append(h("div", { class: "deslizador" }, h("label", {}, etq), i, out)); } } }
     // cámara
     const c = posCam(); deslizar("c-x", c.x, (v) => Math.round(v)); deslizar("c-y", c.y, (v) => Math.round(v)); deslizar("c-zoom", c.zoom || 1, (v) => v.toFixed(2) + "×");
     seg("#c-planos", Object.fromEntries(Object.entries(PLANOS).map(([k, v]) => [k, v.n])), "", (k) => { const p = PLANOS[k], a2 = actor(), q = a2 ? posActor(a2) : { x: c.x, p: 0 }, s = (a2?.escala || 1) * (1 - 0.38 * (q.p || 0));
@@ -120,7 +138,8 @@
       const quien = h("select", { class: "habla", title: "¿Quién habla? Su boca seguirá esta voz" }, h("option", { value: "" }, "nadie habla (música)"), ...esc.actores.map((a) => h("option", { value: a.id }, "habla: " + (PJ[a.personaje]?.nombre || a.personaje))));
       quien.value = au.habla || ""; quien.addEventListener("change", async () => { const v = quien.value; let env = au.envolvente;
         if (v && !env) { estado("Analizando la voz…"); const r = await (await fetch("/api/envolvente?archivo=" + encodeURIComponent(au.archivo))).json(); env = r.envolvente; }
-        cambio((x) => { x.audios[i].habla = v || undefined; if (env) x.audios[i].envolvente = env; }, null, false); });
+        let pal = au.palabras; if (v && !pal) pal = await palabrasDe(au.archivo);
+        cambio((x) => { x.audios[i].habla = v || undefined; if (env) x.audios[i].envolvente = env; if (pal) x.audios[i].palabras = pal; }, null, false); });
       ua.append(h("li", { class: "fila-audio" }, h("span", {}, "♪"), h("div", { class: "audio-info" }, h("span", { title: au.archivo }, au.archivo.split("/").pop()), quien), vol, h("button", { class: "x", title: "Quitar", onclick: () => cambio((x) => { x.audios.splice(i, 1); }) }, "✕"))); }
     $("#t-tiempo").textContent = fmtT(tiempo) + " / " + fmtT(D());
     const kc = claveCabezal(); $("#t-curva").disabled = !kc; if (kc) $("#t-curva").value = kc.k.curva || "suave";
@@ -145,17 +164,31 @@
   $("#b-dur").addEventListener("input", (ev) => { const a = actor(); if (!a || selBloque === null) return; cambio((x) => { x.actores.find((y) => y.id === a.id).bloques[selBloque].dur = Number(ev.target.value); }, "b-dur" + selBloque, false); });
   $("#b-quitar-bloque").addEventListener("click", () => { const a = actor(); if (!a || selBloque === null) return; const i = selBloque; selBloque = null; cambio((x) => { x.actores.find((y) => y.id === a.id).bloques.splice(i, 1); }, null, false); });
   $("#b-quitar-clave").addEventListener("click", () => { const a = actor(); if (!a) return; cambio((x) => { const r = x.actores.find((y) => y.id === a.id).recorrido; const i = r.findIndex((k) => Math.abs(k.t - tiempo) < 0.02); if (i >= 0 && r.length > 1) r.splice(i, 1); }, null, false); });
+  $("#b-add-objeto").addEventListener("click", () => { const tipo = $("#add-objeto").value; if (!tipo || !esc) return; let n = 1, id = tipo; while ((esc.objetos || []).some((o) => o.id === id)) id = tipo + "-" + ++n;
+    const c = posCam(); cambio((x) => { (x.objetos = x.objetos || []).push({ id, tipo, x: Math.round(c.x + ((x.objetos.length % 3) - 1) * 380), p: 0.35, escala: 1 }); }); selObjeto = id; pintarPanel(); });
+  const cambiaObj = (fn, clave) => { const ob = objeto(); if (ob) cambio((x) => fn(x.objetos.find((y) => y.id === ob.id)), clave, false); };
+  $("#o-x").addEventListener("input", (ev) => cambiaObj((o) => (o.x = +ev.target.value), "ox"));
+  $("#o-p").addEventListener("input", (ev) => cambiaObj((o) => (o.p = +ev.target.value), "op"));
+  $("#o-escala").addEventListener("input", (ev) => cambiaObj((o) => (o.escala = +ev.target.value), "oe"));
+  $("#o-espejo").addEventListener("change", (ev) => cambiaObj((o) => { if (ev.target.checked) o.espejo = true; else delete o.espejo; }));
+  $("#o-detras").addEventListener("change", (ev) => cambiaObj((o) => { if (ev.target.checked) o.detras = true; else delete o.detras; }));
+  $("#o-animar").addEventListener("change", (ev) => cambiaObj((o) => { if (ev.target.checked) { const v = paramsObjeto(o); o.claves = [Object.assign({ t: +tiempo.toFixed(2) }, v)]; } else { o.params = paramsObjeto(o); delete o.claves; } }));
+  $("#b-quitar-objeto").addEventListener("click", () => { const ob = objeto(); if (!ob) return; cambio((x) => { x.objetos = x.objetos.filter((y) => y.id !== ob.id); }); selObjeto = null; pintarPanel(); aviso("Quitado (Ctrl+Z lo recupera)"); });
   $("#b-quitar-actor").addEventListener("click", () => { const a = actor(); if (!a) return; cambio((x) => { x.actores = x.actores.filter((y) => y.id !== a.id); }); selActor = esc.actores[0]?.id || null; aviso("Quitado de la escena (Ctrl+Z lo recupera)"); });
   const editarCam = (valores, clave) => cambio((x) => tocarClave(x.camara, ["x", "y", "zoom"], valores), clave + "@" + tiempo.toFixed(2), false);
   $("#c-x").addEventListener("input", (ev) => editarCam({ x: Number(ev.target.value) }, "c-x")); $("#c-y").addEventListener("input", (ev) => editarCam({ y: Number(ev.target.value) }, "c-y"));
   $("#c-zoom").addEventListener("input", (ev) => editarCam({ zoom: Number(ev.target.value) }, "c-zoom"));
   $("#b-quitar-cam").addEventListener("click", () => cambio((x) => { const i = x.camara.findIndex((k) => Math.abs(k.t - tiempo) < 0.02); if (i >= 0 && x.camara.length > 1) x.camara.splice(i, 1); }, null, false));
   $("#b-add-texto").addEventListener("click", () => { const t = $("#tx-texto").value.trim(); if (!t) return; $("#tx-texto").value = ""; cambio((x) => { x.textos.push({ t: +tiempo.toFixed(2), dur: 2, texto: t }); x.textos.sort((a, b) => a.t - b.t); }, null, false); });
+  // palabras con tiempos de una voz (VoiceStudio): la boca forma cada fonema; si no se puede transcribir, se queda con abrir y cerrar
+  async function palabrasDe(archivo) { estado("Leyendo las palabras de la voz (labios por fonemas)…");
+    try { const r = await (await fetch("/api/transcribir", { method: "POST", body: JSON.stringify({ archivo }) })).json(); return !r.error && r.fuente !== "estimado" && r.palabras?.length ? r.palabras : null; } catch { return null; } }
   $("#tx-texto").addEventListener("keydown", (ev) => { if (ev.key === "Enter") $("#b-add-texto").click(); });
   $("#b-add-audio").addEventListener("click", async () => { const f = $("#au-lista").value; if (!f) return; estado("Analizando el audio…");
     let info = {}; try { info = await (await fetch("/api/envolvente?archivo=" + encodeURIComponent(f))).json(); } catch {}
     const voz = /voz|narra/i.test(f) && esc.actores.length ? (actor() || esc.actores[0]).id : undefined;
-    cambio((x) => { x.audios.push({ archivo: f, t: +tiempo.toFixed(2), dur: info.duracion ? +info.duracion.toFixed(2) : undefined, volumen: 1, habla: voz, envolvente: info.envolvente });
+    const pal = voz ? await palabrasDe(f) : null;
+    cambio((x) => { x.audios.push({ archivo: f, t: +tiempo.toFixed(2), dur: info.duracion ? +info.duracion.toFixed(2) : undefined, volumen: 1, habla: voz, envolvente: info.envolvente, ...(pal ? { palabras: pal } : {}) });
       if (info.duracion && x.duracion < tiempo + info.duracion) x.duracion = +(tiempo + info.duracion + 0.5).toFixed(1); });
     aviso(voz ? `Voz añadida en ${fmtT(tiempo)}: la boca de ${PJ[actor(voz).personaje]?.nombre} la sigue` : "Audio añadido en " + fmtT(tiempo)); });
   async function cargarAudios() { const l = await (await fetch("/api/audios")).json(); $("#au-lista").replaceChildren(h("option", { value: "" }, l.length ? "— elige una voz o una música —" : "— no hay audios —"), ...l.map((f) => h("option", { value: f }, f))); }
@@ -197,6 +230,15 @@
 
   // ---- arrastrar personajes en el escenario: horizontal = posición, vertical = profundidad (autoclave de recorrido)
   let arrA = null;
+  // arrastrar el atrezo: horizontal = posición, vertical = profundidad (sin claves: es un decorado)
+  let arrO = null;
+  lienzo.addEventListener("pointerdown", (ev) => { const go = ev.target.closest("[data-objeto]"); if (!go || !esc || ev.target.closest("[data-actor]")) return; const ob = objeto(go.getAttribute("data-objeto")); if (!ob) return; parar();
+    selObjeto = ob.id; try { lienzo.setPointerCapture(ev.pointerId); } catch {} lienzo.classList.add("arrastrando");
+    arrO = { id: ob.id, x0: ev.clientX, y0: ev.clientY, x: ob.x || 0, p: ob.p || 0, k: (1080 / lienzo.clientWidth) / (posCam().zoom || 1) }; pintarPanel(); });
+  lienzo.addEventListener("pointermove", (ev) => { if (!arrO) return; const a = arrO, dx = (ev.clientX - a.x0) * a.k, dy = (ev.clientY - a.y0) * a.k;
+    cambio((x) => { const o = x.objetos.find((y) => y.id === a.id); o.x = Math.round(a.x + dx); o.p = +cl(a.p - dy / 400, 0, 1.5).toFixed(3); }, "arrO" + a.id, false); });
+  const soltarO = () => { if (!arrO) return; arrO = null; lienzo.classList.remove("arrastrando"); pintarPanel(); };
+  lienzo.addEventListener("pointerup", soltarO); lienzo.addEventListener("pointercancel", soltarO);
   lienzo.addEventListener("pointerdown", (ev) => { const g = ev.target.closest("[data-actor]"); if (!g || !esc) return; const a = actor(g.getAttribute("data-actor")); if (!a) return; parar();
     selActor = a.id; selBloque = null; try { lienzo.setPointerCapture(ev.pointerId); } catch {} lienzo.classList.add("arrastrando");
     const q = posActor(a); arrA = { id: a.id, x0: ev.clientX, y0: ev.clientY, q, k: (1080 / lienzo.clientWidth) / (posCam().zoom || 1) }; pintarPanel(); pintarPistas(); });
@@ -211,7 +253,8 @@
     if (r.estado === "renderizando" || r.estado === "preparando") { e.textContent = `${r.estado === "preparando" ? "Preparando" : "Renderizando"}… ${r.progreso || ""} (${r.segundos} s)`; b.disabled = true; sondeo = setTimeout(consultar, 1500); return; }
     b.disabled = false; if (r.estado === "listo") { e.textContent = `Listo en ${r.segundos} s · Videos/shorts-flow/${r.ruta || "escena-" + actual + "/out"}`; const v = $("#render-video"); v.hidden = false; v.src = r.archivo; }
     else if (r.estado === "error") e.textContent = "Error al renderizar:\n" + r.log; else e.textContent = ""; }
-  $("#b-render").addEventListener("click", async () => { if (!esc) return; await guardar(); clearTimeout(sondeo); { const v = $("#render-video"); v.pause(); v.removeAttribute("src"); v.load(); v.hidden = true; }   // suelta el MP4 anterior (Windows lo bloquea mientras está abierto) await fetch(`/api/escenas/${actual}/render`, { method: "POST" }); consultar(); });
+  $("#b-render").addEventListener("click", async () => { if (!esc) return; await guardar(); clearTimeout(sondeo); { const v = $("#render-video"); v.pause(); v.removeAttribute("src"); v.load(); v.hidden = true; }   // suelta el MP4 anterior (Windows lo bloquea mientras está abierto)
+    await fetch(`/api/escenas/${actual}/render`, { method: "POST" }); consultar(); });
   $("#b-exportar").addEventListener("click", async () => { await guardar(); const r = await (await fetch(`/api/escenas/${actual}/exportar`, { method: "POST" })).json(); aviso("Proyecto en Videos/shorts-flow/" + r.dir); });
 
   $("#b-png").addEventListener("click", async () => { if (!esc) return; const svg = $("#lienzo"), copia = svg.cloneNode(true); copia.setAttribute("width", 1080); copia.setAttribute("height", 1920); copia.querySelector("#guias")?.remove();

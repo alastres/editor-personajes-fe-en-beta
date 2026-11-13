@@ -95,6 +95,40 @@
     return e; }
   const control = (j, valores, base = {}) => pose(conControles({}, j.controles, valores), base);
 
+
+  // ---- labios por fonemas (visemas): de las palabras con tiempos ({ word, start, end }) a la forma de la boca en cada instante
+  // abre 0…1, ancho (×), dientes 0…1 (se ven los de arriba). Español: la «v» suena como «b» (labios cerrados), la «h» no suena.
+  const VISEMAS = {
+    A: { abre: 0.95, ancho: 1.1, dientes: 0.3 }, E: { abre: 0.5, ancho: 1.25, dientes: 0.8 }, I: { abre: 0.3, ancho: 1.35, dientes: 1 },
+    O: { abre: 0.75, ancho: 0.7, dientes: 0 }, U: { abre: 0.38, ancho: 0.48, dientes: 0 }, MBP: { abre: 0, ancho: 0.95, dientes: 0 },
+    FV: { abre: 0.12, ancho: 1.05, dientes: 1 }, S: { abre: 0.22, ancho: 1.2, dientes: 1 }, L: { abre: 0.3, ancho: 1.05, dientes: 0.6 },
+    K: { abre: 0.35, ancho: 1, dientes: 0.3 }, REPOSO: { abre: 0, ancho: 1, dientes: 0 } };
+  function fonemas(palabra) {
+    const w = String(palabra).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zñ0-9]/g, "")
+      .replace(/ch|ll|y(?=[aeiou])/g, "S").replace(/qu|gu(?=[ei])/g, "K").replace(/rr/g, "r").replace(/h/g, "").replace(/c(?=[ei])/g, "S");
+    const out = [];
+    for (const ch of w) { const v = "aeiou".includes(ch) ? ch.toUpperCase() : ch === "y" ? "I" : "mbpv".includes(ch) ? "MBP" : ch === "f" ? "FV"
+      : "szxS".includes(ch) ? "S" : "lntdrñ".includes(ch) ? "L" : "kcgjqK".includes(ch) ? "K" : /[0-9]/.test(ch) ? "E" : null;
+      if (v) out.push(v); }
+    return out.length ? out : ["A"];
+  }
+  function visemas(palabras) {
+    const K = [], ws = (palabras || []).filter((w) => w && w.end > w.start);
+    ws.forEach((w, i) => { const f = fonemas(w.word), pesos = f.map((v) => ("AEIOU".includes(v) ? 1.5 : 1)), tot = pesos.reduce((a, b) => a + b, 0);
+      const ant = ws[i - 1], sig = ws[i + 1];
+      if (!ant || w.start - ant.end > 0.18) K.push({ t: w.start - 0.07, v: VISEMAS.REPOSO });
+      let acc = 0; f.forEach((v, j) => { const c = w.start + (w.end - w.start) * (acc + pesos[j] / 2) / tot; acc += pesos[j]; K.push({ t: c, v: VISEMAS[v] }); });
+      if (!sig || sig.start - w.end > 0.18) K.push({ t: w.end + 0.06, v: VISEMAS.REPOSO }); });
+    if (!K.length) return () => null;
+    const t0 = K[0].t, t1 = K[K.length - 1].t;
+    return (u) => { if (u <= t0 || u >= t1) return null;
+      let lo = 0, hi = K.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (K[m].t <= u) lo = m; else hi = m; }
+      const a = K[lo], b = K[hi], k = suave(Math.max(0, Math.min(1, (u - a.t) / Math.max(1e-6, b.t - a.t))));
+      return { abre: lerp(a.v.abre, b.v.abre, k), ancho: lerp(a.v.ancho, b.v.ancho, k), dientes: lerp(a.v.dientes, b.v.dientes, k) }; };
+  }
+  const _vis = new WeakMap();
+  const visemaEn = (palabras, u) => { if (!palabras || !palabras.length) return null; let f = _vis.get(palabras); if (!f) { f = visemas(palabras); _vis.set(palabras, f); } return f(u); };
+
   window.Personajes = { op, colores, DERIVA, mix, crear: (padre, j, extra) => Titere25D.crear(padre, op(j, extra)),
-    POSE0, PALMAS, mezclar, completa, conControles, accionPose, pose, accion, control, buscarAccion, enCapas, CURVAS, curva };
+    POSE0, PALMAS, mezclar, completa, conControles, accionPose, pose, accion, control, buscarAccion, enCapas, CURVAS, curva, VISEMAS, fonemas, visemas, visemaEn };
 })();

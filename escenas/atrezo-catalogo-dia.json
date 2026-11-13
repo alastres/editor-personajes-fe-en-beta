@@ -1,0 +1,165 @@
+{
+  "nombre": "Cat�logo de atrezo (dia)",
+  "duracion": 1,
+  "fondo": {
+    "tipo": "dia"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -300,
+      "zoom": 0.27
+    }
+  ],
+  "actores": [],
+  "objetos": [
+    {
+      "id": "olivo",
+      "tipo": "olivo",
+      "x": -1750,
+      "p": 1.2,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "palmera",
+      "tipo": "palmera",
+      "x": -1050,
+      "p": 1.2,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "arbusto",
+      "tipo": "arbusto",
+      "x": -350,
+      "p": 1.2,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "roca",
+      "tipo": "roca",
+      "x": 350,
+      "p": 1.2,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "tumba",
+      "tipo": "tumba",
+      "x": 1050,
+      "p": 1.2,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "barca",
+      "tipo": "barca",
+      "x": 1750,
+      "p": 1.2,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "mesa",
+      "tipo": "mesa",
+      "x": -1750,
+      "p": 0,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "casa",
+      "tipo": "casa",
+      "x": -1050,
+      "p": 0,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "columna",
+      "tipo": "columna",
+      "x": -350,
+      "p": 0,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "cantaro",
+      "tipo": "cantaro",
+      "x": 350,
+      "p": 0,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "hoguera",
+      "tipo": "hoguera",
+      "x": 1050,
+      "p": 0,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    },
+    {
+      "id": "pozo",
+      "tipo": "pozo",
+      "x": 1750,
+      "p": 0,
+      "escala": 0.8,
+      "params": {
+        "luz": 0.6,
+        "abierta": 0.6,
+        "ventana": 1
+      }
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "id": "atrezo-catalogo-dia"
+}

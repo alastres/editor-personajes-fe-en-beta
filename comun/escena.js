@@ -71,6 +71,15 @@
     const actores = (esc.actores || []).map((a) => { const j = PJ[a.personaje]; const g = el("g", { "data-actor": a.id }, mundo);
       if (!j) { const tx = el("text", { fill: "#f66", "font-size": 40 }, g); tx.textContent = "falta el personaje «" + a.personaje + "»"; return { a, g, m: null, j: null }; }
       return { a, g, j, m: Personajes.crear(g, j, { id: "esc-" + a.id }) }; });
+    // atrezo: objetos de la escena (ATREZO en comun/atrezo.js), colocados como los personajes; sus parámetros pueden llevar claves
+    const objetos = (esc.objetos || []).map((ob) => ({ ob, g: el("g", { "data-objeto": ob.id || ob.tipo }, mundo), k: null }));
+    function objeto(O, t) { const ob = O.ob, esc0 = (ob.escala || 1) * (1 - 0.38 * (ob.p || 0)), q = claves(ob.claves, t, [...new Set((ob.claves || []).flatMap((k) => Object.keys(k)))].filter((c) => c !== "t" && c !== "curva")) || {};
+      const x = q.x ?? ob.x ?? 0, frio = ob.frio ?? (esc.fondo?.tipo === "noche");
+      O.g.setAttribute("transform", `translate(${f1(x)} ${f1(-170 * (ob.p || 0))}) scale(${((ob.espejo ? -1 : 1) * esc0).toFixed(3)} ${esc0.toFixed(3)})`);
+      const params = Object.assign({}, ob.params || {}, q); delete params.x; delete params.t; delete params.curva;
+      const A = window.ATREZO && ATREZO[ob.tipo], clave = JSON.stringify([ob.tipo, params, frio]) + (A && A.anima ? "|" + t.toFixed(3) : "");
+      if (clave !== O.k) { O.k = clave; O.g.innerHTML = window.Atrezo ? Atrezo.dibujar({ tipo: ob.tipo, params, frio }, t) : ""; }
+      return ob.p || 0; }
     function camara(t) { return claves(esc.camara, t, ["x", "y", "zoom"]) || { x: 0, y: -360, zoom: 1 }; }
     function dibujar(t) {
       const c = camara(t), z = c.zoom || 1;
@@ -85,6 +94,7 @@
       if (conFisica && !(t > tAnterior && t - tAnterior <= 0.25)) { for (let u = Math.max(0, t - 1); u < t - 1e-6; u += 1 / 30) for (const A of actores) if (A.m) actor(A, u); }
       tAnterior = t;
       for (const A of actores) { if (!A.m) continue; const q = actor(A, t); orden.push({ g: A.g, p: q.p || 0 }); }
+      for (const O of objetos) orden.push({ g: O.g, p: objeto(O, t) + (O.ob.detras ? 0.0005 : -0.0005) });
       orden.sort((x, y) => y.p - x.p).forEach((o) => mundo.appendChild(o.g));
       pintarTextos(t);
     }
@@ -107,10 +117,13 @@
         // los brazos de una capa «brazos» mandan sobre el braceo de andar; sin ella, al andar los brazos bracean
         e.parpadeo = Math.max(0.1, Math.min(1, Math.abs(((t + a.id.length * 0.7) % 3.4) - 3.3) / 0.08));
         // hablar: si un audio de la escena es de este actor, su boca sigue la envolvente (30 valores por segundo, 0…1)
-        const vozFuera = op.voz && op.voz.envolvente && (op.voz.habla === a.id || (op.voz.habla === "auto" && A === actores.find((x) => x.m))) ? [{ habla: a.id, envolvente: op.voz.envolvente, t: -(op.voz.desfase || 0) }] : [];
-        for (const au of [...(esc.audios || []), ...vozFuera]) { if (au.habla !== a.id || !au.envolvente) continue; const u = t - (au.t || 0), i = Math.floor(u * 30);
-          if (i < 0 || i >= au.envolvente.length) continue; const v = au.envolvente[i] + (au.envolvente[i + 1] ?? 0) * 0.5 + (au.envolvente[i - 1] ?? 0) * 0.5;
-          e.boca = cl(v / 2 * 1.15); e.bocaAncho = Math.sin(u * 11.3) * Math.sin(u * 4.1); }
+        const vozFuera = op.voz && (op.voz.envolvente || op.voz.palabras) && (op.voz.habla === a.id || (op.voz.habla === "auto" && A === actores.find((x) => x.m))) ? [{ habla: a.id, envolvente: op.voz.envolvente, palabras: op.voz.palabras, t: -(op.voz.desfase || 0) }] : [];
+        // con palabras (transcripción) la boca forma cada fonema (visemas) y la envolvente da la fuerza; sin ellas, solo abre y cierra
+        for (const au of [...(esc.audios || []), ...vozFuera]) { if (au.habla !== a.id || (!au.envolvente && !au.palabras)) continue; const u = t - (au.t || 0), i = Math.floor(u * 30);
+          const env = au.envolvente, v = env && i >= 0 && i < env.length ? (env[i] + (env[i + 1] ?? 0) * 0.5 + (env[i - 1] ?? 0) * 0.5) / 2 : null;
+          const vis = Personajes.visemaEn(au.palabras, u);
+          if (vis) { const f = v == null ? 1.1 : 0.7 + 0.55 * cl(v * 1.5); e.visema = { abre: Math.min(1.2, vis.abre * f * 1.2), ancho: vis.ancho, dientes: vis.dientes }; break; }
+          if (v != null && !au.palabras) { e.boca = cl(v * 1.15); e.bocaAncho = Math.sin(u * 11.3) * Math.sin(u * 4.1); } }
         e.t = t; e.mundo = [q.x / esc0, -170 * (q.p || 0) / esc0];
         A.m.dibujar(e); return q; }
     function pintarTextos(t) {
@@ -120,7 +133,7 @@
         const w = 40 + String(tx.texto).length * 30; el("rect", { x: ANCHO / 2 - w / 2, y: 1400, width: w, height: 92, rx: 16, fill: "#14171e", opacity: (0.88 * k2).toFixed(2) }, gTextos);
         const tt = el("text", { x: ANCHO / 2, y: 1462, "text-anchor": "middle", fill: "#f7f1e5", "font-size": 52, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif", opacity: k2.toFixed(2) }, gTextos); tt.textContent = tx.texto; }
     }
-    return { dibujar, actores, camara, raiz };
+    return { dibujar, actores, objetos, camara, raiz };
   }
   window.Escena = { crear, claves, FONDOS, ANCHO, ALTO };
 })();

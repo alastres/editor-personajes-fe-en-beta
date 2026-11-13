@@ -1,0 +1,85 @@
+{
+  "nombre": "Prueba de atrezo",
+  "duracion": 6,
+  "fondo": {
+    "tipo": "alba"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -420,
+      "zoom": 0.75
+    }
+  ],
+  "actores": [
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -120,
+          "p": 0.1,
+          "giro": 25
+        }
+      ],
+      "bloques": []
+    }
+  ],
+  "objetos": [
+    {
+      "id": "tumba",
+      "tipo": "tumba",
+      "x": 420,
+      "p": 0.5,
+      "escala": 0.8,
+      "claves": [
+        {
+          "t": 1,
+          "abierta": 0,
+          "luz": 0,
+          "sello": 0
+        },
+        {
+          "t": 4,
+          "abierta": 1,
+          "luz": 1,
+          "sello": 0
+        }
+      ]
+    },
+    {
+      "id": "olivo",
+      "tipo": "olivo",
+      "x": -560,
+      "p": 0.7,
+      "escala": 1
+    },
+    {
+      "id": "palmera",
+      "tipo": "palmera",
+      "x": -900,
+      "p": 1,
+      "escala": 1
+    },
+    {
+      "id": "hoguera",
+      "tipo": "hoguera",
+      "x": -380,
+      "p": 0,
+      "escala": 0.9
+    },
+    {
+      "id": "cantaro",
+      "tipo": "cantaro",
+      "x": 120,
+      "p": 0,
+      "escala": 1
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "id": "prueba-atrezo"
+}

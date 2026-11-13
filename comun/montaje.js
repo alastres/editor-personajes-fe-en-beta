@@ -35,7 +35,7 @@
     const env = sh.voz && sh.voz.envolvente, lns = sh.subtitulos?.activos === false ? [] : lineas(sh.voz?.palabras), resaltar = new Set((sh.subtitulos?.resaltar || []).map(limpia));
     function motor(C) { if (C.motor !== null) return C.motor; const esc = ESC[C.c.escena];
       if (!esc) { const tx = el("text", { x: 540, y: 960, fill: "#f66", "font-size": 44, "text-anchor": "middle" }, C.g); tx.textContent = "falta la escena «" + C.c.escena + "»"; C.motor = false; return false; }
-      C.motor = Escena.crear(C.g, esc, PJ, { voz: env ? { envolvente: env, desfase: C.c.t - (C.c.desde || 0), habla: C.c.habla ?? "auto" } : null }); return C.motor; }
+      C.motor = Escena.crear(C.g, esc, PJ, { voz: env || sh.voz?.palabras ? { envolvente: env, palabras: sh.voz?.palabras, desfase: C.c.t - (C.c.desde || 0), habla: C.c.habla ?? "auto" } : null }); return C.motor; }
     const dentro = (C, t) => t >= C.c.t && t < C.c.t + (C.c.dur || 2);
     function dibujar(t) {
       const act = clips.findIndex((C) => dentro(C, t)), C = clips[act], prev = act > 0 ? clips[act - 1] : null;

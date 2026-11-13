@@ -37,11 +37,11 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 - [x] *(13 nov 2026)* **Música y efectos de sonido.** Biblioteca de efectos (whoosh, golpe, campana…) que se colocan en la línea de tiempo, y la música montada con `montar-musica.py` (reglas del canal: una sola campana al final).
 
 ### Boca y voz
-- [ ] **Labios por fonemas (visemas).** Usar los tiempos de palabras de la transcripción para formar vocales y consonantes (A, E, O, M/B/P…), no solo abrir y cerrar.
-- [ ] **Boca legible dentro de barbas oscuras:** interior de la boca más claro y labio inferior visible.
+- [x] *(13 nov 2026)* **Labios por fonemas (visemas).** Usar los tiempos de palabras de la transcripción para formar vocales y consonantes (A, E, O, M/B/P…), no solo abrir y cerrar.
+- [x] *(13 nov 2026)* **Boca legible dentro de barbas oscuras:** interior de la boca más claro y labio inferior visible.
 
 ### Escenario
-- [ ] **Atrezo y decorados en escena.** Objetos no atados a un personaje (árboles, tumba, barca, mesa, casas), colocados en profundidad y con parallax. Reutilizar los decorados que ya existen en el short «¿Y si…?» (olivo, tumba, mar, Roma, ciudad).
+- [x] *(13 nov 2026, 12 objetos en `comun/atrezo.js`)* **Atrezo y decorados en escena.** Objetos no atados a un personaje (árboles, tumba, barca, mesa, casas), colocados en profundidad y con parallax. Reutilizar los decorados que ya existen en el short «¿Y si…?» (olivo, tumba, mar, Roma, ciudad).
 - [ ] **Más fondos y un editor de fondos.** Dibujarlos en el taller, por capas de parallax, o importar una imagen. Nocturno con luna, interior con lámpara, mar.
 - [ ] **Ambiente:** tono frío o cálido, viñeta, partículas, destello y sacudida de cámara (los efectos del short v2).
 
