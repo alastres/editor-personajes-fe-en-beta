@@ -1,0 +1,66 @@
+{
+  "id": "saludo",
+  "nombre": "Saludo",
+  "duracion": 2,
+  "bucle": true,
+  "locomocion": {
+    "amp": 0
+  },
+  "claves": [
+    {
+      "t": 0,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 1.25,
+        "bDerFrente": 0.25,
+        "bDerCodo": 1.2,
+        "bDerHacia": 0.35,
+        "mDer": {
+          "abierta": 1
+        },
+        "pDer": "adelante",
+        "cara": {
+          "alegre": 0.8
+        }
+      }
+    },
+    {
+      "t": 0.5,
+      "pose": {
+        "ladeo": 6,
+        "bDerK": 1,
+        "bDerLado": 1.25,
+        "bDerFrente": 0.25,
+        "bDerCodo": 1.85,
+        "bDerHacia": 0.35,
+        "mDer": {
+          "abierta": 1
+        },
+        "pDer": "adelante",
+        "cara": {
+          "alegre": 0.8
+        }
+      }
+    },
+    {
+      "t": 1.5,
+      "pose": {
+        "ladeo": -6,
+        "miraY": 0.14,
+        "bDerK": 1,
+        "bDerLado": 1.25,
+        "bDerFrente": 0.25,
+        "bDerCodo": 0.9,
+        "bDerHacia": 0.35,
+        "mDer": {
+          "abierta": 1
+        },
+        "pDer": "adelante",
+        "cara": {
+          "alegre": 0.8
+        }
+      }
+    }
+  ],
+  "origen": "demo-piezas"
+}

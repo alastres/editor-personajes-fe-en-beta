@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personajes · Fe en Beta</title>
+  <link rel="stylesheet" href="editor.css" />
+</head>
+<body>
+  <header class="barra">
+    <div class="marca"><i></i><b>Personajes</b><span>Fe en Beta</span></div>
+    <div class="seg modo" id="modo"><button data-m="diseno">Diseño</button><button data-m="anim">Animación</button></div>
+    <a class="enlace-pagina" href="escenas.html">Escenas →</a>
+    <div class="acciones">
+      <button id="b-deshacer" title="Deshacer (Ctrl+Z)">↶ Deshacer</button>
+      <button id="b-rehacer" title="Rehacer (Ctrl+Y)">↷ Rehacer</button>
+      <span id="estado" class="estado">—</span>
+    </div>
+  </header>
+
+  <main class="area">
+    <!-- reparto -->
+    <aside class="reparto">
+      <div class="cab">Reparto</div>
+      <ul id="lista"></ul>
+      <form id="form-nuevo" class="form-nuevo" hidden>
+        <input id="nombre-nuevo" type="text" maxlength="40" />
+        <div><button type="submit" class="primario">Crear</button><button type="button" id="b-cancelar-nuevo">Cancelar</button></div>
+      </form>
+      <div class="pie">
+        <button id="b-nuevo" class="primario">+ Nuevo</button>
+        <button id="b-duplicar">Duplicar</button>
+        <button id="b-papelera" class="peligro" title="Lo mueve a personajes/papelera (no se borra)">Papelera</button>
+      </div>
+    </aside>
+
+    <!-- escenario -->
+    <section class="escenario">
+      <svg id="lienzo" viewBox="-470 -690 940 790" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <radialGradient id="foco" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#3a3556" /><stop offset="1" stop-color="#1b1830" /></radialGradient>
+        </defs>
+        <rect x="-2000" y="-2000" width="4000" height="4000" fill="url(#foco)" />
+        <g id="suelo"></g>
+        <g id="fantasmas"></g>
+        <g id="principal"></g>
+      </svg>
+      <div class="vueltas diseno-solo">
+        <div class="titulo">Giro de referencia</div>
+        <svg id="tira" viewBox="0 -660 1600 740" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="linea anim-solo">
+        <div class="ctl">
+          <button id="t-play" class="primario" title="Reproducir / parar (espacio)">▶</button>
+          <output id="t-tiempo">0,00 s</output>
+          <button id="t-clave" title="Añadir una clave en el cabezal (K)">+ Clave</button>
+          <button id="t-borrar" title="Borrar la clave elegida">Borrar clave</button>
+          <label class="chk" title="Cómo va de esta clave a la siguiente">Curva <select id="t-curva"><option value="suave">Suave</option><option value="lineal">Lineal</option><option value="mantener">Mantener</option><option value="acelera">Acelerar</option><option value="frena">Frenar</option><option value="rebote">Rebote</option></select></label>
+          <label class="chk"><input type="checkbox" id="t-cebolla" checked /> Papel cebolla</label>
+          <span id="t-ayuda" class="tenue"></span>
+        </div>
+        <div class="pista" id="pista"><div class="regla" id="regla"></div><div class="claves" id="claves"></div><div class="cabezal" id="cabezal"></div></div>
+      </div>
+      <div class="prueba">
+        <div class="fila diseno-solo">
+          <label>Acción</label>
+          <div class="chips" id="acciones"></div>
+        </div>
+        <div class="fila diseno-solo">
+          <label>Emoción</label>
+          <div class="chips" id="emociones"></div>
+        </div>
+        <div class="fila">
+          <label>Giro</label>
+          <input type="range" id="giro" min="-180" max="180" step="1" value="20" />
+          <output id="giro-v">20°</output>
+          <button id="b-girar" class="chip">Girar solo</button>
+        </div>
+        <div class="fila" id="fila-variantes" hidden>
+          <label>Variantes</label>
+          <div class="chips" id="variantes"></div>
+        </div>
+        <div class="fila">
+          <label>Cámara</label>
+          <div class="chips" id="camaras"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- propiedades -->
+    <aside class="panel" id="panel">
+      <section class="diseno-solo">
+        <h3>Ficha</h3>
+        <div class="campo"><label>Nombre</label><input id="nombre" type="text" /></div>
+        <div class="campo"><label>Archivo</label><code id="archivo">—</code></div>
+        <div class="campo"><label>Notas</label><textarea id="notas" rows="2" placeholder="Quién es, en qué vídeos sale…"></textarea></div>
+      </section>
+      <section class="diseno-solo">
+        <h3>Cuerpo</h3>
+        <div class="seg" id="proporciones"></div>
+        <div class="deslizador"><label>Ancho del cuerpo</label><input type="range" id="cuerpoX" min="0.6" max="1.4" step="0.01" /><output></output></div>
+        <div class="deslizador"><label>Alto del cuerpo</label><input type="range" id="cuerpoY" min="0.5" max="1.3" step="0.01" /><output></output></div>
+        <div class="deslizador"><label>Tamaño de cabeza</label><input type="range" id="cabezaK" min="0.8" max="1.4" step="0.01" /><output></output></div>
+        <button class="enlace" id="b-cuerpo-tipo">Volver a las medidas del tipo</button>
+      </section>
+      <section class="diseno-solo">
+        <h3>Cara y pelo</h3>
+        <div class="seg" id="pelo"></div>
+        <div class="interruptores">
+          <label><input type="checkbox" id="barba" /> Barba</label>
+          <label><input type="checkbox" id="pestanas" /> Pestañas</label>
+          <label><input type="checkbox" id="arrugas" /> Arrugas</label>
+        </div>
+      </section>
+      <section class="diseno-solo">
+        <h3>Ropa</h3>
+        <div class="seg" id="ropa"></div>
+      </section>
+      <section class="diseno-solo">
+        <h3>Piezas propias</h3>
+        <p class="ayuda">Dibujos tuyos (SVG) atados a un hueso: se mueven y giran con el personaje. Arrástralos en el escenario para colocarlos.</p>
+        <div class="botones-piezas">
+          <button id="b-importar" class="primario">Importar SVG…</button>
+          <button id="b-biblio">Biblioteca</button>
+          <input type="file" id="archivo-svg" accept=".svg,image/svg+xml" hidden multiple />
+        </div>
+        <div id="biblio" class="biblio" hidden></div>
+        <ul id="piezas" class="piezas"></ul>
+        <div id="detalle-pieza" class="detalle" hidden>
+          <div class="campo"><label>Nombre</label><input id="pz-nombre" type="text" /></div>
+          <div class="campo"><label>Hueso</label><div class="seg pequeno" id="pz-hueso"></div></div>
+          <div class="campo"><label>Capa</label><div class="seg" id="pz-capa"></div></div>
+          <div class="campo"><label>Se ve</label><div class="seg" id="pz-vista"></div></div>
+          <div class="campo" id="campo-modo"><label>Al girar la cabeza</label><div class="seg" id="pz-modo"></div></div>
+          <div class="deslizador"><label>Posición X</label><input type="range" id="pz-x" min="-200" max="200" step="1" /><output></output></div>
+          <div class="deslizador"><label>Posición Y</label><input type="range" id="pz-y" min="-200" max="200" step="1" /><output></output></div>
+          <div class="deslizador"><label>Tamaño</label><input type="range" id="pz-escala" min="0.1" max="3" step="0.01" /><output></output></div>
+          <div class="deslizador"><label>Giro</label><input type="range" id="pz-rot" min="-180" max="180" step="1" /><output></output></div>
+          <div class="deslizador"><label>Profundidad</label><input type="range" id="pz-prof" min="-80" max="120" step="1" /><output></output></div>
+          <div class="campo"><label>Dibujos según el giro <span class="tenue">(opcional: si no hay, se usa el de frente)</span></label>
+            <div class="vistas-pz">
+              <span>Perfil</span><b id="pz-tiene-perfil">—</b><button id="pz-imp-perfil">Importar…</button><button id="pz-quita-perfil">Quitar</button>
+              <span>Espaldas</span><b id="pz-tiene-espaldas">—</b><button id="pz-imp-espaldas">Importar…</button><button id="pz-quita-espaldas">Quitar</button>
+            </div>
+            <input type="file" id="archivo-vista" accept=".svg,image/svg+xml" hidden />
+          </div>
+          <div class="campo"><label>Mientras está puesta, oculta</label><div class="interruptores"><label><input type="checkbox" id="pz-oc-melena" /> Melena</label><label><input type="checkbox" id="pz-oc-cinto" /> Cinturón</label></div></div>
+          <div class="campo"><label>Grupo de variantes <span class="tenue">(piezas que se turnan: «sombrero», «en la mano»…)</span></label><input id="pz-grupo" type="text" placeholder="sin grupo: siempre visible" /></div>
+          <div class="fila-botones"><button id="pz-arriba">↑ Encima</button><button id="pz-abajo">↓ Debajo</button><button id="pz-duplicar">Duplicar</button><button id="pz-quitar" class="peligro">Quitar</button></div>
+        </div>
+      </section>
+      <section class="diseno-solo">
+        <h3>Colores</h3>
+        <p class="ayuda">Elige el color base; las sombras y luces se calculan solas. Toca un tono pequeño para fijarlo a mano.</p>
+        <div id="colores"></div>
+      </section>
+      <section class="diseno-solo">
+        <h3>Imágenes</h3>
+        <div class="fila-botones dos"><button id="b-png-escenario">PNG del escenario</button><button id="b-png-giro">PNG de la hoja de giro</button></div>
+      </section>
+      <section class="diseno-solo">
+        <h3>Usarlo en un vídeo</h3>
+        <pre id="codigo"></pre>
+        <button id="b-copiar">Copiar</button>
+      </section>
+          <section class="anim-solo">
+        <h3>Acción</h3>
+        <div class="campo"><select id="a-lista"></select></div>
+        <div class="fila-botones tres"><button id="a-nueva" class="primario">+ Nueva</button><button id="a-duplicar">Duplicar</button><button id="a-borrar" class="peligro">Borrar</button></div>
+        <div class="fila-anadir"><select id="a-biblio"></select><button id="a-traer" title="Copiar a este personaje para usarla o retocarla">Traer</button></div>
+        <button id="a-compartir" class="enlace" title="La guarda en la biblioteca común (shorts-flow/acciones): cualquier personaje y escena podrá usarla">Compartir esta acción con todos los personajes</button>
+        <div id="a-detalle">
+          <div class="campo"><label>Nombre</label><input id="a-nombre" type="text" /></div>
+          <div class="deslizador"><label>Duración</label><input type="range" id="a-dur" min="0.4" max="8" step="0.1" /><output></output></div>
+          <div class="interruptores"><label><input type="checkbox" id="a-bucle" /> Repetir en bucle</label></div>
+          <div class="campo" style="margin-top:10px"><label>Mientras tanto</label><div class="seg" id="a-loco"></div></div>
+        </div>
+      </section>
+      <section class="anim-solo">
+        <h3>Posar <span class="tenue" id="posar-info"></span></h3>
+        <div id="posar"></div>
+      </section>
+      <section class="anim-solo">
+        <h3>Controles</h3>
+        <p class="ayuda">Como los «smart bones» de Moho: una postura guardada con nombre que se aplica con un solo deslizador, encima de cualquier acción.</p>
+        <div id="controles"></div>
+        <div class="fila-botones dos"><button id="c-nuevo" class="primario">Guardar postura como control</button><button id="c-cero">Todos a cero</button></div>
+      </section>
+      <section class="anim-solo">
+        <h3>Usarlo en un vídeo</h3>
+        <pre id="codigo-anim"></pre>
+      </section>
+</aside>
+  </main>
+  <div id="aviso" class="aviso"></div>
+
+  <script src="/comun/titere25d.js"></script>
+  <script src="/comun/personajes.js"></script>
+  <script src="/acciones/todas.js"></script>
+  <script src="biblioteca.js"></script>
+  <script src="editor.js"></script>
+  <script src="editor-anim.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Repo del EDITOR DE PERSONAJES Y ESCENAS: lista blanca. Todo lo demás de shorts-flow (vídeos, voces, renders) queda fuera.
+/*
+!/.gitignore
+!/README.md
+!/sincronizar.ps1
+
+!/editor-personajes/
+!/personajes/
+!/acciones/
+!/escenas/
+
+# del motor común, solo lo que usa el editor
+!/comun/
+/comun/*
+!/comun/titere25d.js
+!/comun/personajes.js
+!/comun/escena.js
+!/comun/vendor/
+
+# generados o temporales
+/personajes/todos.js
+/acciones/todas.js
+*/papelera/
+*.bak

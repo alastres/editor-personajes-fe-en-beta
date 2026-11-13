@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Escenas · Fe en Beta</title>
+  <link rel="stylesheet" href="editor.css" />
+  <link rel="stylesheet" href="escenas.css" />
+</head>
+<body>
+  <header class="barra">
+    <div class="marca"><i></i><b>Escenas</b><span>Fe en Beta</span></div>
+    <a class="enlace-pagina" href="/">← Personajes</a>
+    <div class="acciones">
+      <button id="b-deshacer" title="Deshacer (Ctrl+Z)">↶ Deshacer</button>
+      <button id="b-rehacer" title="Rehacer (Ctrl+Y)">↷ Rehacer</button>
+      <span id="estado" class="estado">—</span>
+    </div>
+  </header>
+
+  <main class="area">
+    <aside class="reparto">
+      <div class="cab">Escenas</div>
+      <ul id="lista"></ul>
+      <form id="form-nueva" class="form-nuevo" hidden>
+        <input id="nombre-nueva" type="text" maxlength="50" />
+        <div><button type="submit" class="primario">Crear</button><button type="button" id="b-cancelar">Cancelar</button></div>
+      </form>
+      <div class="pie">
+        <button id="b-nueva" class="primario">+ Nueva escena</button>
+        <button id="b-duplicar">Duplicar</button>
+        <button id="b-papelera" class="peligro">Papelera</button>
+      </div>
+    </aside>
+
+    <section class="escenario esc">
+      <div class="marco-cont" id="marco-cont">
+        <svg id="lienzo" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid meet"><defs></defs><g id="capa-escena"></g><g id="guias"></g></svg>
+      </div>
+      <div class="linea">
+        <div class="ctl">
+          <button id="t-play" class="primario" title="Reproducir / parar (espacio)">▶</button>
+          <button id="t-inicio" title="Al principio">⏮</button>
+          <output id="t-tiempo">0,00 s</output>
+          <label class="chk" title="Curva del tramo que empieza en la clave del cabezal (recorrido del personaje elegido o cámara)">Curva <select id="t-curva"><option value="suave">Suave</option><option value="lineal">Lineal</option><option value="mantener">Mantener</option><option value="acelera">Acelerar</option><option value="frena">Frenar</option><option value="rebote">Rebote</option></select></label>
+          <span id="t-ayuda" class="tenue"></span>
+        </div>
+        <div id="pistas" class="pistas"></div>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel">
+      <section>
+        <h3>Escena</h3>
+        <div class="campo"><label>Nombre</label><input id="e-nombre" type="text" /></div>
+        <div class="deslizador"><label>Duración</label><input type="range" id="e-dur" min="1" max="90" step="0.5" /><output></output></div>
+        <div class="campo"><label>Fondo</label><div class="seg pequeno" id="e-fondo"></div></div>
+      </section>
+      <section>
+        <h3>Reparto de la escena</h3>
+        <div class="fila-anadir"><select id="add-personaje"></select><button id="b-add-actor" class="primario">Añadir</button></div>
+        <ul id="actores" class="piezas"></ul>
+        <div id="actor-det" class="detalle" hidden>
+          <p class="ayuda" id="actor-ayuda">Arrastra al personaje en el escenario: izquierda/derecha lo mueve, arriba/abajo lo aleja o acerca. Se crea una clave de recorrido en el cabezal.</p>
+          <div class="deslizador"><label>Posición X (en el cabezal)</label><input type="range" id="a-x" min="-1500" max="1500" step="1" /><output></output></div>
+          <div class="deslizador"><label>Profundidad (0 delante … 1 al fondo)</label><input type="range" id="a-p" min="0" max="1" step="0.01" /><output></output></div>
+          <div class="deslizador"><label>Hacia dónde mira</label><input type="range" id="a-giro" min="-180" max="180" step="1" /><output></output></div>
+          <div class="deslizador"><label>Tamaño</label><input type="range" id="a-escala" min="0.4" max="2" step="0.01" /><output></output></div>
+          <div class="campo"><label>Poner una acción en el cabezal</label>
+            <div class="fila-anadir"><select id="a-accion"></select><button id="b-add-bloque">Añadir</button></div></div>
+          <div id="bloque-det" hidden>
+            <div class="campo"><label>Capa <span class="tenue">(«brazos» se suma encima: saludar mientras anda)</span></label><div class="seg pequeno" id="b-capa"></div></div>
+            <div class="deslizador"><label>Duración de la acción elegida</label><input type="range" id="b-dur" min="0.3" max="20" step="0.1" /><output></output></div>
+            <button id="b-quitar-bloque" class="peligro">Quitar esta acción</button>
+          </div>
+          <div class="fila-botones dos" style="margin-top:10px"><button id="b-quitar-clave">Quitar clave de recorrido</button><button id="b-quitar-actor" class="peligro">Quitar de la escena</button></div>
+        </div>
+      </section>
+      <section>
+        <h3>Cámara</h3>
+        <p class="ayuda">Los cambios crean una clave de cámara en el cabezal (se ve en la pista «Cámara»).</p>
+        <div class="deslizador"><label>Mirar a X</label><input type="range" id="c-x" min="-1500" max="1500" step="1" /><output></output></div>
+        <div class="deslizador"><label>Mirar a Y (altura)</label><input type="range" id="c-y" min="-1200" max="200" step="1" /><output></output></div>
+        <div class="deslizador"><label>Zoom</label><input type="range" id="c-zoom" min="0.4" max="3" step="0.01" /><output></output></div>
+        <div class="seg pequeno" id="c-planos"></div>
+        <button id="b-quitar-cam">Quitar clave de cámara</button>
+      </section>
+      <section>
+        <h3>Rótulos</h3>
+        <div class="fila-anadir"><input id="tx-texto" type="text" placeholder="Texto en pantalla" /><button id="b-add-texto">Añadir</button></div>
+        <ul id="textos" class="piezas"></ul>
+      </section>
+      <section>
+        <h3>Audio</h3>
+        <div class="fila-anadir"><select id="au-lista"></select><button id="b-add-audio">Añadir</button></div>
+        <ul id="audios" class="piezas"></ul>
+      </section>
+      <section>
+        <h3>Vídeo</h3>
+        <button id="b-render" class="primario ancho">Renderizar vídeo</button>
+        <div id="render-estado" class="ayuda"></div>
+        <video id="render-video" controls hidden></video>
+        <button id="b-exportar" class="enlace">Solo exportar el proyecto HyperFrames</button>
+        <button id="b-png" class="enlace">Guardar este fotograma como PNG (1080 × 1920)</button>
+      </section>
+    </aside>
+  </main>
+  <div id="aviso" class="aviso"></div>
+
+  <script src="/comun/titere25d.js"></script>
+  <script src="/comun/personajes.js"></script>
+  <script src="/acciones/todas.js"></script>
+  <script src="/comun/escena.js"></script>
+  <script src="escenas.js"></script>
+</body>
+</html>

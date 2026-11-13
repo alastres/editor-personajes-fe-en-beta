@@ -1,0 +1,26 @@
+{
+  "id": "mujer-2",
+  "nombre": "Mujer 2",
+  "origen": "short ¿Y si…? (ysi1-titere)",
+  "opciones": {
+    "proporciones": "mujer",
+    "pelo": "largo",
+    "barba": false,
+    "vestido": true,
+    "moderno": false
+  },
+  "colores": {
+    "pelo": "#2a1a22",
+    "peloS": "#20131b",
+    "peloL": "#5f4954",
+    "ropa": "#5a8a4a",
+    "ropaS": "#3a6a3a",
+    "ropaL": "#d0ffb0",
+    "piel": "#e0a070",
+    "pielS": "#a05a50",
+    "pielL": "#ffc890",
+    "nariz": "#b0605a",
+    "mejilla": "#f08a70"
+  },
+  "notas": ""
+}

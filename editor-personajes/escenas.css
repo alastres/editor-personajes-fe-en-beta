@@ -1,0 +1,31 @@
+.escenario.esc { grid-template-rows: 1fr auto; }
+.marco-cont { min-height: 0; display: flex; align-items: center; justify-content: center; padding: 14px; background: #0f0d1a; }
+.marco-cont #lienzo { height: 100%; width: auto; max-width: 100%; aspect-ratio: 9 / 16; border-radius: 6px; box-shadow: 0 0 0 1px #3a3456, 0 10px 40px #0008; background: #100c1e; }
+#lienzo [data-actor] { cursor: grab; }
+#lienzo.arrastrando, #lienzo.arrastrando [data-actor] { cursor: grabbing; }
+.pistas { display: grid; gap: 4px; margin: 0 6px; }
+.pista-fila { display: grid; grid-template-columns: 120px 1fr; gap: 8px; align-items: center; }
+.pista-fila .nom { font-size: 12px; color: var(--tenue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.pista-fila .nom.activo { color: var(--acento); font-weight: 600; }
+.pista-fila .carril { position: relative; height: 30px; background: var(--fondo); border: 1px solid var(--borde); border-radius: 6px; cursor: pointer; touch-action: none; }
+.pista-fila.regla-fila .carril { height: 18px; background: none; border: none; }
+.carril .marca-t { position: absolute; top: 0; height: 100%; border-left: 1px solid #3a3456; font-size: 10px; color: var(--tenue); padding-left: 3px; pointer-events: none; }
+.carril .rombo { position: absolute; top: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; transform: rotate(45deg); border-radius: 2px; background: var(--acento); box-shadow: 0 0 0 2px #1b1830; cursor: grab; }
+.carril .rombo.cam { background: #7ab8ff; }
+.carril .rombo.activo { background: #fff; }
+.carril .bloque { position: absolute; top: 3px; bottom: 3px; background: #4a3f78; border: 1px solid #7a6ab8; border-radius: 5px; font-size: 11px; color: #fff; padding: 0 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 22px; cursor: grab; }
+.carril .bloque.texto { background: #3a4a3a; border-color: #6a9a6a; }
+.carril .bloque.audio { background: #2f4a5a; border-color: #5a8aa8; }
+.carril .bloque.activo { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+.cabezal-g { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: #ff6a4a; pointer-events: none; z-index: 3; }
+.fila-anadir { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-bottom: 8px; }
+.fila-anadir select, .fila-anadir input { width: 100%; font: inherit; color: var(--texto); background: var(--fondo); border: 1px solid var(--borde); border-radius: 8px; padding: 7px 8px; }
+button.ancho { width: 100%; padding: 10px; }
+#render-video { width: 100%; margin-top: 8px; border-radius: 8px; background: #000; }
+#render-estado { margin: 8px 0 0; white-space: pre-wrap; }
+.piezas li .x { background: none; border: none; color: var(--tenue); padding: 0 4px; }
+
+.piezas li.fila-audio { grid-template-columns: 16px 1fr 70px 22px; }
+.audio-info { display: grid; gap: 3px; min-width: 0; }
+.audio-info span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.audio-info select { font: inherit; font-size: 12px; color: var(--texto); background: var(--panel2); border: 1px solid var(--borde); border-radius: 6px; padding: 3px 4px; }

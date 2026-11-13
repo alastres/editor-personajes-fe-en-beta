@@ -1,0 +1,22 @@
+{
+  "id": "pedro",
+  "nombre": "Pedro",
+  "origen": "short ¿Y si…? (ysi1-titere)",
+  "opciones": {
+    "proporciones": "normal",
+    "pelo": "rizado",
+    "barba": true,
+    "vestido": false,
+    "moderno": false
+  },
+  "colores": {
+    "pelo": "#3a2420",
+    "peloS": "#29191a",
+    "peloL": "#694f52",
+    "ropa": "#3f6fa0",
+    "ropaS": "#2a4a78",
+    "ropaL": "#ffc8a0",
+    "auto": {}
+  },
+  "notas": ""
+}

@@ -1,0 +1,26 @@
+{
+  "id": "discipulo-2",
+  "nombre": "Discípulo 2",
+  "origen": "short ¿Y si…? (ysi1-titere)",
+  "opciones": {
+    "proporciones": "normal",
+    "pelo": "corto",
+    "barba": false,
+    "vestido": false,
+    "moderno": false
+  },
+  "colores": {
+    "pelo": "#2a1e1a",
+    "peloS": "#201516",
+    "peloL": "#5f4c4f",
+    "ropa": "#5a5aa0",
+    "ropaS": "#3c3c78",
+    "ropaL": "#c8c8ff",
+    "piel": "#d99a6a",
+    "pielS": "#9a5a52",
+    "pielL": "#ffc89a",
+    "nariz": "#a05a50",
+    "mejilla": "#e08a70"
+  },
+  "notas": ""
+}

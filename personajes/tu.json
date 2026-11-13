@@ -1,0 +1,26 @@
+{
+  "id": "tu",
+  "nombre": "Tú (actual)",
+  "origen": "short ¿Y si…? (ysi1-titere)",
+  "opciones": {
+    "proporciones": "normal",
+    "pelo": "corto",
+    "barba": false,
+    "vestido": false,
+    "moderno": true
+  },
+  "colores": {
+    "pelo": "#2a1e1a",
+    "peloS": "#201516",
+    "peloL": "#5f4c4f",
+    "ropa": "#2f8a8a",
+    "ropaS": "#1e5e66",
+    "ropaL": "#b8fff0",
+    "piel": "#d9956a",
+    "pielS": "#9a5250",
+    "pielL": "#ffc89a",
+    "nariz": "#a85a50",
+    "mejilla": "#e8907a"
+  },
+  "notas": ""
+}

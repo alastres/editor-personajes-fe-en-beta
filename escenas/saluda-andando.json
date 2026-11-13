@@ -1,0 +1,54 @@
+{
+  "nombre": "Saluda andando",
+  "duracion": 5,
+  "fondo": {
+    "tipo": "dia"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -380,
+      "zoom": 1
+    }
+  ],
+  "actores": [
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -650,
+          "p": 0.1,
+          "giro": 60,
+          "curva": "frena"
+        },
+        {
+          "t": 3.6,
+          "x": 120,
+          "p": 0.1,
+          "giro": 60
+        },
+        {
+          "t": 4.4,
+          "x": 120,
+          "p": 0.1,
+          "giro": 20
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0.6,
+          "accion": "saludo",
+          "dur": 4.4,
+          "capa": "brazos"
+        }
+      ]
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "id": "saluda-andando"
+}

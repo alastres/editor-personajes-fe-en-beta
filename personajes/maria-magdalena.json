@@ -1,0 +1,26 @@
+{
+  "id": "maria-magdalena",
+  "nombre": "María Magdalena",
+  "origen": "short ¿Y si…? (ysi1-titere)",
+  "opciones": {
+    "proporciones": "mujer",
+    "pelo": "largo",
+    "barba": false,
+    "vestido": true,
+    "moderno": false
+  },
+  "colores": {
+    "pelo": "#5a2a1a",
+    "peloS": "#3c1c16",
+    "peloL": "#7e534f",
+    "ropa": "#b85a3a",
+    "ropaS": "#8a3a2a",
+    "ropaL": "#ffc0a0",
+    "piel": "#c87a50",
+    "pielS": "#8a4048",
+    "pielL": "#f0a878",
+    "nariz": "#9a4a40",
+    "mejilla": "#e07a60"
+  },
+  "notas": ""
+}
