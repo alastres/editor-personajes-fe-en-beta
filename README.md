@@ -22,6 +22,9 @@ Necesita Node (sin dependencias). Para renderizar usa `npx hyperframes@0.9.8` y 
 
 Los renders (`escena-<id>/`) y el resto de proyectos de `shorts-flow` no se suben.
 
+## Qué falta
+Lo que queda por añadir, por prioridad, está en [ROADMAP.md](ROADMAP.md).
+
 ## Sincronizar
 ```powershell
 ./sincronizar.ps1 "qué cambió"
