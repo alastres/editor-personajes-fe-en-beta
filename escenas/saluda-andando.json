@@ -1,8 +1,7 @@
 {
-  "nombre": "Saluda andando",
   "duracion": 5,
   "fondo": {
-    "tipo": "dia"
+    "tipo": "noche"
   },
   "camara": [
     {
@@ -50,5 +49,6 @@
   ],
   "textos": [],
   "audios": [],
+  "nombre": "Saluda andando",
   "id": "saluda-andando"
 }
