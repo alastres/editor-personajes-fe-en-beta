@@ -169,7 +169,7 @@
     if (!j) return; principal.replaceChildren(); tira.replaceChildren();
     m = P.crear(principal, j, { id: "ed-" + actual });
     vistas = VISTAS.map((a, i) => { const g = el("g", { transform: `translate(${160 + i * 320} 0) scale(0.95)` }, tira); el("ellipse", { cx: 0, cy: 4, rx: 120, ry: 14, fill: "#0004" }, g);
-      const tx = el("text", { x: 160 + i * 320, y: 66, "text-anchor": "middle", fill: "#a69fbd", "font-size": 34, "font-family": "Inter, Segoe UI, sans-serif" }, tira); tx.textContent = ["Frente", "3/4", "Perfil", "3/4 atrás", "Espaldas"][i]; return { a, m: P.crear(g, j, { id: `ed-v${i}-${actual}` }) }; });
+      const tx = el("text", { x: 160 + i * 320, y: 92, "text-anchor": "middle", fill: "#d6cfe8", "font-size": 54, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif" }, tira); tx.textContent = ["Frente", "3/4", "Perfil", "3/4 atrás", "Espaldas"][i]; return { a, m: P.crear(g, j, { id: `ed-v${i}-${actual}` }) }; });
     pintarVistas(); pintarLista(); encuadrar(); window.EPA?.reconstruir();
   }
   // encuadre: mide al personaje quieto con la cámara elegida y ajusta el lienzo (deja aire arriba para saltos y brazos)

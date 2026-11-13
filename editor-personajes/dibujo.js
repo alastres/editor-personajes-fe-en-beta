@@ -86,6 +86,21 @@
       if (c.tagName === "g") recorre(c, m2, est); else forma(c, m2, est); } }
     recorre(raiz, [1, 0, 0, 1, 0, 0], {}); return { formas };
   }
+  // arco SVG (endpoint) → tramos cúbicos de ≤ 90° (método de la especificación SVG, F.6.5)
+  function arcoABezier(x1, y1, rx, ry, rotG, fa, fs, x2, y2) { if (!rx || !ry || (x1 === x2 && y1 === y2)) return [[x1, y1, x2, y2, x2, y2]];
+    const fi = (rotG * Math.PI) / 180, cf = Math.cos(fi), sf = Math.sin(fi), dx = (x1 - x2) / 2, dy = (y1 - y2) / 2, x1p = cf * dx + sf * dy, y1p = -sf * dx + cf * dy;
+    let l = (x1p * x1p) / (rx * rx) + (y1p * y1p) / (ry * ry); if (l > 1) { rx *= Math.sqrt(l); ry *= Math.sqrt(l); }
+    const num2 = rx * rx * ry * ry - rx * rx * y1p * y1p - ry * ry * x1p * x1p, den = rx * rx * y1p * y1p + ry * ry * x1p * x1p, co = (fa === fs ? -1 : 1) * Math.sqrt(Math.max(0, num2 / den));
+    const cxp = (co * rx * y1p) / ry, cyp = (-co * ry * x1p) / rx, ccx = cf * cxp - sf * cyp + (x1 + x2) / 2, ccy = sf * cxp + cf * cyp + (y1 + y2) / 2;
+    const ang = (ux, uy, vx, vy) => { const a = Math.atan2(ux * vy - uy * vx, ux * vx + uy * vy); return a; };
+    const t1 = ang(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry); let dt = ang((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry);
+    if (!fs && dt > 0) dt -= 2 * Math.PI; else if (fs && dt < 0) dt += 2 * Math.PI;
+    const n = Math.max(1, Math.ceil(Math.abs(dt) / (Math.PI / 2))), d = dt / n, k = (4 / 3) * Math.tan(d / 4), out = [];
+    const P = (t) => [ccx + rx * Math.cos(t) * cf - ry * Math.sin(t) * sf, ccy + rx * Math.cos(t) * sf + ry * Math.sin(t) * cf];
+    const D = (t) => [-rx * Math.sin(t) * cf - ry * Math.cos(t) * sf, -rx * Math.sin(t) * sf + ry * Math.cos(t) * cf];
+    for (let i = 0; i < n; i++) { const a = t1 + i * d, b = a + d, pa = P(a), pb = P(b), da = D(a), db = D(b);
+      out.push([pa[0] + k * da[0], pa[1] + k * da[1], pb[0] - k * db[0], pb[1] - k * db[1], pb[0], pb[1]]); }
+    out[out.length - 1][4] = x2; out[out.length - 1][5] = y2; return out; }
   function rutas(dtxt) { const tok = dtxt.match(/[a-zA-Z]|-?\d*\.?\d+(?:e[-+]?\d+)?/g) || []; let i = 0, cmd = "", cx = 0, cy = 0, sx = 0, sy = 0, lastC = null, lastQ = null; const out = []; let cur = null;
     const num = () => parseFloat(tok[i++]);
     const nueva = (x, y) => { cur = { puntos: [pto(x, y)], cerrada: false }; out.push(cur); };
@@ -101,7 +116,8 @@
       else if (C === "S") { const r1 = lastC ? [2 * cx - lastC[0], 2 * cy - lastC[1]] : [cx, cy]; const a = [num() + ox, num() + oy, num() + ox, num() + oy]; curva(r1[0], r1[1], a[0], a[1], a[2], a[3]); cx = a[2]; cy = a[3]; lastQ = null; }
       else if (C === "Q" || C === "T") { const q = C === "Q" ? [num() + ox, num() + oy] : lastQ ? [2 * cx - lastQ[0], 2 * cy - lastQ[1]] : [cx, cy]; const x = num() + ox, y = num() + oy;
         curva(cx + (2 / 3) * (q[0] - cx), cy + (2 / 3) * (q[1] - cy), x + (2 / 3) * (q[0] - x), y + (2 / 3) * (q[1] - y), x, y); lastQ = q; cx = x; cy = y; }
-      else if (C === "A") { for (let k = 0; k < 5; k++) num(); const x = num() + ox, y = num() + oy; cur.puntos.push(pto(x, y)); cx = x; cy = y; }   // arcos: aproximados a recta
+      else if (C === "A") { const rx0 = Math.abs(num()), ry0 = Math.abs(num()), rot = num(), fa = num(), fs = num(), x = num() + ox, y = num() + oy;   // arco elíptico → curvas Bézier
+        for (const c of arcoABezier(cx, cy, rx0, ry0, rot, fa, fs, x, y)) curva(...c); cx = x; cy = y; lastQ = null; }
       else i++; }
     return out; }
 

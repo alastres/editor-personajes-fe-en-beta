@@ -81,7 +81,7 @@
     const lj = F.lejos || "montes";
     if (lj !== "montes" && lj !== "nada") { const c = F.montes; lejos(g, lj, [mixc(c[0], c[1], 0.3), c[1], mixc(c[2], "#000000", 0.15)], camX, 0.5); }
     if (lj === "montes") F.montes.forEach((c, i) => { const par = [0.75, 0.5, 0.25][i], alto = [300, 200, 110][i] * (F.lejosAlto ?? 1), hz = -6 + i * 4; let d = `M-6000 ${hz}`;
-      for (let x = -6000; x <= 6000; x += 300) { const r = Math.abs(Math.sin(x * 0.013 + i * 7.1)), r2 = Math.abs(Math.sin(x * 0.007 + i * 3.3)); d += ` Q ${x + 150 + camX * par} ${f1(hz - alto * (0.55 + 0.45 * r) * 1.15)} ${x + 300 + camX * par} ${f1(hz - alto * (0.3 + 0.3 * r2))}`; }
+      for (let x = -6000; x <= 6000; x += 300) { const r = Math.abs(0.55 * Math.sin(x * 0.013 + i * 7.1) + 0.3 * Math.sin(x * 0.0047 + i * 2.3) + 0.15 * Math.sin(x * 0.031 + i * 1.7)), r2 = Math.abs(0.6 * Math.sin(x * 0.007 + i * 3.3) + 0.4 * Math.sin(x * 0.0029 + i * 5.9)); d += ` Q ${x + 150 + camX * par} ${f1(hz - alto * (0.55 + 0.45 * r) * 1.15)} ${x + 300 + camX * par} ${f1(hz - alto * (0.3 + 0.3 * r2))}`; }
       el("path", { d: d + ` L 6000 ${hz} Z`, fill: c }, g); });
     if (F.mar) { pintarMar(g, F); capasFondo(g, F.capas, camX); g.vivoSuelo = el("g", {}, g); return; }
     // suelo: degradado (más oscuro y saturado delante), textura de cápsulas, piedras y matas que crecen con la cercanía

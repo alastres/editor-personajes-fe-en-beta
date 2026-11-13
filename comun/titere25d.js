@@ -564,8 +564,9 @@
 
       // brazos: braceo opuesto a las piernas; el hombro en el borde; cuelgan por fuera; delante o detrás según la profundidad
       for (const B of brazos) {
-        const sg = B.sg, ang = aA - tauS, ampB = rad(lerp(24, 38, R)), sig = -sg * A * ampB * Math.cos(2 * Math.PI * (p - 0.04));
-        const codoB = rad(14) + A * rad(16) * cl(sig / ampB) + R * A * rad(56) +   /* corriendo, codo a ~85°: con 100° las manos subían a la cara */ AG * rad(30);
+        // desde abajo (contrapicado) la perspectiva acerca la mano a la cara: al correr se dobla menos el codo y se bracea algo menos
+        const bajo = cl(-TILT / 0.35), sg = B.sg, ang = aA - tauS, ampB = rad(lerp(24, 38, R)) * (1 - 0.3 * bajo * R), sig = -sg * A * ampB * Math.cos(2 * Math.PI * (p - 0.04));
+        const codoB = rad(14) + A * rad(16) * cl(sig / ampB) + R * A * rad(56) * (1 - 0.7 * bajo) +   /* corriendo, codo a ~85°: con 100° las manos subían a la cara */ AG * rad(30);
         const hom = W(sg * 76 + sway, -392 + bob - (e.hombros || 0), lean(-392), ang);
         // pose libre: { lado (abre hacia fuera, rad), frente (adelante, rad), codo (rad), hacia: [s,y,f] hacia dónde dobla, k: mezcla con el braceo }
         const ov = sg > 0 ? e.brazoIzq : e.brazoDer, k = ov ? ov.k ?? 1 : 0;

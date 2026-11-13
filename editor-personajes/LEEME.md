@@ -280,3 +280,9 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - Dibújala en el brazo y más larga, hasta la muñeca (el codo está a 88 unidades del hombro) o hasta el tobillo. «Suavidad del doblez» ensancha o estrecha la franja que se curva.
 - Los trazos se trocean solos para que el doblez salga redondo. Solo se doblan trazados (path) con comandos absolutos, que son los que hace el taller. Ejemplo: «Manga larga (se dobla)» en demo-piezas.
 - En el JSON: `doblar: true`, `doblarZona`.
+
+## Errores arreglados (13 nov 2026)
+- **Arcos de los SVG:** el taller convierte los arcos (`A`) en curvas Bézier exactas; antes los cambiaba por rectas.
+- **Montes del fondo:** se dibujan con varias frecuencias que no se repiten; antes se veía el patrón.
+- **Hoja de giro:** etiquetas más grandes y claras.
+- **Contrapicado corriendo:** con la cámara baja, al correr el codo se dobla menos y el brazo bracea algo menos, para que el puño no suba a la cara. Afecta a cualquier vídeo que se vuelva a renderizar con el títere común.

@@ -94,8 +94,8 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 ---
 
 ## Errores y detalles conocidos
-- [ ] Los montes del fondo «Día» se ven algo repetitivos.
-- [ ] En contrapicado y corriendo, la mano que sube parece tapar la boca.
-- [ ] Las etiquetas de la hoja de giro se ven pequeñas.
-- [ ] El taller convierte los arcos de los SVG (comando `A`) como rectas.
+- [x] *(13 nov 2026: varias frecuencias que no se repiten)* Los montes del fondo «Día» se ven algo repetitivos.
+- [x] *(13 nov 2026: desde abajo, al correr, el codo se dobla menos y bracea algo menos)* En contrapicado y corriendo, la mano que sube parece tapar la boca.
+- [x] *(13 nov 2026)* Las etiquetas de la hoja de giro se ven pequeñas.
+- [x] *(13 nov 2026: arcos → curvas Bézier exactas)* El taller convierte los arcos de los SVG (comando `A`) como rectas.
 - [x] *(13 nov 2026)* Las asas de IK solo movían brazos, cabeza y pecho: ya hay asas en los pies y en la cadera.
