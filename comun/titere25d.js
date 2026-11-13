@@ -420,20 +420,23 @@
       const incl = A * lerp(0.07, 0.2, R) + 0.22 * AG + (e.inclina || 0);
       const aCad = (aPie[1] + aPie[-1]) / 2, lean = (y) => incl * (-192 - y);
       const subir = ALT + vuelo;          // todo el cuerpo despega; la sombra se queda en el suelo y encoge
-      cuerpo.setAttribute("transform", `translate(0 ${f1(-subir * KBY)})`);
+      // tumbado (0…1): el cuerpo gira sobre los pies hasta quedar en el suelo, boca arriba (tumbadoLado: 1 la cabeza a la derecha, −1 a la izquierda)
+      const TB = cl(e.tumbado || 0), tbL = e.tumbadoLado || 1;
+      cuerpo.setAttribute("transform", `translate(0 ${f1(-subir * KBY - 66 * TB)})${TB > 0.001 ? ` rotate(${f1(90 * TB * tbL)} 0 0)` : ""}`);
       sombra.setAttribute("opacity", (0.45 * (1 - cl(subir / 500) * 0.6) * (1 - 0.55 * cl((TILT - 0.35) / 0.3))).toFixed(2));   // desde muy arriba la sombra parecía un agujero
       const kP = escalaEn([0, 0, 0]), qS = PR([0, 0, 0]);
       sombra.setAttribute("cx", f1(qS[0] * KBX)); sombra.setAttribute("cy", f1(qS[1] * KBY));
       sombra.setAttribute("rx", 135 * KBX * kP * (1 - cl(subir / 500) * 0.45)); sombra.setAttribute("ry", 135 * kP * Math.max(0.04, TILT) * 0.6);
 
-      const orden = [], bajoDf = {};
+      const orden = [], bajoDf = {}, tobillos = {};
       for (const L of piernas) {
-        const sg = L.sg, ap = aPie[sg], pz = pisada(p + (sg > 0 ? 0 : 0.5), A, R), alza = pz.alza + alzaGiro[sg] + 55 * REC;
+        // paso propio de cada pie (rig de piernas): lado (hacia fuera), alto (levantarlo) y frente (adelantarlo); las rodillas siguen por IK
+        const sg = L.sg, ap = aPie[sg], pz = pisada(p + (sg > 0 ? 0 : 0.5), A, R), pp = (sg > 0 ? e.pasoIzq : e.pasoDer) || {}, alza = pz.alza + alzaGiro[sg] + 55 * REC + (pp.alto || 0);
         bajoDf[sg] = 0.4 * pz.f;
         const local = (df, dy) => { const c = Math.cos(pz.cab), s = Math.sin(pz.cab), piv = pz.cab > 0 ? [34, 0] : [-12, 0], rx = df - piv[0], ry = dy - piv[1];
           return [piv[0] + rx * c - ry * s, piv[1] + rx * s + ry * c]; };          // el pie gira sobre la punta o sobre el talón
-        const P3 = (ds, df, dy) => { const [lf, ly] = local(df, dy); return W(sg * 20 + ds, ly - alza, pz.f + lf, ap); };
-        const tobillo = P3(0, 0, -18), cad = W(sg * 22 + sway, -192 + bob, 0, aCad - tau);
+        const P3 = (ds, df, dy) => { const [lf, ly] = local(df, dy); return W(sg * (20 + (pp.lado || 0)) + ds, ly - alza, pz.f + lf + (pp.frente || 0), ap); };
+        const tobillo = P3(0, 0, -18), cad = W(sg * 22 + sway, -192 + bob, 0, aCad - tau); tobillos[sg] = tobillo;
         const rod = ik3(cad, tobillo, 92, 90, W(0, 0, 1, ap));
         L.muslo.setAttribute("d", `M${P2(cad)} L ${P2(rod)}`); L.muslo.setAttribute("stroke-width", f1(38 * KG * escalaEn(mul(add(cad, rod), 0.5))));
         L.canilla.setAttribute("d", tubo(PR(rod), PR(tobillo), (moderno ? 21 : 17) * KG * escalaEn(rod), (moderno ? 18 : 12) * KG * escalaEn(tobillo)));
@@ -677,6 +680,7 @@
       const dy = -subir * KBY, Q = (p) => { const q = PR(p); return [q[0] * KBX, q[1] * KBY + dy]; };
       puntos.cabeza = [xc, yc + dy]; puntos.pecho = Q(W(sway, -340 + bob, lean(-340), aT)); puntos.cintura = Q(W(sway, -266 + bob, lean(-266), aT));
       puntos.pies = [0, dy]; puntos.alto = 600 * KBY;
+      puntos.pieIzq = Q(tobillos[1]); puntos.pieDer = Q(tobillos[-1]); puntos.cadera = Q(W(sway, -192 + bob, 0, aCad - tau));
       mejillas.forEach((m) => m.setAttribute("opacity", (0.45 + 0.45 * EXP.rubor).toFixed(2)));
       orden.sort((a, b) => a.z - b.z).forEach((o) => cuerpo.appendChild(o.g));
     }

@@ -151,6 +151,17 @@
       $("#b-add-bloque").disabled = !acc.length;
       const b = selBloque !== null ? a.bloques[selBloque] : null; $("#bloque-det").hidden = !b; if (b) { deslizar("b-dur", b.dur || 2, (v) => v.toFixed(1) + " s");
         seg("#b-capa", { todo: "Todo el cuerpo", cuerpo: "Solo cuerpo", brazos: "Solo brazos" }, b.capa || "todo", (k) => cambio((x) => { const bb = x.actores.find((y) => y.id === a.id).bloques[selBloque]; if (k === "todo") delete bb.capa; else bb.capa = k; }, null, false)); }
+      // mirar a / agarrar: a quién o a qué (otros personajes, sus manos, el atrezo)
+      const otros = esc.actores.filter((x) => x.id !== a.id), nom = (x) => PJ[x.personaje]?.nombre || x.personaje, objs = esc.objetos || [];
+      $("#a-mirar").replaceChildren(h("option", { value: "nada" }, "Nadie (su pose)"), h("option", { value: "camara" }, "A cámara"), h("option", { value: "habla" }, "A quien habla"),
+        ...otros.map((x) => h("option", { value: x.id }, nom(x))), ...objs.map((o) => h("option", { value: o.id }, "▲ " + (ATREZO[o.tipo]?.nombre || o.tipo))));
+      $("#a-agarra").replaceChildren(h("option", { value: "nada" }, "Soltar"), ...otros.flatMap((x) => [h("option", { value: x.id + ".manoDer" }, "Mano dcha. de " + nom(x)), h("option", { value: x.id + ".manoIzq" }, "Mano izq. de " + nom(x))]),
+        ...objs.map((o) => h("option", { value: o.id }, "▲ " + (ATREZO[o.tipo]?.nombre || o.tipo))));
+      const ux = $("#a-extra"); ux.replaceChildren();
+      const txt = (v) => v === "nada" ? "nadie" : v === "camara" ? "cámara" : v === "habla" ? "quien habla" : String(v).replace(".manoDer", " (mano dcha.)").replace(".manoIzq", " (mano izq.)");
+      for (const [lista, ico, et] of [["mirar", "◉", (k) => "Mira a " + txt(k.a)], ["agarra", "✋", (k) => (k.a === "nada" ? "Suelta" : "Agarra " + txt(k.a)) + " · " + (k.mano === "Izq" ? "izq." : "dcha.")]])
+        (a[lista] || []).forEach((k, i) => ux.append(h("li", { onclick: () => { tiempo = k.t; dibujar(); pintarPistas(); pintarPanel(); } }, h("span", {}, ico), h("span", {}, et(k)), h("span", { class: "hueso" }, fmtT(k.t)),
+          h("button", { class: "x", title: "Quitar", onclick: (ev) => { ev.stopPropagation(); cambio((x) => { x.actores.find((y) => y.id === a.id)[lista].splice(i, 1); }, null, false); } }, "✕"))));
       $("#b-quitar-clave").disabled = !(a.recorrido || []).some((k) => Math.abs(k.t - tiempo) < 0.02) || a.recorrido.length < 2; }
     // atrezo
     $("#add-objeto").replaceChildren(...(window.Atrezo ? Atrezo.lista() : []).map(([k, n]) => h("option", { value: k }, n)));
@@ -218,6 +229,12 @@
   for (const k of ["tono", "vineta", "cant"]) $("#am-" + k).addEventListener("input", (ev) => cambio((x) => { x.ambiente = Object.assign({}, x.ambiente, { [k === "cant" ? "cantidad" : k]: +ev.target.value }); }, "am" + k, false));
   const ponEfecto = (tipo) => { if (!esc) return; cambio((x) => { (x.efectos = x.efectos || []).push({ t: +tiempo.toFixed(2), tipo, dur: tipo === "sacudida" ? 0.6 : 0.5, fuerza: 1 }); x.efectos.sort((a, b) => a.t - b.t); }, null, false); aviso((tipo === "destello" ? "Destello" : "Sacudida") + " en " + fmtT(tiempo)); };
   $("#b-destello").addEventListener("click", () => ponEfecto("destello")); $("#b-sacudida").addEventListener("click", () => ponEfecto("sacudida"));
+  // clave de mirar / agarrar en el cabezal (si ya hay una en ese instante, se cambia)
+  const ponClaveActor = (lista, valor) => { const a = actor(); if (!a) return; cambio((x) => { const y = x.actores.find((z) => z.id === a.id), l = (y[lista] = y[lista] || []);
+      const i = l.findIndex((k) => Math.abs(k.t - tiempo) < 0.02 && (lista !== "agarra" || k.mano === valor.mano)); const k = Object.assign({ t: +tiempo.toFixed(2) }, valor);
+      if (i >= 0) l[i] = k; else l.push(k); l.sort((m, n) => m.t - n.t); }, null, false); };
+  $("#b-mirar").addEventListener("click", () => ponClaveActor("mirar", { a: $("#a-mirar").value }));
+  $("#b-agarra").addEventListener("click", () => ponClaveActor("agarra", { a: $("#a-agarra").value, mano: $("#a-agarra-mano").value }));
   $("#b-add-objeto").addEventListener("click", () => { const tipo = $("#add-objeto").value; if (!tipo || !esc) return; let n = 1, id = tipo; while ((esc.objetos || []).some((o) => o.id === id)) id = tipo + "-" + ++n;
     const c = posCam(); cambio((x) => { (x.objetos = x.objetos || []).push({ id, tipo, x: Math.round(c.x + ((x.objetos.length % 3) - 1) * 380), p: 0.35, escala: 1 }); }); selObjeto = id; pintarPanel(); });
   const cambiaObj = (fn, clave) => { const ob = objeto(); if (ob) cambio((x) => fn(x.objetos.find((y) => y.id === ob.id)), clave, false); };

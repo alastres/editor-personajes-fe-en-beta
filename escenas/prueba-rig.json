@@ -1,0 +1,92 @@
+{
+  "nombre": "Prueba de rig: mirar, agarrar, sentarse",
+  "duracion": 6,
+  "fondo": {
+    "tipo": "dia"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -380,
+      "zoom": 1
+    }
+  ],
+  "actores": [
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -200,
+          "p": 0.1,
+          "giro": 40
+        }
+      ],
+      "bloques": [],
+      "mirar": [
+        {
+          "t": 0.5,
+          "a": "camara"
+        },
+        {
+          "t": 1.5,
+          "a": "tu"
+        }
+      ],
+      "agarra": [
+        {
+          "t": 2.5,
+          "mano": "Izq",
+          "a": "tu.manoDer"
+        },
+        {
+          "t": 4.5,
+          "mano": "Izq",
+          "a": "nada"
+        }
+      ]
+    },
+    {
+      "id": "tu",
+      "personaje": "tu",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 200,
+          "p": 0.1,
+          "giro": -40
+        }
+      ],
+      "bloques": [
+        {
+          "t": 3,
+          "accion": "sentarse",
+          "dur": 3
+        }
+      ],
+      "mirar": [
+        {
+          "t": 1,
+          "a": "pedro"
+        }
+      ]
+    }
+  ],
+  "objetos": [
+    {
+      "id": "roca",
+      "tipo": "roca",
+      "x": 260,
+      "p": 0.15,
+      "escala": 0.5,
+      "detras": true
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "id": "prueba-rig"
+}

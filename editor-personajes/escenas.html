@@ -91,6 +91,11 @@
             <div class="deslizador"><label>Duración de la acción elegida</label><input type="range" id="b-dur" min="0.3" max="20" step="0.1" /><output></output></div>
             <button id="b-quitar-bloque" class="peligro">Quitar esta acción</button>
           </div>
+          <div class="campo"><label>Mirar a <span class="tenue">(desde el cabezal; cabeza y ojos le siguen solos)</span></label>
+            <div class="fila-anadir"><select id="a-mirar"></select><button id="b-mirar">Poner</button></div></div>
+          <div class="campo"><label>Agarrar <span class="tenue">(desde el cabezal; el brazo llega solo)</span></label>
+            <div class="fila-anadir"><select id="a-agarra-mano"><option value="Der">Mano derecha</option><option value="Izq">Mano izquierda</option></select><select id="a-agarra"></select><button id="b-agarra">Poner</button></div></div>
+          <ul id="a-extra" class="piezas"></ul>
           <div class="fila-botones dos" style="margin-top:10px"><button id="b-quitar-clave">Quitar clave de recorrido</button><button id="b-quitar-actor" class="peligro">Quitar de la escena</button></div>
         </div>
       </section>

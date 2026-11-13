@@ -13,7 +13,7 @@
   const NS = "http://www.w3.org/2000/svg", ANCHO = 1080, ALTO = 1920;
   const el = (tag, at = {}, padre) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (padre) padre.appendChild(e); return e; };
   const mixc = (a, b, k) => { const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return "#" + A.map((x, i) => Math.round(x + (B[i] - x) * k).toString(16).padStart(2, "0")).join(""); };
-  const cl = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), lerp = (a, b, k) => a + (b - a) * k, suave = (x) => x * x * (3 - 2 * x), f1 = (x) => x.toFixed(1);
+  const rad = (g) => (g * Math.PI) / 180, cl = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x)), lerp = (a, b, k) => a + (b - a) * k, suave = (x) => x * x * (3 - 2 * x), f1 = (x) => x.toFixed(1);
   // interpolación de claves ordenadas por t (suavizada); devuelve el objeto mezclado campo a campo
   function claves(lista, t, campos) {
     const ks = [...(lista || [])].sort((a, b) => a.t - b.t); if (!ks.length) return null;
@@ -213,7 +213,23 @@
         for (const b of activos) { const ac = Personajes.buscarAccion(A.j, b.accion); if (!ac) continue;
           pz = Personajes.enCapas(pz, Personajes.accionPose(ac, t - b.t + (b.desde || 0)), b.capa || "todo"); Object.assign(ctrl, b.controles || {});
           if ((b.capa || "todo") !== "brazos" && ac.locomocion?.amp) loco = { ac, t0: b.t }; }
-        const e = Personajes.pose(Personajes.conControles(pz, A.j.controles, ctrl), base);
+        const pp = Personajes.conControles(pz, A.j.controles, ctrl);
+        // agarrar: la mano va (por IK) a la mano de otro personaje o a un objeto, con medio segundo de transición
+        for (const L of ["Izq", "Der"]) { const g = enClave((a.agarra || []).filter((k) => (k.mano || "Der") === L), t); if (!g) continue;
+          const objetivo = (k) => { const w = puntoMundo(k?.a); return w ? [(w[0] - q.x) / esc0, (w[1] + 170 * (q.p || 0)) / esc0] : null; };
+          const o1 = objetivo(g.k), o0 = objetivo(g.ant); let obj = o1 && o0 && g.f < 1 ? [lerp(o0[0], o1[0], g.f), lerp(o0[1], o1[1], g.f)] : o1, w = o1 ? (o0 ? 1 : g.f) : (o0 ? 1 - g.f : 0); if (!o1) obj = o0;
+          if (!obj || w <= 0.001) continue; const sol = Personajes.ikMano(A.j, pp, L, base.giro || 0, obj);
+          for (const c of ["K", "Lado", "Frente", "Codo", "Hacia"]) pp["b" + L + c] = lerp(pp["b" + L + c] ?? 0, sol["b" + L + c], w);
+          pp["m" + L] = Personajes.mezclar({ m: pp["m" + L] }, { m: { agarra: 1 } }, w).m; }
+        const e = Personajes.pose(pp, base);
+        // mirar a un punto: la cabeza (±65°) y los ojos (±85°) giran hacia el objetivo; también arriba o abajo
+        const mi = enClave(a.mirar, t);
+        if (mi) { const ojo = A.wp?.cabeza || [q.x, -170 * (q.p || 0) - 520 * esc0];
+          const dir = (k) => { if (!k || !k.a || k.a === "nada") return null; if (k.a === "camara") return { yaw: 0, y: 0 };
+            const w = puntoMundo(k.a === "habla" ? quienHabla(t, a.id) : k.a, "cabeza"); return w ? { yaw: Math.atan2(w[0] - ojo[0], 260), y: Math.max(-0.8, Math.min(0.8, (w[1] - ojo[1]) / 420)) } : null; };
+          const d1 = dir(mi.k), d0 = dir(mi.ant), d = d1 && d0 && mi.f < 1 ? { yaw: lerp(d0.yaw, d1.yaw, mi.f), y: lerp(d0.y, d1.y, mi.f) } : d1 || d0, w = d1 ? (d0 ? 1 : mi.f) : (d0 ? 1 - mi.f : 0);
+          if (d && w > 0.001) { const lim = (v, m) => Math.max(-m, Math.min(m, v)), rel = lim(d.yaw - e.torso, rad(65)), relO = lim(d.yaw - e.torso, rad(85));
+            e.cabeza = lerp(e.cabeza, e.torso + rel, w); e.ojos = lerp(e.ojos, e.torso + relO, w); e.miraY = lerp(e.miraY || 0, d.y, w); } }
         if (loco) { const lo = loco.ac.locomocion; Object.assign(e, { amp: lo.amp, correr: lo.correr || 0, fase: (t - loco.t0) * (lo.cad || (lo.correr ? 1.45 : 0.95)) }); }
         if (anda > 0.02 && !e.amp) Object.assign(e, { amp: anda, correr: corre, fase: recorrido(a.recorrido, t) / (corre > 0.5 ? 260 : 170) });
         // los brazos de una capa «brazos» mandan sobre el braceo de andar; sin ella, al andar los brazos bracean
@@ -227,7 +243,23 @@
           if (vis) { const f = v == null ? 1.1 : 0.7 + 0.55 * cl(v * 1.5); e.visema = { abre: Math.min(1.2, vis.abre * f * 1.2), ancho: vis.ancho, dientes: vis.dientes }; break; }
           if (v != null && !au.palabras) { e.boca = cl(v * 1.15); e.bocaAncho = Math.sin(u * 11.3) * Math.sin(u * 4.1); } }
         e.t = t; e.mundo = [q.x / esc0, -170 * (q.p || 0) / esc0];
-        A.m.dibujar(e); return q; }
+        A.m.dibujar(e);
+        // puntos del personaje en el mundo (para que otros le miren o le cojan de la mano en el fotograma siguiente)
+        const P2 = A.m.puntos || {}, aMundo = (pt) => pt && [q.x + pt[0] * esc0, -170 * (q.p || 0) + pt[1] * esc0];
+        A.wp = { cabeza: aMundo(P2.cabeza), manoIzq: aMundo(P2.manoIzq), manoDer: aMundo(P2.manoDer), pecho: aMundo(P2.pecho) };
+        return q; }
+    // clave vigente de una lista ({ t, … }, se mantiene hasta la siguiente), la anterior y cuánto va de la transición (0…1 en 0,4 s)
+    function enClave(lista, t) { if (!lista || !lista.length) return null; const ks = [...lista].sort((x, y) => x.t - y.t); let i = -1; for (let n = 0; n < ks.length; n++) if (ks[n].t <= t) i = n;
+      if (i < 0) return null; return { k: ks[i], ant: ks[i - 1] || null, f: suave(cl((t - ks[i].t) / 0.4)) }; }
+    // punto del mundo por nombre: "pedro" (su cabeza), "pedro.manoIzq", un objeto del atrezo (su asa) o { x, y }
+    function puntoMundo(ref, parte) { if (!ref || ref === "nada") return null; if (typeof ref === "object") return [ref.x || 0, ref.y || 0];
+      const [id, pt] = String(ref).split("."); const A = actores.find((x) => x.a.id === id); if (A) return A.wp?.[pt || parte || "cabeza"] || A.wp?.cabeza || null;
+      const O = objetos.find((x) => (x.ob.id || x.ob.tipo) === id); if (O) { const ob = O.ob, k = (ob.escala || 1) * (1 - 0.38 * (ob.p || 0)), ag = ob.agarre || { x: 0, y: -120 };
+        return [(ob.x || 0) + ag.x * k * (ob.espejo ? -1 : 1), -170 * (ob.p || 0) + ag.y * k]; }
+      return null; }
+    // quién habla en t (otro actor con un audio sonando, o el de la voz del montaje)
+    function quienHabla(t, yo) { for (const au of esc.audios || []) if (au.habla && au.habla !== yo && t >= (au.t || 0) && t < (au.t || 0) + (au.dur || 1e9)) return au.habla;
+      if (op.voz && op.voz.habla && op.voz.habla !== yo && op.voz.habla !== "auto") return op.voz.habla; return null; }
     function pintarTextos(t) {
       // rótulos (en pantalla, no se mueven con la cámara)
       gTextos.replaceChildren();

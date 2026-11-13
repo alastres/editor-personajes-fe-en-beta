@@ -1,0 +1,26 @@
+{
+  "id": "rodilla-en-tierra",
+  "nombre": "Rodilla en tierra",
+  "duracion": 1.2,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "editor (rig de piernas)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.7,
+      "pose": {
+        "agacha": 1.2,
+        "pieDerFrente": 70,
+        "pieIzqFrente": -85,
+        "inclina": 0.1
+      },
+      "curva": "suave"
+    }
+  ]
+}

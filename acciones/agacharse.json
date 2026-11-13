@@ -1,0 +1,26 @@
+{
+  "id": "agacharse",
+  "nombre": "Agacharse (en cuclillas)",
+  "duracion": 1.2,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "editor (rig de piernas)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.7,
+      "pose": {
+        "agacha": 1.4,
+        "pieIzqLado": 25,
+        "pieDerLado": 25,
+        "inclina": 0.15
+      },
+      "curva": "suave"
+    }
+  ]
+}

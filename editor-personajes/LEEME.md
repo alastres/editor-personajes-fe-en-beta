@@ -223,3 +223,13 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
   - **partículas:** polvo, luciérnagas, nieve, chispas o ceniza, con su cantidad.
 - **Efectos en el cabezal:** ✦ destello (un fogonazo de luz: un milagro, un rayo) y ≋ sacudida de cámara (un golpe, un temblor), cada uno con su fuerza y duración.
 - En el JSON: `ambiente: { tono, vineta, particulas, cantidad }` y `efectos: [{ t, tipo, dur, fuerza }]`. Se pinta encima de la escena y debajo de los rótulos.
+
+## Rig de piernas, mirar y agarrar (fase 16)
+- **Piernas:**
+  - en Personajes → Animación hay asas nuevas: los dos pies (arrastrar = adelante, atrás o a un lado; hacia arriba lo levanta) y la cadera (arriba o abajo = agacharse). Las rodillas se doblan solas por IK;
+  - en Posar hay deslizadores por pie (adelante, abrir, levantar), «Tumbarse» y «Agacharse» hasta 160 %;
+  - acciones comunes nuevas: Sentarse, Rodilla en tierra, Arrodillarse (orar), Agacharse (en cuclillas) y Tumbarse, con transición de 0,7 s.
+- **Mirar a** (Escenas, personaje elegido): desde el cabezal mira a cámara, a quien habla, a otro personaje o a un objeto. La cabeza gira hasta 65° y los ojos hasta 85°; también mira arriba o abajo. «Nadie» le devuelve a su pose. Cada cambio tiene una transición de 0,4 s.
+- **Agarrar:** desde el cabezal, la mano derecha o izquierda va por IK a la mano de otro personaje o a un objeto (su asa: `agarre: { x, y }` en el objeto; por defecto, 120 por encima de su base). «Soltar» la devuelve.
+- La IK de manos está ahora en `comun/personajes.js` (`ikMano`, `manoFK`): la comparten el rig del editor y las escenas.
+- En el JSON del actor: `mirar: [{ t, a }]` y `agarra: [{ t, mano, a }]`, donde `a` es "camara", "habla", "nada", el id de un personaje, "id.manoDer" o "id.manoIzq", o el id de un objeto.

@@ -32,7 +32,8 @@
   // ACCIONES: { id, nombre, duracion, bucle, locomocion: { amp, correr, cad }, claves: [{ t, pose }] } → interpoladas con suavizado.
   const POSE0 = { torso: 0, cabeza: 0, inclina: 0, ladeo: 0, hombros: 0, agacha: 0, altura: 0, miraY: 0,
     bIzqK: 0, bIzqLado: 0.29, bIzqFrente: 0, bIzqCodo: 0.25, bIzqHacia: -0.3, bDerK: 0, bDerLado: 0.29, bDerFrente: 0, bDerCodo: 0.25, bDerHacia: -0.3,
-    mIzq: { relajada: 1 }, mDer: { relajada: 1 }, pIzq: "auto", pDer: "auto", cara: {} };
+    mIzq: { relajada: 1 }, mDer: { relajada: 1 }, pIzq: "auto", pDer: "auto", cara: {},
+    pieIzqLado: 0, pieIzqAlto: 0, pieIzqFrente: 0, pieDerLado: 0, pieDerAlto: 0, pieDerFrente: 0, tumbado: 0 };
   const PALMAS = { auto: null, adelante: [0, 0, 1], arriba: [0, -0.75, 0.65], cuerpo: [0, 0, -1] };
   const rad = (g) => (g * Math.PI) / 180, lerp = (a, b, k) => a + (b - a) * k;
   const esObj = (x) => x && typeof x === "object" && !Array.isArray(x);
@@ -76,7 +77,8 @@
   // pose → parámetros de dibujar(); base: { giro (grados), variantes … }
   function pose(p, base = {}) { p = completa(p); const g = base.giro || 0, aT = rad(g + p.torso);
     const e = { torso: aT, brazos: aT, cabeza: rad(g + p.torso + p.cabeza), ojos: rad(g + p.torso + p.cabeza), inclina: p.inclina, ladeo: p.ladeo, hombros: p.hombros,
-      agacha: p.agacha, altura: p.altura, miraY: p.miraY, cara: p.cara };
+      agacha: p.agacha, altura: p.altura, miraY: p.miraY, cara: p.cara, tumbado: p.tumbado };
+    for (const L of ["Izq", "Der"]) if (p["pie" + L + "Lado"] || p["pie" + L + "Alto"] || p["pie" + L + "Frente"]) e["paso" + L] = { lado: p["pie" + L + "Lado"], alto: p["pie" + L + "Alto"], frente: p["pie" + L + "Frente"] };
     for (const L of ["Izq", "Der"]) { const k = p["b" + L + "K"];
       if (k > 0.001) e["brazo" + L] = { lado: p["b" + L + "Lado"], frente: p["b" + L + "Frente"], codo: p["b" + L + "Codo"], hacia: [p["b" + L + "Hacia"], -1, 0.3], k: Math.min(1, k) };
       e["mano" + L] = p["m" + L]; const pl = PALMAS[p["p" + L]]; if (pl) e["palma" + L] = pl; }
@@ -129,6 +131,33 @@
   const _vis = new WeakMap();
   const visemaEn = (palabras, u) => { if (!palabras || !palabras.length) return null; let f = _vis.get(palabras); if (!f) { f = visemas(palabras); _vis.set(palabras, f); } return f(u); };
 
+
+  // ---- IK de manos (compartida por el rig del editor y por «agarrar» en las escenas). La cinemática directa replica la del títere
+  // (comun/titere25d.js, brazos) para resolver lado / frente / codo que llevan la mano a un punto en coordenadas del grupo del personaje.
+  const v3 = { add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], mul: (a, k) => [a[0] * k, a[1] * k, a[2] * k], dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2] };
+  v3.nrm = (a) => v3.mul(a, 1 / (Math.hypot(...a) || 1));
+  const medidas = (j) => { const TIP = { normal: [1, 1], mujer: [0.88, 0.95], nino: [0.7, 0.58], chibi: [0.7, 0.54] }, o = j?.opciones || {}, t0 = TIP[o.proporciones] || TIP.normal; return [o.cuerpoX ?? t0[0], o.cuerpoY ?? t0[1]]; };
+  function manoFK(j, p, L, giro) { const T = Titere25D, sg = L === "Izq" ? 1 : -1, ang = rad(giro + p.torso), AG = p.agacha || 0, incl = (p.inclina || 0) + 0.22 * AG, lean = (y) => incl * (-192 - y);
+    const hom = T.W(sg * 76, -392 + 62 * AG - (p.hombros || 0), lean(-392), ang), k = Math.min(1, p["b" + L + "K"]);
+    const Lb = 0.29 + (p["b" + L + "Lado"] - 0.29) * k, Fb = p["b" + L + "Frente"] * k, Cb = (0.2443 + 0.5236 * AG) + (p["b" + L + "Codo"] - (0.2443 + 0.5236 * AG)) * k;
+    const uL = [sg * Math.sin(Lb), Math.cos(Lb) * Math.cos(Fb), Math.cos(Lb) * Math.sin(Fb)], h0 = [p["b" + L + "Hacia"] * sg, -1, 0.3];
+    const hL = v3.nrm([h0[0] * k, h0[1] * k, 1 + (h0[2] - 1) * k]); let nL = v3.add(hL, v3.mul(uL, -v3.dot(hL, uL))); if (Math.hypot(...nL) < 0.15) nL = [-sg * 0.3, -1, 0.2]; nL = v3.nrm(nL);
+    const fL = v3.add(v3.mul(uL, Math.cos(Cb)), v3.mul(nL, Math.sin(Cb))), dU = v3.nrm(T.W(...uL, ang)), dF = v3.nrm(T.W(...fL, ang));
+    const mano = v3.add(v3.add(v3.add(hom, v3.mul(dU, 88)), v3.mul(dF, 70)), v3.mul(dF, 16)), q = T.PR(mano), [kx, ky] = medidas(j);
+    return [q[0] * kx, q[1] * ky - (p.altura || 0) * ky]; }
+  // descenso por coordenadas desde varios puntos de partida (la postura actual y tres con el brazo por delante): se queda con la mejor
+  function ikMano(j, p, L, giro, objetivo) { p = completa(p); let mejor = null;
+    for (const ini of [{}, { Lado: 0.6, Frente: 0.6, Codo: 1.2 }, { Lado: 1.2, Frente: 0.3, Codo: 0.6 }, { Lado: 0.3, Frente: 1.1, Codo: 1.6 }]) {
+      const q0 = Object.assign({}, p); for (const c in ini) q0["b" + L + c] = ini[c]; const r = ik1(j, q0, L, giro, objetivo); if (!mejor || r.e < mejor.e) mejor = r; }
+    return mejor.q; }
+  function ik1(j, p, L, giro, objetivo) { const q = Object.assign({}, p, { ["b" + L + "K"]: 1 }), lim = { Lado: [-0.5, 2.4], Frente: [-1, 1.6], Codo: [0, 2.6] };
+    const err = () => { const m = manoFK(j, q, L, giro); return Math.hypot(m[0] - objetivo[0], m[1] - objetivo[1]) + 25 * Math.max(0, 0.1 - q["b" + L + "Frente"]); };   // prefiere el brazo por delante del cuerpo
+    let paso = 0.25, e0 = err();
+    for (let it = 0; it < 80 && paso > 0.002; it++) { let mejoro = false;
+      for (const c of ["Lado", "Frente", "Codo"]) { const kk = "b" + L + c; for (const d of [paso, -paso]) { const ant = q[kk]; q[kk] = Math.max(lim[c][0], Math.min(lim[c][1], ant + d)); const e1 = err(); if (e1 < e0 - 1e-6) { e0 = e1; mejoro = true; } else q[kk] = ant; } }
+      if (!mejoro) paso *= 0.5; }
+    return { q, e: e0 }; }
+
   window.Personajes = { op, colores, DERIVA, mix, crear: (padre, j, extra) => Titere25D.crear(padre, op(j, extra)),
-    POSE0, PALMAS, mezclar, completa, conControles, accionPose, pose, accion, control, buscarAccion, enCapas, CURVAS, curva, VISEMAS, fonemas, visemas, visemaEn };
+    POSE0, PALMAS, mezclar, completa, conControles, accionPose, pose, accion, control, buscarAccion, enCapas, CURVAS, curva, VISEMAS, fonemas, visemas, visemaEn, manoFK, ikMano, medidas };
 })();

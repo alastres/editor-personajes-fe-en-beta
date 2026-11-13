@@ -1,0 +1,40 @@
+{
+  "id": "arrodillarse",
+  "nombre": "Arrodillarse (orar)",
+  "duracion": 1.2,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "editor (rig de piernas)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.7,
+      "pose": {
+        "agacha": 1.55,
+        "pieIzqFrente": -90,
+        "pieDerFrente": -90,
+        "miraY": 0.4,
+        "bDerK": 1,
+        "bDerLado": 0.15,
+        "bDerFrente": 0.9,
+        "bDerCodo": 1.9,
+        "bIzqK": 1,
+        "bIzqLado": 0.15,
+        "bIzqFrente": 0.9,
+        "bIzqCodo": 1.9,
+        "mDer": {
+          "abierta": 1
+        },
+        "mIzq": {
+          "abierta": 1
+        }
+      },
+      "curva": "suave"
+    }
+  ]
+}

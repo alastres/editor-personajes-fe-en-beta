@@ -1,0 +1,23 @@
+{
+  "id": "tumbarse",
+  "nombre": "Tumbarse (boca arriba)",
+  "duracion": 1.2,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "editor (rig de piernas)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.7,
+      "pose": {
+        "tumbado": 1
+      },
+      "curva": "suave"
+    }
+  ]
+}

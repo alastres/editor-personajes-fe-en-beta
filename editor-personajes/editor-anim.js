@@ -10,7 +10,9 @@
   const gr = (g) => (v) => Math.round(v) + "°", pc = (v) => Math.round(v * 100) + "%", n2 = (v) => v.toFixed(2);
   const CUERPO = [["torso", "Girar el torso", -90, 90, 1, gr()], ["cabeza", "Girar la cabeza", -60, 60, 1, gr()], ["miraY", "Mirar abajo / arriba", -1, 1, 0.01, n2],
     ["inclina", "Inclinarse", -0.3, 0.5, 0.01, n2], ["ladeo", "Ladear la cabeza", -20, 20, 0.5, gr()], ["hombros", "Encoger hombros", -10, 20, 0.5, (v) => Math.round(v)],
-    ["agacha", "Agacharse", 0, 1, 0.01, pc], ["altura", "Despegar del suelo", 0, 260, 1, (v) => Math.round(v)]];
+    ["agacha", "Agacharse (sentarse, arrodillarse)", 0, 1.6, 0.01, pc], ["altura", "Despegar del suelo", 0, 260, 1, (v) => Math.round(v)], ["tumbado", "Tumbarse", 0, 1, 0.01, pc],
+    ["pieDerFrente", "Pie derecho: adelante / atrás", -160, 160, 1, (v) => Math.round(v)], ["pieDerLado", "Pie derecho: abrir", -30, 120, 1, (v) => Math.round(v)], ["pieDerAlto", "Pie derecho: levantar", 0, 220, 1, (v) => Math.round(v)],
+    ["pieIzqFrente", "Pie izquierdo: adelante / atrás", -160, 160, 1, (v) => Math.round(v)], ["pieIzqLado", "Pie izquierdo: abrir", -30, 120, 1, (v) => Math.round(v)], ["pieIzqAlto", "Pie izquierdo: levantar", 0, 220, 1, (v) => Math.round(v)]];
   const BRAZO = (L) => [["b" + L + "K", "Cuánto manda la pose", 0, 1, 0.01, pc], ["b" + L + "Lado", "Abrir hacia fuera", -0.5, 2.4, 0.01, n2], ["b" + L + "Frente", "Hacia delante / atrás", -1, 1.6, 0.01, n2],
     ["b" + L + "Codo", "Doblar el codo", 0, 2.6, 0.01, n2], ["b" + L + "Hacia", "El codo dobla hacia dentro / fuera", -1, 1, 0.01, n2]];
 
@@ -180,33 +182,15 @@
   const NSs = "http://www.w3.org/2000/svg", lienzoR = $("#lienzo"), gAsas = document.createElementNS(NSs, "g"); gAsas.id = "asas-rig"; lienzoR.appendChild(gAsas);
   const T = E.T, v3 = { add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], mul: (a, k) => [a[0] * k, a[1] * k, a[2] * k], dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2] };
   v3.nrm = (a) => v3.mul(a, 1 / (Math.hypot(...a) || 1));
-  const medidas = () => { const TIP = { normal: [1, 1], mujer: [0.88, 0.95], nino: [0.7, 0.58], chibi: [0.7, 0.54] }, o = j().opciones, t0 = TIP[o.proporciones] || TIP.normal; return [o.cuerpoX ?? t0[0], o.cuerpoY ?? t0[1]]; };
-  function manoFK(p, L, giro) { const sg = L === "Izq" ? 1 : -1, ang = E.rad(giro + p.torso), AG = p.agacha || 0, incl = (p.inclina || 0) + 0.22 * AG, lean = (y) => incl * (-192 - y);
-    const hom = T.W(sg * 76, -392 + 62 * AG - (p.hombros || 0), lean(-392), ang), k = Math.min(1, p["b" + L + "K"]);
-    const Lb = 0.29 + (p["b" + L + "Lado"] - 0.29) * k, Fb = p["b" + L + "Frente"] * k, Cb = (0.2443 + 0.5236 * AG) + (p["b" + L + "Codo"] - (0.2443 + 0.5236 * AG)) * k;
-    const uL = [sg * Math.sin(Lb), Math.cos(Lb) * Math.cos(Fb), Math.cos(Lb) * Math.sin(Fb)], h0 = [p["b" + L + "Hacia"] * sg, -1, 0.3];
-    const hL = v3.nrm([h0[0] * k, h0[1] * k, 1 + (h0[2] - 1) * k]); let nL = v3.add(hL, v3.mul(uL, -v3.dot(hL, uL))); if (Math.hypot(...nL) < 0.15) nL = [-sg * 0.3, -1, 0.2]; nL = v3.nrm(nL);
-    const fL = v3.add(v3.mul(uL, Math.cos(Cb)), v3.mul(nL, Math.sin(Cb))), dU = v3.nrm(T.W(...uL, ang)), dF = v3.nrm(T.W(...fL, ang));
-    const mano = v3.add(v3.add(v3.add(hom, v3.mul(dU, 88)), v3.mul(dF, 70)), v3.mul(dF, 16)), q = T.PR(mano), [kx, ky] = medidas();
-    return [q[0] * kx, q[1] * ky - (p.altura || 0) * ky]; }
-  // resuelve por descenso por coordenadas (rápido: solo cálculo, sin dibujar)
-  // varios puntos de partida (la postura actual y dos con el brazo por delante): se queda con la mejor, evitando soluciones retorcidas
-  function ik(p, L, giro, objetivo) { let mejor = null;
-    for (const ini of [{}, { Lado: 0.6, Frente: 0.6, Codo: 1.2 }, { Lado: 1.2, Frente: 0.3, Codo: 0.6 }, { Lado: 0.3, Frente: 1.1, Codo: 1.6 }]) {
-      const q0 = Object.assign({}, p); for (const c in ini) q0["b" + L + c] = ini[c]; const r = ik1(q0, L, giro, objetivo); if (!mejor || r.e < mejor.e) mejor = r; }
-    return mejor.q; }
-  function ik1(p, L, giro, objetivo) { const q = Object.assign({}, p, { ["b" + L + "K"]: 1 }), lim = { Lado: [-0.5, 2.4], Frente: [-1, 1.6], Codo: [0, 2.6] };
-    const err = () => { const m = manoFK(q, L, giro); return Math.hypot(m[0] - objetivo[0], m[1] - objetivo[1]) + 25 * Math.max(0, 0.1 - q["b" + L + "Frente"]); };   // prefiere el brazo por delante del cuerpo
-    let paso = 0.25, e0 = err();
-    for (let it = 0; it < 80 && paso > 0.002; it++) { let mejoro = false;
-      for (const c of ["Lado", "Frente", "Codo"]) { const kk = "b" + L + c; for (const d of [paso, -paso]) { const ant = q[kk]; q[kk] = Math.max(lim[c][0], Math.min(lim[c][1], ant + d)); const e1 = err(); if (e1 < e0 - 1e-6) { e0 = e1; mejoro = true; } else q[kk] = ant; } }
-      if (!mejoro) paso *= 0.5; }
-    return { q, e: e0 }; }
+  // la IK de manos está en comun/personajes.js (la usan también las escenas para «agarrar»)
+  const medidas = () => P.medidas(j()), manoFK = (p, L, giro) => P.manoFK(j(), p, L, giro), ik = (p, L, giro, objetivo) => P.ikMano(j(), p, L, giro, objetivo);
   function pintarAsas() { gAsas.replaceChildren(); const m = E.m; if (!activo || play || !m || !j()) return; const P2 = m.puntos;
     const asa = (id, q, color, titulo) => { if (!q) return; const c = document.createElementNS(NSs, "circle"); c.setAttribute("cx", q[0]); c.setAttribute("cy", q[1]); c.setAttribute("r", 16); c.setAttribute("fill", color); c.setAttribute("fill-opacity", "0.35"); c.setAttribute("stroke", color); c.setAttribute("stroke-width", 3); c.setAttribute("data-rig", id); c.style.cursor = "grab";
       const t = document.createElementNS(NSs, "title"); t.textContent = titulo; c.append(t); gAsas.append(c); };
     asa("manoDer", P2.manoDer, "#ff7a5a", "Mano derecha: arrástrala (el brazo la sigue)"); asa("manoIzq", P2.manoIzq, "#7ab8ff", "Mano izquierda: arrástrala (el brazo la sigue)");
-    asa("cabeza", P2.cabeza && [P2.cabeza[0], P2.cabeza[1] - 10], "#f0d27a", "Cabeza: ← → gira · ↑ ↓ mira"); asa("pecho", P2.pecho, "#a8e08a", "Pecho: ← → gira el torso · ↑ ↓ se inclina"); }
+    asa("cabeza", P2.cabeza && [P2.cabeza[0], P2.cabeza[1] - 10], "#f0d27a", "Cabeza: ← → gira · ↑ ↓ mira"); asa("pecho", P2.pecho, "#a8e08a", "Pecho: ← → gira el torso · ↑ ↓ se inclina");
+    asa("cadera", P2.cadera, "#c8a0ff", "Cadera: ↑ ↓ se agacha o se levanta (las rodillas se doblan solas)");
+    asa("pieDer", P2.pieDer, "#ff7a5a", "Pie derecho: arrástralo (adelante, atrás, a un lado; hacia arriba lo levanta)"); asa("pieIzq", P2.pieIzq, "#7ab8ff", "Pie izquierdo: arrástralo (adelante, atrás, a un lado; hacia arriba lo levanta)"); }
   let rig = null;
   const localP = (ev) => { const m = $("#principal").getScreenCTM().inverse(), pt = lienzoR.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const q = pt.matrixTransform(m); return [q.x, q.y]; };
   lienzoR.addEventListener("pointerdown", (ev) => { const c = ev.target.closest && ev.target.closest("[data-rig]"); if (!c || !activo) return; ev.preventDefault(); ev.stopPropagation(); play = false;
@@ -214,6 +198,12 @@
   lienzoR.addEventListener("pointermove", (ev) => { if (!rig) return; const p = localP(ev), dx = p[0] - rig.p0[0], dy = p[1] - rig.p0[1], r = rig;
     if (r.id.startsWith("mano")) { const L = r.id.slice(4), q = ik(r.pose, L, r.giro, p); editar((x) => { for (const c of ["K", "Lado", "Frente", "Codo"]) x["b" + L + c] = +q["b" + L + c].toFixed(3); }, "rig-" + r.id); }
     else if (r.id === "cabeza") editar((x) => { x.cabeza = Math.max(-60, Math.min(60, r.pose.cabeza + dx * 0.5)); x.miraY = Math.max(-1, Math.min(1, r.pose.miraY + dy / 60)); }, "rig-cabeza");
+    else if (r.id === "cadera") editar((x) => { x.agacha = +Math.max(0, Math.min(1.6, (r.pose.agacha || 0) + dy / 62)).toFixed(3); }, "rig-cadera");
+    else if (r.id.startsWith("pie")) { const L = r.id.slice(3), sg = L === "Izq" ? 1 : -1, ang = E.rad(r.giro + (r.pose.torso || 0)), [kx, ky] = medidas();
+      // el arrastre en pantalla se reparte entre «a un lado» y «adelante» según hacia dónde mira; hacia arriba lo levanta
+      const ux = dx / kx, c = Math.cos(ang), s2 = Math.sin(ang), alto = Math.max(0, (r.pose["pie" + L + "Alto"] || 0) - dy / ky);
+      editar((x) => { x["pie" + L + "Lado"] = +Math.max(-30, Math.min(120, (r.pose["pie" + L + "Lado"] || 0) + ux * c * sg)).toFixed(1); x["pie" + L + "Frente"] = +Math.max(-160, Math.min(160, (r.pose["pie" + L + "Frente"] || 0) + ux * s2)).toFixed(1);
+        x["pie" + L + "Alto"] = +Math.min(220, alto).toFixed(1); }, "rig-" + r.id); }
     else if (r.id === "pecho") editar((x) => { x.torso = Math.max(-90, Math.min(90, r.pose.torso + dx * 0.4)); x.inclina = Math.max(-0.3, Math.min(0.5, r.pose.inclina + dy / 300)); }, "rig-pecho"); });
   const soltarRig = () => { rig = null; }; lienzoR.addEventListener("pointerup", soltarRig); lienzoR.addEventListener("pointercancel", soltarRig);
 

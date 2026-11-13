@@ -46,9 +46,9 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 - [x] *(13 nov 2026)* **Ambiente:** tono frío o cálido, viñeta, partículas, destello y sacudida de cámara (los efectos del short v2).
 
 ### Rig
-- [ ] **Piernas en el rig:** asas en los pies con IK de pierna; sentarse, arrodillarse, agacharse con apoyo; tumbarse.
-- [ ] **Mirar a un punto o a otro personaje:** ojos y cabeza siguen a quien habla o a un objeto, sin claves a mano.
-- [ ] **Agarrar en escena:** la mano sigue un objeto o la mano de otro personaje (objetivo de IK en la escena).
+- [x] *(13 nov 2026)* **Piernas en el rig:** asas en los pies con IK de pierna; sentarse, arrodillarse, agacharse con apoyo; tumbarse.
+- [x] *(13 nov 2026)* **Mirar a un punto o a otro personaje:** ojos y cabeza siguen a quien habla o a un objeto, sin claves a mano.
+- [x] *(13 nov 2026)* **Agarrar en escena:** la mano sigue un objeto o la mano de otro personaje (objetivo de IK en la escena).
 
 ---
 
@@ -101,4 +101,4 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 - [ ] En contrapicado y corriendo, la mano que sube parece tapar la boca.
 - [ ] Las etiquetas de la hoja de giro se ven pequeñas.
 - [ ] El taller convierte los arcos de los SVG (comando `A`) como rectas.
-- [ ] Las asas de IK solo mueven brazos, cabeza y pecho (faltan las piernas: ver P1).
+- [x] *(13 nov 2026)* Las asas de IK solo movían brazos, cabeza y pecho: ya hay asas en los pies y en la cadera.
