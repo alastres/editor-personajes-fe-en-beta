@@ -68,7 +68,36 @@
   // ---- dibujo
   const lienzo = $("#lienzo"), capa = $("#capa-escena");
   function reconstruir() { if (!esc) return; capa.replaceChildren(); motor = Escena.crear(capa, esc, PJ); RenderUI.formatoLienzo(lienzo, esc.formato); prepararAudios(); pintarPanel(); pintarPistas(); dibujar(); }
-  function dibujar() { if (motor) motor.dibujar(Math.min(tiempo, D())); }
+  function dibujar() { if (motor) motor.dibujar(Math.min(tiempo, D())); pintarPlanta(); }
+  // ---- VISTA DE PLANTA: la escena vista desde arriba. x a lo ancho, profundidad (p) hacia arriba; abajo la cámara con lo que ve (triángulo).
+  // Personajes = círculos, atrezo = cuadrados; arrastrar un punto lo mueve en x y en profundidad (los personajes, con clave en el cabezal).
+  const PL = { x0: -1800, x1: 1800, p0: -1, p1: 3.2, W: 300, H: 230 }, plX = (x) => ((x - PL.x0) / (PL.x1 - PL.x0)) * PL.W, plY = (p) => PL.H - 26 - ((p - PL.p0) / (PL.p1 - PL.p0)) * (PL.H - 34);
+  const plDe = (X, Y) => ({ x: PL.x0 + (X / PL.W) * (PL.x1 - PL.x0), p: PL.p0 + ((PL.H - 26 - Y) / (PL.H - 34)) * (PL.p1 - PL.p0) });
+  let plArr = null;
+  function pintarPlanta() { const sv = $("#planta"); if (!sv || !esc || $("#planta-caja").classList.contains("plegada")) return; const NSs = "http://www.w3.org/2000/svg";
+    const e = (tag, at, padre = sv) => { const n = document.createElementNS(NSs, tag); for (const k in at) n.setAttribute(k, at[k]); padre.appendChild(n); return n; };
+    sv.replaceChildren(); const c = posCam(), z = c.zoom || 1, med = (Escena.ANCHO / 2) / z;
+    for (const pp of [0, 1, 2, 3]) { e("line", { x1: 0, x2: PL.W, y1: plY(pp), y2: plY(pp), stroke: "#2a3248", "stroke-width": pp === 0 ? 1.5 : 1 }); e("text", { x: 3, y: plY(pp) - 2, fill: "#6a7490", "font-size": 9 }).textContent = "z " + pp; }
+    e("line", { x1: 0, x2: PL.W, y1: plY(-0.5), y2: plY(-0.5), stroke: "#3a2a30", "stroke-dasharray": "3 3" });
+    // lo que ve la cámara: a cada profundidad, el ancho visible crece con la distancia
+    const fr = [-0.95, PL.p1].map((pp) => { const s2 = sDe(pp), hw = med / s2; return [plX(c.x - hw), plX(c.x + hw), plY(pp)]; });
+    e("path", { d: `M${fr[0][0]} ${fr[0][2]} L ${fr[1][0]} ${fr[1][2]} L ${fr[1][1]} ${fr[1][2]} L ${fr[0][1]} ${fr[0][2]} Z`, fill: "#f0a33a22", stroke: "#f0a33a88" });
+    e("path", { d: `M${plX(c.x) - 7} ${PL.H - 4} L ${plX(c.x) + 7} ${PL.H - 4} L ${plX(c.x)} ${PL.H - 16} Z`, fill: "#f0a33a" });
+    e("text", { x: plX(c.x) + 10, y: PL.H - 5, fill: "#f0a33a", "font-size": 9 }).textContent = "cámara · alto " + Math.round(c.alto ?? 450);
+    for (const ob of esc.objetos || []) { const g = e("g", { class: "pl-act", "data-tipo": "o", "data-id": ob.id }); const w = 6 + 5 * (ob.escala || 1);
+      e("rect", { x: plX(ob.x || 0) - w / 2, y: plY(ob.p || 0) - w / 2, width: w, height: w, rx: 2, fill: ob.id === selObjeto ? "#ffd27a" : "#8a7a6a", stroke: "#000a" }, g); }
+    for (const a of esc.actores || []) { const q = posActor(a), g = e("g", { class: "pl-act", "data-tipo": "a", "data-id": a.id });
+      e("circle", { cx: plX(q.x), cy: plY(q.p || 0), r: 6, fill: a.id === selActor ? "#9ae0a0" : "#6aa0e0", stroke: "#000a" }, g);
+      const ang = ((q.giro ?? 20) * Math.PI) / 180; e("line", { x1: plX(q.x), y1: plY(q.p || 0), x2: plX(q.x) + 11 * Math.sin(ang), y2: plY(q.p || 0) + 11 * Math.cos(ang), stroke: "#fff", "stroke-width": 1.5 }, g);
+      e("text", { x: plX(q.x) + 8, y: plY(q.p || 0) - 6, fill: "#cfd6e8", "font-size": 9 }, g).textContent = a.id; } }
+  function plPunto(ev) { const sv = $("#planta"), r = sv.getBoundingClientRect(); return plDe(((ev.clientX - r.left) / r.width) * PL.W, ((ev.clientY - r.top) / r.height) * PL.H); }
+  $("#planta").addEventListener("pointerdown", (ev) => { const g = ev.target.closest(".pl-act"); if (!g) return; plArr = { tipo: g.dataset.tipo, id: g.dataset.id };
+    if (plArr.tipo === "a") selActor = plArr.id; else selObjeto = plArr.id; try { $("#planta").setPointerCapture(ev.pointerId); } catch {} pintarPanel(); });
+  $("#planta").addEventListener("pointermove", (ev) => { if (!plArr) return; const w = plPunto(ev), x = Math.round(w.x), p = +cl(w.p, -0.9, 3).toFixed(2);
+    if (plArr.tipo === "a") cambio((xx) => tocarClave(xx.actores.find((y) => y.id === plArr.id).recorrido, ["x", "p", "giro"], { x, p }), "plA" + plArr.id + tiempo.toFixed(2), false);
+    else cambio((xx) => { const o = xx.objetos.find((y) => y.id === plArr.id); o.x = x; o.p = p; }, "plO" + plArr.id, false); });
+  $("#planta").addEventListener("pointerup", () => { plArr = null; });
+  $("#b-planta").addEventListener("click", () => { const c = $("#planta-caja"); c.classList.toggle("plegada"); $("#b-planta").textContent = c.classList.contains("plegada") ? "+" : "–"; pintarPlanta(); });
   function bucle(ahora) { const t = ahora / 1000;
     if (play && esc) { if (tAnt !== null) tiempo += t - tAnt; tAnt = t; if (tiempo >= D()) { tiempo = D(); parar(); } dibujar(); moverCabezal(); }
     requestAnimationFrame(bucle); }
@@ -136,7 +165,10 @@
   function paramsObjeto(ob) { const defs = ATREZO[ob.tipo]?.params || {}, o = {}; for (const [k, d] of Object.entries(defs)) o[k] = ob.params?.[k] ?? d[3];
     const q = ob.claves?.length ? Escena.claves(ob.claves, tiempo, Object.keys(defs)) : null; if (q) for (const k in defs) if (q[k] !== undefined) o[k] = +(+q[k]).toFixed(3); return o; }
   const posActor = (a) => Escena.claves(a.recorrido, tiempo, ["x", "p", "giro"]) || { x: 0, p: 0, giro: 20 };
-  const posCam = () => Escena.claves(esc.camara, tiempo, ["x", "y", "zoom"]) || { x: 0, y: -360, zoom: 1 };
+  const CAMPOS_CAM = ["x", "y", "zoom", "alto", "roll", "tilt"];
+  const posCam = () => Escena.claves(esc.camara, tiempo, CAMPOS_CAM) || { x: 0, y: -360, zoom: 1 };
+  // perspectiva del motor (comun/escena.js): cámara a 1600 del plano p = 0; p = 1 son 980 de profundidad
+  const sDe = (p) => 1600 / Math.max(60, 1600 + 980 * (p || 0));
 
   // ---- panel
   function seg(sel, opciones, valor, alElegir) { const c = $(sel); c.replaceChildren(); for (const [k, n] of Object.entries(opciones)) c.append(h("button", { class: k === valor ? "activo" : "", onclick: () => alElegir(k) }, n)); }
@@ -194,8 +226,10 @@
           cont.append(h("div", { class: "deslizador" }, h("label", {}, etq), i, out)); } } }
     // cámara
     const c = posCam(); deslizar("c-x", c.x, (v) => Math.round(v)); deslizar("c-y", c.y, (v) => Math.round(v)); deslizar("c-zoom", c.zoom || 1, (v) => v.toFixed(2) + "×");
-    seg("#c-planos", Object.fromEntries(Object.entries(PLANOS).map(([k, v]) => [k, v.n])), "", (k) => { const p = PLANOS[k], a2 = actor(), q = a2 ? posActor(a2) : { x: c.x, p: 0 }, s = (a2?.escala || 1) * (1 - 0.38 * (q.p || 0));
-      const centroY = -170 * (q.p || 0) + (-330 + p.dy) * s; cambio((x) => tocarClave(x.camara, ["x", "y", "zoom"], { x: Math.round(q.x), y: Math.round(centroY), zoom: +(p.zoom / s).toFixed(2) }), null, false); });
+    deslizar("c-alto", c.alto ?? 450, (v) => Math.round(v) + (v < 300 ? " · contrapicado" : v > 700 ? " · picado" : "")); deslizar("c-roll", c.roll || 0, (v) => v.toFixed(1) + "°");
+    seg("#c-angulos", { cp: "Contrapicado", normal: "Normal", pi: "Picado", cenital: "Muy alto" }, "", (k) => editarCam({ alto: { cp: 160, normal: 450, pi: 1000, cenital: 1450 }[k] }, null));
+    seg("#c-planos", Object.fromEntries(Object.entries(PLANOS).map(([k, v]) => [k, v.n])), "", (k) => { const p = PLANOS[k], a2 = actor(), q = a2 ? posActor(a2) : { x: c.x, p: 0 }, sP = sDe(q.p), s = (a2?.escala || 1) * sP, alto = c.alto ?? 450, X = c.x + (q.x - c.x) * sP;
+      const centroY = -alto * (1 - sP) + (-330 + p.dy) * s; cambio((x) => tocarClave(x.camara, CAMPOS_CAM, { x: Math.round(X), y: Math.round(centroY), zoom: +(p.zoom / s).toFixed(2) }), null, false); });
     $("#b-quitar-cam").disabled = !esc.camara.some((k) => Math.abs(k.t - tiempo) < 0.02) || esc.camara.length < 2;
     // ambiente
     const am = esc.ambiente || {}; deslizar("am-tono", am.tono || 0, (v) => (v < -0.02 ? "frío " : v > 0.02 ? "cálido " : "neutro ") + Math.round(Math.abs(v) * 100) + "%");
@@ -268,7 +302,12 @@
   $("#o-animar").addEventListener("change", (ev) => cambiaObj((o) => { if (ev.target.checked) { const v = paramsObjeto(o); o.claves = [Object.assign({ t: +tiempo.toFixed(2) }, v)]; } else { o.params = paramsObjeto(o); delete o.claves; } }));
   $("#b-quitar-objeto").addEventListener("click", () => { const ob = objeto(); if (!ob) return; cambio((x) => { x.objetos = x.objetos.filter((y) => y.id !== ob.id); }); selObjeto = null; pintarPanel(); aviso("Quitado (Ctrl+Z lo recupera)"); });
   $("#b-quitar-actor").addEventListener("click", () => { const a = actor(); if (!a) return; cambio((x) => { x.actores = x.actores.filter((y) => y.id !== a.id); }); selActor = esc.actores[0]?.id || null; aviso("Quitado de la escena (Ctrl+Z lo recupera)"); });
-  const editarCam = (valores, clave) => cambio((x) => tocarClave(x.camara, ["x", "y", "zoom"], valores), clave + "@" + tiempo.toFixed(2), false);
+  // la altura de la cámara decide también el ángulo con el que se dibujan los personajes (tilt): baja = desde abajo, alta = desde arriba
+  const tiltDe = (alto) => alto < 450 ? -0.16 * (450 - alto) / 300 : 0.18 + 0.36 * Math.min(1, (alto - 450) / 900);
+  const editarCam = (valores, clave) => { if ("alto" in valores) valores.tilt = +tiltDe(valores.alto).toFixed(3);
+    cambio((x) => tocarClave(x.camara, CAMPOS_CAM, valores), clave ? clave + "@" + tiempo.toFixed(2) : null, false); };
+  $("#c-alto").addEventListener("input", (ev) => editarCam({ alto: Number(ev.target.value) }, "c-alto"));
+  $("#c-roll").addEventListener("input", (ev) => editarCam({ roll: Number(ev.target.value) }, "c-roll"));
   $("#c-x").addEventListener("input", (ev) => editarCam({ x: Number(ev.target.value) }, "c-x")); $("#c-y").addEventListener("input", (ev) => editarCam({ y: Number(ev.target.value) }, "c-y"));
   $("#c-zoom").addEventListener("input", (ev) => editarCam({ zoom: Number(ev.target.value) }, "c-zoom"));
   $("#b-quitar-cam").addEventListener("click", () => cambio((x) => { const i = x.camara.findIndex((k) => Math.abs(k.t - tiempo) < 0.02); if (i >= 0 && x.camara.length > 1) x.camara.splice(i, 1); }, null, false));
@@ -329,14 +368,14 @@
     selObjeto = ob.id; try { lienzo.setPointerCapture(ev.pointerId); } catch {} lienzo.classList.add("arrastrando");
     arrO = { id: ob.id, x0: ev.clientX, y0: ev.clientY, x: ob.x || 0, p: ob.p || 0, k: (Escena.ANCHO / lienzo.clientWidth) / (posCam().zoom || 1) }; pintarPanel(); });
   lienzo.addEventListener("pointermove", (ev) => { if (!arrO) return; const a = arrO, dx = (ev.clientX - a.x0) * a.k, dy = (ev.clientY - a.y0) * a.k;
-    cambio((x) => { const o = x.objetos.find((y) => y.id === a.id); o.x = Math.round(a.x + dx); o.p = +cl(a.p - dy / 400, 0, 1.5).toFixed(3); }, "arrO" + a.id, false); });
+    cambio((x) => { const o = x.objetos.find((y) => y.id === a.id); o.x = Math.round(a.x + dx); o.p = +cl(a.p - dy / 400, -0.9, 4).toFixed(3); }, "arrO" + a.id, false); });
   const soltarO = () => { if (!arrO) return; arrO = null; lienzo.classList.remove("arrastrando"); pintarPanel(); };
   lienzo.addEventListener("pointerup", soltarO); lienzo.addEventListener("pointercancel", soltarO);
   lienzo.addEventListener("pointerdown", (ev) => { const g = ev.target.closest("[data-actor]"); if (!g || !esc) return; const a = actor(g.getAttribute("data-actor")); if (!a) return; parar();
     selActor = a.id; selBloque = null; try { lienzo.setPointerCapture(ev.pointerId); } catch {} lienzo.classList.add("arrastrando");
     const q = posActor(a); arrA = { id: a.id, x0: ev.clientX, y0: ev.clientY, q, k: (Escena.ANCHO / lienzo.clientWidth) / (posCam().zoom || 1) }; pintarPanel(); pintarPistas(); });
   lienzo.addEventListener("pointermove", (ev) => { if (!arrA) return; const a = arrA, dx = (ev.clientX - a.x0) * a.k, dy = (ev.clientY - a.y0) * a.k;
-    cambio((x) => tocarClave(x.actores.find((y) => y.id === a.id).recorrido, ["x", "p", "giro"], { x: Math.round(a.q.x + dx), p: +cl((a.q.p || 0) - dy / 400, 0, 1).toFixed(3) }), "arrA" + a.id + tiempo.toFixed(2), false); });
+    cambio((x) => tocarClave(x.actores.find((y) => y.id === a.id).recorrido, ["x", "p", "giro"], { x: Math.round(a.q.x + dx), p: +cl((a.q.p || 0) - dy / 400, -0.8, 3).toFixed(3) }), "arrA" + a.id + tiempo.toFixed(2), false); });
   const soltarA = () => { if (!arrA) return; arrA = null; lienzo.classList.remove("arrastrando"); };
   lienzo.addEventListener("pointerup", soltarA); lienzo.addEventListener("pointercancel", soltarA);
 

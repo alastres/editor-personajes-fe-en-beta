@@ -54,6 +54,50 @@
       if (sello > 0) s += T(`M${f1(px - 125)} -180 L ${f1(px + 125)} -72`, "#be3f1c", 10, cl(sello)) + circ(px, -130, 30, "#be3f1c", cl(sello)) + circ(px, -130, 14, "#e86a4a", cl(sello));
       return s + P("M-580 -4 C -200 -22 300 -22 620 -4 L 620 30 L -580 30 Z", Rc[6]); } },
 
+    // MAR ROJO que se divide (Éxodo 14): decorado de escena entera. Mar hasta el horizonte (y = −260), orilla de arena delante (donde está
+    // el pueblo, y > −60) y, al abrirse (abre 0…1), un camino de fondo seco que se pierde en el horizonte entre dos muros de agua con
+    // cresta de espuma, salpicaduras y peces. Se pone con «alFondo» (detrás de todos los personajes), en x 0, p 0, escala 1.
+    marRojo: { nombre: "Mar Rojo (se divide)", anima: true, params: { abre: [0, 1, 0.01, 0, "Se abre"] }, dibujar(o, t) {
+      const A = cl(o.abre || 0), Ae = A * A * (3 - 2 * A), H = Math.min(-120, o.horizonte ?? -260), Y0 = -60, frio = o.frio;
+      const C = frio ? { mar: "#24365a", mar2: "#30487a", luz: "#6a8ac0", muro: "#3a5a90", muro2: "#2a4272", espuma: "#c8d8f4", fondo: "#4a4a5e", fondo2: "#3a3a4e", arena: "#5a5468", arena2: "#4a4558" }
+        : { mar: "#2e6a8e", mar2: "#3e86a8", luz: "#8ac8dc", muro: "#4a9ab8", muro2: "#2e7298", espuma: "#f0faff", fondo: "#a88a68", fondo2: "#8a6e52", arena: "#d8b884", arena2: "#c4a070" };
+      const X = (y) => (y - H) / (Y0 - H);                      // 0 en el horizonte … 1 en la orilla (y más allá)
+      const ancho = (y) => Ae * (14 + 300 * X(y) ** 1.15), alto = (y) => Ae * (24 + 860 * X(y) ** 1.25);
+      let s = P(`M-6000 ${H} L 6000 ${H} L 6000 3000 L -6000 3000 Z`, C.mar);
+      // reflejos del mar (rayas de luz que se mueven)
+      for (let k = 0; k < 18; k++) { const y = H + 8 + (k * k) * 1.4, w = 40 + k * 14, x = ((k * 377 + t * (20 + k)) % 2400) - 1200; s += caps(x, y, w, 3 + k * 0.4, C.luz, 0.35); }
+      // camino de fondo marino seco y los dos muros (de lejos a cerca, en tiras, para que el de delante tape al de atrás)
+      if (Ae > 0.002) { const N = 24, ys = Array.from({ length: N + 1 }, (_, i) => H + (Y0 - 4 - H) * (i / N) ** 1.4);
+        const borde = (sg) => ys.map((y) => [sg * ancho(y), y]);
+        s += P(`M${borde(-1).map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} L ${borde(1).reverse().map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} Z`, C.fondo);
+        for (let i = 2; i < N; i += 3) { const y = ys[i], w = ancho(y) * 0.8; s += caps(((i * 53) % 7 - 3) * w * 0.15, y, w * 0.5, 2 + 6 * X(y), C.fondo2, 0.7); }
+        for (const sg of [-1, 1]) { const cara = [], cresta = [], hombro = [];
+          for (const y of ys) { const x = sg * ancho(y), h = alto(y), ola = 10 * X(y) * Math.sin(t * 3 + y * 0.05 + sg); cara.push([x, y]); cresta.push([x + sg * 6, y - h + ola]); hombro.push([x + sg * (h * 0.9 + 60), y + 4]); }
+          // lomo del muro (del borde de arriba baja hacia fuera hasta el nivel del mar)
+          s += P(`M${cresta.map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} L ${hombro.slice().reverse().map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} Z`, C.muro2);
+          // cara del muro que da al camino (más clara arriba)
+          s += P(`M${cara.map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} L ${cresta.slice().reverse().map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} Z`, C.muro);
+          s += P(`M${cara.map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")} L ${cresta.slice().reverse().map(([x, y], i, a) => { const [cx, cy] = cara[a.length - 1 - i]; return `${f1(x + (cx - x) * 0.45)} ${f1(y + (cy - y) * 0.45)}`; }).join(" L ")} Z`, C.muro2, 0.45);
+          // peces nadando dentro del muro
+          for (let k = 0; k < 6; k++) { const yy = ys[10 + k * 2] || Y0, h = alto(yy), x = sg * (ancho(yy) + 4), fy = yy - h * (0.3 + 0.1 * (k % 3)) + 6 * Math.sin(t * 2 + k), L = 10 + 26 * X(yy), dx = sg * (k % 2 ? 1 : -1);
+            s += `<path d="M${f1(x - L)} ${f1(fy)} Q ${f1(x)} ${f1(fy - L * 0.45)} ${f1(x + L)} ${f1(fy)} Q ${f1(x)} ${f1(fy + L * 0.45)} ${f1(x - L)} ${f1(fy)} Z M${f1(x - L)} ${f1(fy)} l ${f1(-L * 0.5 * dx)} ${f1(-L * 0.35)} l 0 ${f1(L * 0.7)} Z" fill="${C.muro2}" opacity="${(0.7 * Ae).toFixed(2)}"/>`; }
+          // frente del muro junto a la orilla: cara de agua curva (más clara) que baja de la cresta al suelo, con espuma que cae
+          { const [xc, yc] = cara[N], [xt, yt] = cresta[N], [xh, yh] = hombro[N], h = yc - yt;
+            s += P(`M${f1(xc)} ${f1(yc)} L ${f1(xt)} ${f1(yt)} Q ${f1(xt + sg * h * 0.55)} ${f1(yt - 30)} ${f1(xh)} ${f1(yh)} Z`, C.muro);
+            s += P(`M${f1(xc)} ${f1(yc)} L ${f1(xt)} ${f1(yt)} Q ${f1(xt + sg * h * 0.25)} ${f1(yt + h * 0.3)} ${f1(xc + sg * h * 0.45)} ${f1(yc)} Z`, C.luz, 0.35);
+            for (let k = 0; k < 5; k++) { const u = (t * 0.9 + k * 0.2) % 1; s += circ(xt + sg * (12 + k * 14), yt + u * h * 0.9, 6 + 4 * (1 - u), C.espuma, (0.7 * (1 - u) * Ae).toFixed(2)); }
+            s += circ(xt + sg * 18, yt + 6, 22 * Ae, C.espuma, 0.85); }
+          // cresta de espuma que ondula y salpicaduras que saltan de ella
+          s += T(`M${cresta.map(([x, y]) => `${f1(x)} ${f1(y)}`).join(" L ")}`, C.espuma, 10, 0.9);
+          s += T(`M${cresta.map(([x, y], i) => `${f1(x + sg * 14)} ${f1(y + 12 + 4 * Math.sin(t * 4 + i))}`).join(" L ")}`, C.espuma, 5, 0.4);
+          for (let k = 0; k < 14; k++) { const i = 6 + ((k * 7) % (N - 6)), [x, y] = cresta[i], u = (t * 1.3 + k * 0.37) % 1, r = (2 + 7 * X(ys[i])) * (1 - u);
+            s += circ(x + sg * (10 + 60 * u * X(ys[i])), y - 70 * u * (1 - u) * 4 * X(ys[i]), r, C.espuma, (0.8 * (1 - u) * Ae).toFixed(2)); } } }
+      // orilla de arena con el borde de espuma
+      const orilla = (k) => `M-6000 ${Y0} ${Array.from({ length: 61 }, (_, i) => { const x = -6000 + i * 200; return `L ${x} ${f1(Y0 + k + 6 * Math.sin(x * 0.01 + t * 1.5))}`; }).join(" ")} L 6000 3000 L -6000 3000 Z`;
+      s += P(orilla(-6), C.espuma, 0.7) + P(orilla(4), C.arena) + P(orilla(60), C.arena2, 0.35);
+      if (Ae > 0.002) s += P(`M${f1(-ancho(Y0))} ${Y0 + 4} L ${f1(ancho(Y0))} ${Y0 + 4} L ${f1(ancho(Y0) * 1.3)} 3000 L ${f1(-ancho(Y0) * 1.3)} 3000 Z`, C.fondo2, 0.25);
+      return s; } },
+
     // barca de pesca con vela; se mece sola (meceo 0 = quieta)
     barca: { nombre: "Barca", anima: true, params: { vela: [0, 1, 1, 1, "Con vela"], meceo: [0, 1, 0.05, 0.5, "Se mece"] }, dibujar(o, t) {
       const h = pal(o, ["#7a4a32", "#5a3424", "#a86a42", "#f0e2c4", "#c8b898"], ["#3a2a30", "#2a1e26", "#4e3a40", "#9a98b0", "#7a7890"]), m = o.meceo ?? 0.5;

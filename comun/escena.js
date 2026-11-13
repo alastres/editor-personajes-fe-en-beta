@@ -33,9 +33,9 @@
 
   // ---- fondos (siluetas planas por capas, como los del short ¿Y si…?)
   const FONDOS = {
-    noche: { cielo: ["#141a34", "#2c3658", "#4a5476"], montes: ["#4a4b66", "#3a3b55", "#2e2e46"], suelo: ["#2a2a3c", "#3a3a50"], astro: { c: "#d8dcee", r: 60, x: 300, y: -1300, halo: "#8a90c0" }, estrellas: true },
+    noche: { cielo: ["#141a34", "#2c3658", "#56608a"], montes: ["#4a4b6e", "#36385a", "#282a46"], suelo: ["#2a2a40", "#3a3a56"], luz: "#9aa8e0", astro: { c: "#d8dcee", r: 60, x: 300, y: -1300, halo: "#8a90c0" }, estrellas: true },
     alba: { cielo: ["#3a3a6a", "#c08a92", "#ffd6a0"], montes: ["#c08a92", "#9a6a7e", "#7a5068"], suelo: ["#9a7a6a", "#b0906a"], astro: { c: "#fff1c8", r: 110, x: 330, y: -560, halo: "#ffc890" } },   // el sol a un lado: centrado detrás de la cabeza parecía una aureola
-    dia: { cielo: ["#4a8ac8", "#8ac0e0", "#d8eef0"], montes: ["#8ab0b8", "#6a9aa0", "#5a8088"], suelo: ["#c8b080", "#d8c090"], astro: { c: "#fff8d8", r: 80, x: -320, y: -1300, halo: "#ffe8a0" } },
+    dia: { cielo: ["#3e7cc0", "#86b8dc", "#e6eedc"], montes: ["#7aa6a8", "#5e8c80", "#4e7458"], suelo: ["#b8a66a", "#d0bc80"], astro: { c: "#fff8d8", r: 80, x: -320, y: -1300, halo: "#ffe8a0" }, luz: "#fff0c0" },
     interior: { pared: ["#3a2a30", "#44323a"], suelo: ["#241a20", "#4a3438"], lampara: true },
     atardecer: { cielo: ["#2a2050", "#a04a6a", "#f0905a"], montes: ["#8a4a6a", "#6a3a5a", "#4a2a48"], suelo: ["#5a3a40", "#7a5048"], astro: { c: "#ffd08a", r: 120, x: 380, y: -230, halo: "#ff9a6a" } },   // sol poniéndose junto al horizonte, lejos de las cabezas
     luna: { cielo: ["#0e1230", "#222c50", "#3a4470"], montes: ["#3e405a", "#30324a", "#26283c"], suelo: ["#22222e", "#30303e"], astro: { c: "#eef0ff", r: 120, x: 300, y: -1250, halo: "#9aa0d8" }, estrellas: true, nubes: 0.45 },
@@ -60,6 +60,28 @@
     else if (tipo === "olivar") { for (let k = -14; k < 14; k++) { const x = k * 260 + dx + (k % 2) * 60, s2 = 0.35 + 0.1 * (k % 3);
         o += `<g transform="translate(${f1(x)} 0) scale(${s2})"><path d="M-14 0 L -8 -240 L 12 -240 L 16 0 Z" fill="${c[2]}"/><ellipse cx="-60" cy="-280" rx="120" ry="70" fill="${c[1]}"/><ellipse cx="60" cy="-300" rx="110" ry="64" fill="${c[0]}"/><ellipse cx="0" cy="-350" rx="120" ry="70" fill="${c[1]}"/></g>`; } }
     g.insertAdjacentHTML("beforeend", o); }
+  // CORDILLERAS con capas ricas (estilo de la barca aprobada): cada capa más cerca es más oscura y saturada; las lejanas se funden con el
+  // horizonte (perspectiva de aire). Arriba llevan un filo de luz del color del astro y por dentro rayas de cápsula, como la textura de marca.
+  const hor = (F) => F.cielo?.[F.cielo.length - 1] || "#c8b0c0", luzDe = (F) => F.luz || F.astro?.halo || "#ffe0b0";
+  function cresta(x, i) { return Math.abs(0.55 * Math.sin(x * 0.013 + i * 7.1) + 0.3 * Math.sin(x * 0.0047 + i * 2.3) + 0.15 * Math.sin(x * 0.031 + i * 1.7)); }
+  function montes(g, F, camX) { const H = hor(F), L = luzDe(F), cs = F.montes, base = F.suelo?.[0] || cs[2];
+    const capas = [[mixc(cs[0], H, 0.45), 0.86, 420], [mixc(cs[0], H, 0.12), 0.72, 330], [cs[1], 0.52, 230], [mixc(cs[2], base, 0.35), 0.3, 130]];
+    capas.forEach(([c, par, alto0], i) => { const alto = alto0 * (F.lejosAlto ?? 1), hz = -8 + i * 4, dx = camX * par, paso = [420, 340, 280, 240][i];
+      let top = "", d = `M${-6000 + dx} ${hz}`;
+      for (let x = -6000; x <= 6000; x += paso) { const r = cresta(x, i), r2 = Math.abs(0.6 * Math.sin(x * 0.007 + i * 3.3) + 0.4 * Math.sin(x * 0.0029 + i * 5.9));
+        const seg = ` Q ${f1(x + paso / 2 + dx)} ${f1(hz - alto * (0.55 + 0.45 * r) * 1.15)} ${f1(x + paso + dx)} ${f1(hz - alto * (0.3 + 0.3 * r2))}`; d += seg; top += (top ? "" : `M${f1(x + dx)} ${f1(hz - alto * 0.45)}`) + seg; }
+      el("path", { d: d + ` L ${6000 + dx} ${hz} Z`, fill: c }, g);
+      el("path", { d: top, fill: "none", stroke: mixc(c, L, 0.45), "stroke-width": [4, 5, 6, 7][i], "stroke-linecap": "round", opacity: [0.45, 0.55, 0.6, 0.5][i] }, g);
+      // rayas de cápsula (luz) sobre la ladera
+      for (let k = 0; k < 26; k++) { const x = -2600 + k * 211 + ((k * 97) % 60) + dx, y = hz - alto * (0.15 + 0.35 * ((k * 37) % 10) / 10), w = 40 + (k % 4) * 22;
+        el("rect", { x: f1(x), y: f1(y), width: w, height: 8 + i * 2, rx: 5 + i, fill: mixc(c, L, 0.3), opacity: 0.35 }, g); }
+      // bruma en la base de cada capa lejana: la funde con el horizonte
+      if (i < 3) el("rect", { x: -9000, y: hz - 70 - i * 10, width: 18000, height: 80 + i * 10, fill: H, opacity: [0.35, 0.22, 0.12][i] }, g); }); }
+  // bruma del horizonte y charco de luz del astro sobre el suelo
+  function bruma(g, F) { const H = hor(F), L = luzDe(F), defs = g.ownerSVGElement.querySelector("defs");
+    const id = "esc-bruma-" + H.slice(1); if (!g.ownerSVGElement.querySelector("#" + id)) { const gr = el("linearGradient", { id, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+      el("stop", { offset: 0, "stop-color": H, "stop-opacity": 0 }, gr); el("stop", { offset: 1, "stop-color": H, "stop-opacity": 0.55 }, gr); }
+    el("rect", { x: -9000, y: -520, width: 18000, height: 520, fill: `url(#${id})` }, g); }
   function pintarFondo(g, f, camX) {
     g.replaceChildren(); const tipo = f?.tipo || "noche";
     if (tipo === "color") { el("rect", { x: -9000, y: -9000, width: 18000, height: 18000, fill: f.color || "#2a2540" }, g); return; }
@@ -73,16 +95,18 @@
     el("rect", { x: -9000, y: -3200, width: 18000, height: 3300, fill: `url(#${id})` }, g);
     if (F.astro) { const a = F.astro, ax = a.x + camX * 0.9; const idH = "esc-halo-" + a.halo.slice(1); if (!g.ownerSVGElement.querySelector("#" + idH)) { const gr = el("radialGradient", { id: idH }, g.ownerSVGElement.querySelector("defs"));
         el("stop", { offset: 0, "stop-color": a.halo, "stop-opacity": 0.55 }, gr); el("stop", { offset: 0.35, "stop-color": a.halo, "stop-opacity": 0.22 }, gr); el("stop", { offset: 1, "stop-color": a.halo, "stop-opacity": 0 }, gr); }
-      el("circle", { cx: f1(ax), cy: a.y, r: a.r * 5, fill: `url(#${idH})` }, g); el("circle", { cx: f1(ax), cy: a.y, r: a.r, fill: a.c }, g); }
-    if (F.estrellas) for (let i = 0; i < 60; i++) el("circle", { cx: f1(-1800 + ((i * 397) % 3600) + camX * 0.95), cy: -2400 + (i * 211) % 1700, r: 2 + (i % 3), fill: "#e8e8ff", opacity: 0.6 }, g);
+      el("circle", { cx: f1(ax), cy: a.y, r: a.r * 5, fill: `url(#${idH})` }, g);
+      for (const [k, o] of [[2.1, 0.08], [1.55, 0.14], [1.22, 0.22]]) el("circle", { cx: f1(ax), cy: a.y, r: f1(a.r * k), fill: a.halo, opacity: o }, g);
+      el("circle", { cx: f1(ax), cy: a.y, r: a.r, fill: a.c }, g);
+      if (F.estrellas) for (const [u, v, rr] of [[-0.3, -0.25, 0.22], [0.28, 0.1, 0.16], [-0.05, 0.38, 0.12]]) el("circle", { cx: f1(ax + u * a.r), cy: f1(a.y + v * a.r), r: f1(rr * a.r), fill: mixc(a.c, "#8a90c0", 0.35), opacity: 0.6 }, g);
+      else el("circle", { cx: f1(ax - a.r * 0.25), cy: f1(a.y - a.r * 0.25), r: f1(a.r * 0.55), fill: "#ffffff", opacity: 0.25 }, g); }
     g.vivoCielo = el("g", {}, g);                      // nubes (se dibujan cada fotograma)
     if (F.imagen?.archivo) imagenFondo(g, F.imagen, camX);
     // lo de lejos: tres cordilleras con parallax (las lejanas se mueven menos con la cámara), o una ciudad, Roma, un olivar… o nada
     const lj = F.lejos || "montes";
     if (lj !== "montes" && lj !== "nada") { const c = F.montes; lejos(g, lj, [mixc(c[0], c[1], 0.3), c[1], mixc(c[2], "#000000", 0.15)], camX, 0.5); }
-    if (lj === "montes") F.montes.forEach((c, i) => { const par = [0.75, 0.5, 0.25][i], alto = [300, 200, 110][i] * (F.lejosAlto ?? 1), hz = -6 + i * 4; let d = `M-6000 ${hz}`;
-      for (let x = -6000; x <= 6000; x += 300) { const r = Math.abs(0.55 * Math.sin(x * 0.013 + i * 7.1) + 0.3 * Math.sin(x * 0.0047 + i * 2.3) + 0.15 * Math.sin(x * 0.031 + i * 1.7)), r2 = Math.abs(0.6 * Math.sin(x * 0.007 + i * 3.3) + 0.4 * Math.sin(x * 0.0029 + i * 5.9)); d += ` Q ${x + 150 + camX * par} ${f1(hz - alto * (0.55 + 0.45 * r) * 1.15)} ${x + 300 + camX * par} ${f1(hz - alto * (0.3 + 0.3 * r2))}`; }
-      el("path", { d: d + ` L 6000 ${hz} Z`, fill: c }, g); });
+    if (lj === "montes") montes(g, F, camX);
+    bruma(g, F);
     if (F.mar) { pintarMar(g, F); capasFondo(g, F.capas, camX); g.vivoSuelo = el("g", {}, g); return; }
     // suelo: degradado (más oscuro y saturado delante), textura de cápsulas, piedras y matas que crecen con la cercanía
     const idS = "esc-suelo-" + F.suelo.join("").replace(/#/g, ""); if (!g.ownerSVGElement.querySelector("#" + idS)) { const defs = g.ownerSVGElement.querySelector("defs"); const gr = el("linearGradient", { id: idS, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
@@ -97,13 +121,30 @@
       else el("rect", { x: f1(x - 40 * k), y: f1(y), width: f1(80 * k), height: f1(7 * k), rx: f1(3.5 * k), fill: tex, opacity: 0.55 }, g); }
     capasFondo(g, F.capas, camX); g.vivoSuelo = el("g", {}, g);
   }
-  function pintarInterior(g, F) {   // muro de adobe, viga, ventana alta con luz y lámpara de aceite (la llama se mueve en lo vivo)
-    el("rect", { x: -9000, y: -6000, width: 18000, height: 6000, fill: F.pared[0] }, g);
-    for (let i = 0; i < 40; i++) el("rect", { x: -2600 + (i * 397) % 5200, y: -1300 + (i * 211) % 1200, width: 90, height: 22, rx: 11, fill: F.pared[1], opacity: 0.8 }, g);
-    el("rect", { x: -9000, y: -640, width: 18000, height: 30, fill: "#4a3438" }, g); el("rect", { x: -9000, y: -612, width: 18000, height: 10, fill: "#2a1e24" }, g);
-    if (F.ventana !== false) { el("rect", { x: -620, y: -830, width: 170, height: 120, rx: 10, fill: "#141020" }, g); el("rect", { x: -610, y: -820, width: 150, height: 100, rx: 8, fill: F.estrellas || F.noche ? "#3a4a78" : "#9ab8d8", opacity: 0.7 }, g);
-      el("path", { d: "M-610 -720 L -460 -720 L 60 -6 L -360 -6 Z", fill: "#c8d8f0", opacity: 0.07 }, g); }
+  function pintarInterior(g, F) {   // casa de adobe: muro con luz de la lámpara, arco de puerta, repisa con cántaros, ventana con haz de luz, viga, alfombra
+    const defs = g.ownerSVGElement.querySelector("defs"), P0 = F.pared[0], P1 = F.pared[1], lx = F.lamparaX ?? -260;
+    el("rect", { x: -9000, y: -6000, width: 18000, height: 6000, fill: mixc(P0, "#0c0810", 0.25) }, g);
+    const idP = "esc-pared-" + P0.slice(1); if (!g.ownerSVGElement.querySelector("#" + idP)) { const gr = el("radialGradient", { id: idP }, defs);
+      el("stop", { offset: 0, "stop-color": mixc(P1, "#ffb070", 0.35) }, gr); el("stop", { offset: 0.55, "stop-color": P0 }, gr); el("stop", { offset: 1, "stop-color": mixc(P0, "#0c0810", 0.25) }, gr); }
+    el("ellipse", { cx: lx, cy: -380, rx: 1500, ry: 1100, fill: `url(#${idP})` }, g);
+    for (let i = 0; i < 46; i++) el("rect", { x: -2600 + (i * 397) % 5200, y: -1300 + (i * 211) % 1250, width: 70 + (i % 3) * 30, height: 20, rx: 10, fill: P1, opacity: 0.55 }, g);
+    // arco de una puerta a la derecha (oscuro, con el marco iluminado)
+    el("path", { d: "M480 0 L 480 -520 A 150 150 0 0 1 780 -520 L 780 0 Z", fill: mixc(P0, "#000000", 0.55) }, g);
+    el("path", { d: "M470 0 L 470 -520 A 160 160 0 0 1 790 -520", fill: "none", stroke: mixc(P1, "#ffc890", 0.3), "stroke-width": 16, opacity: 0.6 }, g);
+    // repisa con cántaros a la izquierda
+    el("rect", { x: -1060, y: -470, width: 420, height: 22, rx: 6, fill: "#3a2626" }, g);
+    for (const [x, w, h, c] of [[-1010, 70, 110, "#9a5a3a"], [-920, 54, 80, "#b8784a"], [-850, 80, 120, "#8a4e34"], [-750, 50, 70, "#a86a42"]]) {
+      el("path", { d: `M${x} -470 C ${x - w / 2} -470 ${x - w / 2} ${-470 - h * 0.7} ${x - w * 0.18} ${-470 - h} L ${x + w * 0.18} ${-470 - h} C ${x + w / 2} ${-470 - h * 0.7} ${x + w / 2} -470 ${x} -470 Z`, fill: c }, g);
+      el("rect", { x: x - w * 0.3, y: -470 - h * 0.62, width: w * 0.14, height: h * 0.4, rx: 5, fill: "#ffffff", opacity: 0.16 }, g); }
+    el("rect", { x: -9000, y: -660, width: 18000, height: 34, fill: "#4a3438" }, g); el("rect", { x: -9000, y: -628, width: 18000, height: 10, fill: "#2a1e24" }, g);
+    for (let k = -8; k < 9; k++) el("rect", { x: k * 340 - 20, y: -700, width: 40, height: 44, rx: 6, fill: "#3a282c" }, g);
+    if (F.ventana !== false) { el("rect", { x: -620, y: -860, width: 170, height: 130, rx: 10, fill: "#141020" }, g);
+      el("rect", { x: -610, y: -850, width: 150, height: 110, rx: 8, fill: F.estrellas || F.noche ? "#3a4a78" : "#bcd4ec", opacity: 0.85 }, g);
+      el("rect", { x: -537, y: -850, width: 6, height: 110, fill: "#141020" }, g); }
+    // suelo de tierra apisonada con una alfombra de rayas
     el("rect", { x: -9000, y: -6, width: 18000, height: 6000, fill: F.suelo[0] }, g); el("rect", { x: -9000, y: -10, width: 18000, height: 12, fill: F.suelo[1] }, g);
+    el("path", { d: "M-520 40 L 520 40 L 640 210 L -640 210 Z", fill: "#7a3a34", opacity: 0.85 }, g);
+    for (const [y, c] of [[70, "#c8904a"], [120, "#5a2a28"], [170, "#c8904a"]]) el("path", { d: `M${f1(-520 - (y - 40) * 0.7)} ${y} L ${f1(520 + (y - 40) * 0.7)} ${y}`, stroke: c, "stroke-width": 10, opacity: 0.7 }, g);
     capasFondo(g, F.capas, 0); g.vivoCielo = el("g", {}, g); g.vivoSuelo = el("g", {}, g); }
   // mar en perspectiva (base fija; las olas van en lo vivo)
   function pintarMar(g, F) { const c = F.colorMar || ["#2c4a6a", "#4a6e90", "#7a9ab8"];
@@ -116,12 +157,26 @@
     const gc = el("g", { transform: `translate(${f1((c.x || 0) + camX * (c.par || 0))} ${f1(c.y || 0)}) scale(${c.escala || 1})` }, g); gc.insertAdjacentHTML("beforeend", c.svg); } }
   // lo vivo del fondo, cada fotograma: nubes que derivan, olas del mar, llama de la lámpara; lluvia y relámpagos van delante (gDelante)
   function vivo(g, gDelante, f, t, camX, zoom) { const F = fondoDe(f); gDelante.replaceChildren();
-    if (g.vivoCielo) { g.vivoCielo.replaceChildren(); const n = F.nubes || 0;
-      if (n > 0) { const cN = F.colorNubes || mixc(F.cielo?.[1] || "#8090b0", "#ffffff", F.tipo === "tormenta" ? 0.05 : 0.35), cS = mixc(cN, "#1a1428", 0.3);
-        for (let i = 0; i < Math.round(4 + 8 * n); i++) { const y = -1500 + (i * 173) % 900, w = 300 + (i * 97) % 300, x = ((i * 611 + t * (14 + (i % 3) * 8)) % 5200 + 5200) % 5200 - 2600 + camX * 0.9;
-          const gN = el("g", { transform: `translate(${f1(x)} ${y})`, opacity: (0.55 + 0.4 * n).toFixed(2) }, g.vivoCielo);
-          el("ellipse", { cx: 0, cy: 0, rx: f1(w / 2), ry: f1(w / 6), fill: cS }, gN); el("ellipse", { cx: f1(-w / 6), cy: f1(-w / 10), rx: f1(w / 4), ry: f1(w / 7), fill: cN }, gN); el("ellipse", { cx: f1(w / 8), cy: f1(-w / 8), rx: f1(w / 5), ry: f1(w / 6.5), fill: cN }, gN);
-          el("rect", { x: f1(-w / 4), y: f1(-w / 7), width: f1(w / 4), height: 10, rx: 5, fill: "#ffffff", opacity: 0.18 }, gN); } } }
+    if (g.vivoCielo) { g.vivoCielo.replaceChildren(); const n = F.nubes ?? (F.tipo === "dia" || F.tipo === "alba" || F.tipo === "atardecer" || F.tipo === "noche" ? 0.5 : 0), L = luzDe(F);
+      if (F.estrellas) { let d = "", d2 = ""; for (let i = 0; i < 90; i++) { const x = -2400 + ((i * 397) % 4800) + camX * 0.95, y = -2600 + (i * 211) % 2000, r = 2 + (i % 3), tw = 0.5 + 0.5 * Math.sin(t * (1.3 + (i % 5) * 0.4) + i);
+          (tw > 0.5 ? (d += `M${f1(x - r)} ${y}h${2 * r}`) : (d2 += `M${f1(x - r)} ${y}h${2 * r}`)); }
+        el("path", { d, stroke: "#f4f0ff", "stroke-width": 5, "stroke-linecap": "round", opacity: 0.85 }, g.vivoCielo); el("path", { d: d2, stroke: "#c8c8ee", "stroke-width": 4, "stroke-linecap": "round", opacity: 0.4 }, g.vivoCielo);
+        const u = t % 6.5; if (u < 0.7) { const k = u / 0.7, x0 = -400 + camX * 0.95, y0 = -2100; el("path", { d: `M${f1(x0 + 900 * k)} ${f1(y0 + 300 * k)} l -${f1(160 * (1 - k) + 40)} -${f1(53 * (1 - k) + 13)}`, stroke: "#ffffff", "stroke-width": 4, "stroke-linecap": "round", opacity: (1 - k).toFixed(2) }, g.vivoCielo); } }
+      if (n > 0) { const cN = F.colorNubes || mixc(F.cielo?.[1] || "#8090b0", "#ffffff", F.tipo === "tormenta" ? 0.05 : F.estrellas ? 0.2 : 0.42), cS = mixc(cN, F.cielo?.[0] || "#1a1428", 0.22), cL = mixc(L, "#ffffff", 0.15);
+        for (let i = 0; i < Math.round(3 + 7 * n); i++) { const y = -1550 + (i * 173) % 1000, w = 260 + (i * 97) % 280, par = 0.88 + (i % 3) * 0.03, x = ((i * 611 + t * (10 + (i % 3) * 7)) % 5600 + 5600) % 5600 - 2800 + camX * par;
+          const gN = el("g", { transform: `translate(${f1(x)} ${y})`, opacity: (0.6 + 0.4 * Math.min(1, n)).toFixed(2) }, g.vivoCielo);
+          // silueta: base plana + tres bultos; primero en color de luz un poco más abajo (el filo), luego el cuerpo
+          const forma = (dy) => `M${f1(-w / 2)} ${f1(dy)} h${f1(w)} a${f1(w / 7)} ${f1(w / 7)} 0 0 0 ${f1(-w / 6)} ${f1(-w / 7)} a${f1(w / 5)} ${f1(w / 5)} 0 0 0 ${f1(-w * 0.34)} ${f1(-w / 12)} a${f1(w / 6)} ${f1(w / 6)} 0 0 0 ${f1(-w * 0.28)} ${f1(w / 9)} a${f1(w / 10)} ${f1(w / 10)} 0 0 0 ${f1(-w * 0.22)} ${f1(w * 0.1)} Z`;
+          el("path", { d: forma(12), fill: cL, transform: "translate(7 0)" }, gN); el("path", { d: forma(0), fill: cN }, gN);
+          // la sombra de dentro: bultos más oscuros abajo (volumen), como las nubes de la barca
+          el("path", { d: `M${f1(-w * 0.46)} 0 h${f1(w * 0.9)} a${f1(w * 0.13)} ${f1(w * 0.09)} 0 0 0 ${f1(-w * 0.26)} ${f1(-w * 0.06)} a${f1(w * 0.16)} ${f1(w * 0.1)} 0 0 0 ${f1(-w * 0.34)} 0 a${f1(w * 0.12)} ${f1(w * 0.08)} 0 0 0 ${f1(-w * 0.3)} ${f1(w * 0.06)} Z`, fill: cS, opacity: 0.55 }, gN);
+          el("rect", { x: f1(-w * 0.32), y: f1(-w * 0.05), width: f1(w * 0.26), height: 9, rx: 4.5, fill: "#ffffff", opacity: 0.22 }, gN); } }
+      // pájaros: una bandada que cruza despacio y aletea (de día, al alba, al atardecer, en el mar y el desierto)
+      if (F.pajaros ?? ["dia", "alba", "atardecer", "mar", "desierto"].includes(F.tipo)) { const cP = mixc(F.montes?.[2] || "#3a3040", "#1a1420", 0.4);
+        for (let b = 0; b < 2; b++) { const bx = ((t * (55 + 15 * b) + b * 1900) % 4200) - 2100 + camX * 0.9, by = -1350 + b * 260 + 30 * Math.sin(t * 0.5 + b);
+          let d = ""; for (let k = 0; k < 5; k++) { const x = bx - k * 46 - (k % 2) * 20, y = by + k * 22 * (k % 2 ? 1 : -0.4) + 4 * Math.sin(t + k), a = Math.sin(t * 9 + k * 1.3) * 10, s2 = 13 - k;
+            d += `M${f1(x - s2)} ${f1(y - a * 0.6)} Q ${f1(x - s2 / 2)} ${f1(y - 8 - a)} ${f1(x)} ${f1(y)} Q ${f1(x + s2 / 2)} ${f1(y - 8 - a)} ${f1(x + s2)} ${f1(y - a * 0.6)}`; }
+          el("path", { d, fill: "none", stroke: cP, "stroke-width": 4, "stroke-linecap": "round", "stroke-linejoin": "round", opacity: 0.75 }, g.vivoCielo); } } }
     if (g.vivoSuelo) { g.vivoSuelo.replaceChildren();
       if (F.mar) { const c = F.colorMar || ["#2c4a6a", "#4a6e90", "#7a9ab8"], ola = F.oleaje ?? (F.tipo === "tormenta" ? 2 : 1), N = 14;
         for (let n = N - 1; n >= 0; n--) { const z = ((n + t * 0.11 * N) % N) / N, zz = z * z, y = 10 + zz * 1500, A = (4 + 40 * zz) * ola, L = 120 + 520 * zz, fase = n * 1.7, op = cl(z * 6) * cl((1 - z) * 8);
@@ -130,12 +185,25 @@
           const cresta = d; d += ` L ${f1(camX + 3000)} ${f1(y + 40 * zz)} L ${f1(camX + 3000)} ${f1(y + 160 * zz + 30)} L ${f1(camX - 3000)} ${f1(y + 160 * zz + 30)} Z`;
           el("path", { d, fill: mixc(c[0], c[1], z), opacity: op.toFixed(2) }, g.vivoSuelo);
           el("path", { d: cresta, fill: "none", stroke: c[2], "stroke-width": f1(2 + 7 * zz), "stroke-linecap": "round", "stroke-dasharray": `${f1(L * 0.35)} ${f1(L * 0.65)}`, "stroke-dashoffset": f1(-t * 40 * (1 + z)), opacity: (0.6 * op).toFixed(2) }, g.vivoSuelo); } }
+      if (F.tipo === "interior" && F.ventana !== false) { el("path", { d: "M-610 -740 L -460 -740 L 160 -6 L -300 -6 Z", fill: F.estrellas || F.noche ? "#a8b8f0" : "#fff0c8", opacity: 0.1 }, g.vivoSuelo);
+        let d = ""; for (let i = 0; i < 26; i++) { const u = ((i * 0.381 + t * 0.03) % 1), x = -560 + u * 540 + 40 * Math.sin(t * 0.6 + i), y = -720 + u * 700 + 30 * Math.sin(t * 0.4 + i * 2); d += `M${f1(x)} ${f1(y)}h0.1`; }
+        el("path", { d, stroke: "#fff4d8", "stroke-width": 6, "stroke-linecap": "round", opacity: 0.55 }, g.vivoSuelo); }
       if (F.tipo === "interior" && F.lampara !== false) { const fl = 0.85 + 0.15 * Math.sin(t * 9) * Math.sin(t * 5.3), lx = F.lamparaX ?? -260;
         const idL = "esc-halo-ffc070"; if (!g.ownerSVGElement.querySelector("#" + idL)) { const gr = el("radialGradient", { id: idL }, g.ownerSVGElement.querySelector("defs"));
           el("stop", { offset: 0, "stop-color": "#ffc070", "stop-opacity": 0.5 }, gr); el("stop", { offset: 1, "stop-color": "#ffc070", "stop-opacity": 0 }, gr); }
         el("circle", { cx: lx, cy: -40, r: f1(520 * fl), fill: `url(#${idL})` }, g.vivoSuelo);
         el("ellipse", { cx: lx, cy: -14, rx: 44, ry: 14, fill: "#8a5a3a" }, g.vivoSuelo); el("path", { d: `M${lx - 32} -20 Q ${lx} -50 ${lx + 32} -20 Z`, fill: "#a8703a" }, g.vivoSuelo);
         el("path", { d: `M${lx + 28} -40 Q ${lx + 38} ${f1(-66 - 8 * fl)} ${lx + 46} -40 Z`, fill: "#ffd27a" }, g.vivoSuelo); } }
+    if (g.vivoSuelo && !F.mar && F.tipo !== "interior" && F.hierba !== false) { const cH = mixc(F.montes?.[2] || "#3a3952", F.suelo?.[0] || "#806040", 0.45), cH2 = mixc(cH, luzDe(F), 0.25), vto = F.viento ?? 1;
+      let d = "", d2 = ""; for (let i = 0; i < 46; i++) { const z = ((i * 0.618) % 1), y = 20 + z * z * 520, k = 0.6 + 2 * z * z, x = -2300 + ((i * 733) % 4600), sw = vto * (6 + 10 * k) * Math.sin(t * 1.6 + x * 0.004);
+        const hoja = (ox, h, c) => `M${f1(x + ox * k)} ${f1(y)} Q ${f1(x + ox * k + sw * 0.4)} ${f1(y - h * k * 0.6)} ${f1(x + ox * k + sw)} ${f1(y - h * k)}`;
+        d += hoja(-8, 30) + hoja(0, 42) + hoja(9, 26); d2 += hoja(4, 34); }
+      el("path", { d, fill: "none", stroke: cH, "stroke-width": 5, "stroke-linecap": "round" }, g.vivoSuelo); el("path", { d: d2, fill: "none", stroke: cH2, "stroke-width": 4, "stroke-linecap": "round", opacity: 0.8 }, g.vivoSuelo); }
+    if (F.delante !== false && F.tipo !== "interior" && zoom < 1.7) { const cD = mixc(F.montes?.[2] || "#2a2838", "#0c0814", 0.55), vto = F.viento ?? 1, desp = -camX * 0.35 * zoom;
+      for (const [bx, lado] of [[-60, 1], [ANCHO + 60, -1]]) { const x0 = bx + desp * 0.1, gD = el("g", { transform: `translate(${f1(x0)} ${ALTO + 30})`, opacity: 0.92 }, gDelante); let d = "";
+        for (let k = 0; k < 9; k++) { const ox = lado * (k * 26), h = 170 + ((k * 53) % 120), sw = vto * 18 * Math.sin(t * 1.4 + k * 0.7);
+          d += `M${f1(ox - 16)} 0 Q ${f1(ox + sw * 0.3)} ${f1(-h * 0.55)} ${f1(ox + sw + lado * 20)} ${f1(-h)} Q ${f1(ox + 6 + sw * 0.3)} ${f1(-h * 0.5)} ${f1(ox + 16)} 0 Z`; }
+        el("path", { d, fill: cD }, gD); el("ellipse", { cx: f1(lado * 90), cy: 10, rx: 210, ry: 70, fill: cD }, gD); } }
     // lluvia (delante de todo, en pantalla) y relámpagos
     const ll = F.lluvia || 0;
     if (ll > 0) { let d = ""; for (let i = 0; i < Math.round(160 * ll); i++) { const x = ((i * 137.7) % 1180) - 50, y0 = ((i * 89.3 + t * 2600 * (0.8 + (i % 5) * 0.08)) % 2100) - 100; d += `M${f1(x)} ${f1(y0)} l -18 60 `; }
@@ -197,23 +265,37 @@
     const actores = (esc.actores || []).map((a) => { const j = PJ[a.personaje]; const g = el("g", { "data-actor": a.id }, mundo);
       if (!j) { const tx = el("text", { fill: "#f66", "font-size": 40 }, g); tx.textContent = "falta el personaje «" + a.personaje + "»"; return { a, g, m: null, j: null }; }
       return { a, g, j, m: Personajes.crear(g, j, { id: "esc-" + a.id }) }; });
+    // ESPACIO 2,5D: cada cosa está en (x, profundidad p) sobre el suelo; la cámara está a una distancia D del plano p = 0 y a una altura
+    // «alto» (claves de cámara: alto; 450 por defecto). Proyección en perspectiva: lo lejano encoge, sube hacia el horizonte (que queda a la
+    // altura de la cámara) y se mueve menos al moverse la cámara (paralaje). p < 0 = más cerca que el plano de referencia (primeros términos).
+    // Con alto 450, p = 1 da la escala (0,62) y la altura (−170) de antes, así que las escenas antiguas se ven parecidas.
+    const D3 = 1600, Z_P = 980; let CAM = { x: 0, alto: 450 };
+    const sDe = (p) => { const z = Z_P * (p || 0); return D3 / Math.max(60, D3 + z); };
+    function proy(x, p) { const s = sDe(p); return { x: CAM.x + ((x || 0) - CAM.x) * s, y: -CAM.alto * (1 - s), s }; }
+    const horizonte = (zFondo) => -CAM.alto * (1 - D3 / (D3 + zFondo));
     // atrezo: objetos de la escena (ATREZO en comun/atrezo.js), colocados como los personajes; sus parámetros pueden llevar claves
     const objetos = (esc.objetos || []).map((ob) => ({ ob, g: el("g", { "data-objeto": ob.id || ob.tipo }, mundo), k: null }));
-    function objeto(O, t) { const ob = O.ob, esc0 = (ob.escala || 1) * (1 - 0.38 * (ob.p || 0)), q = claves(ob.claves, t, [...new Set((ob.claves || []).flatMap((k) => Object.keys(k)))].filter((c) => c !== "t" && c !== "curva")) || {};
+    function objeto(O, t) { const ob = O.ob, q = claves(ob.claves, t, [...new Set((ob.claves || []).flatMap((k) => Object.keys(k)))].filter((c) => c !== "t" && c !== "curva")) || {};
       const x = q.x ?? ob.x ?? 0, frio = ob.frio ?? ["noche", "luna", "tormenta"].includes(esc.fondo?.tipo || "noche");
-      O.g.setAttribute("transform", `translate(${f1(x)} ${f1(-170 * (ob.p || 0))}) scale(${((ob.espejo ? -1 : 1) * esc0).toFixed(3)} ${esc0.toFixed(3)})`);
+      const pr = proy(x, ob.p), esc0 = (ob.escala || 1) * pr.s;
+      O.g.setAttribute("transform", `translate(${f1(pr.x)} ${f1(pr.y)}) scale(${((ob.espejo ? -1 : 1) * esc0).toFixed(3)} ${esc0.toFixed(3)})`);
       const params = Object.assign({}, ob.params || {}, q); delete params.x; delete params.t; delete params.curva;
+      if (ob.alFondo) params.horizonte = Math.round(horizonte(18000) / esc0);   // decorados de escena entera (mar Rojo): su horizonte es el del fondo
       const A = window.ATREZO && ATREZO[ob.tipo], clave = JSON.stringify([ob.tipo, params, frio]) + (A && A.anima ? "|" + t.toFixed(3) : "");
       if (clave !== O.k) { O.k = clave; O.g.innerHTML = window.Atrezo ? Atrezo.dibujar({ tipo: ob.tipo, params, frio }, t) : ""; }
       return ob.p || 0; }
-    function camara(t) { const c = claves(esc.camara, t, ["x", "y", "zoom"]) || { x: 0, y: -360, zoom: 1 }; const [dx, dy] = sacudida(esc, t); if (dx || dy) { c.x += dx / (c.zoom || 1); c.y += dy / (c.zoom || 1); } return c; }
+    function camara(t) { const c = claves(esc.camara, t, ["x", "y", "zoom", "tilt", "roll", "alto"]) || { x: 0, y: -360, zoom: 1 }; const [dx, dy] = sacudida(esc, t);   // tilt: ángulo (−0,3 contrapicado … 0,6 picado; 0,18 normal); roll: cámara ladeada (grados)
+      if (!esc.camaraFija) { const z0 = c.zoom || 1; c.x += (9 * Math.sin(t * 0.53) + 4 * Math.sin(t * 1.31)) / z0; c.y += (6 * Math.sin(t * 0.41 + 1) + 3 * Math.sin(t * 1.07)) / z0; c.zoom = z0 * (1 + 0.006 * Math.sin(t * 0.29)); } if (dx || dy) { c.x += dx / (c.zoom || 1); c.y += dy / (c.zoom || 1); } return c; }
     function dibujar(t) {
       const c = camara(t), z = c.zoom || 1;
       const k = JSON.stringify(esc.fondo || {}) + Math.round(c.x / 4); if (k !== fondoKey) { fondoKey = k; pintarFondo(fondo, esc.fondo, c.x); }
-      const tr = `translate(${ANCHO / 2} ${ALTO / 2}) scale(${z}) translate(${f1(-c.x)} ${f1(-c.y)})`;
-      fondo.setAttribute("transform", tr); mundo.setAttribute("transform", tr);
+      const tr = `translate(${ANCHO / 2} ${ALTO / 2})${c.roll ? ` rotate(${c.roll.toFixed(2)})` : ""} scale(${z}) translate(${f1(-c.x)} ${f1(-c.y)})`;
+      CAM = { x: c.x, alto: c.alto ?? esc.camaraAlto ?? 450 };
+      // el fondo (cielo, montes, suelo) se coloca con el horizonte a la altura de la cámara; en un interior, la pared del fondo está cerca
+      const hz = horizonte((esc.fondo?.tipo || "noche") === "interior" ? Z_P * 1.15 : 18000);
+      fondo.setAttribute("transform", tr + ` translate(0 ${f1(hz)})`); mundo.setAttribute("transform", tr);
       if ((esc.fondo?.tipo || "noche") !== "color") vivo(fondo, gDelante, esc.fondo, t, c.x, z);
-      Titere25D.camara({ tilt: 0.18 });
+      Titere25D.camara({ tilt: c.tilt ?? 0.18 });
       const orden = [];
       const conFisica = actores.some((A) => A.j && (A.j.piezas || []).some((pz) => pz.fisica && pz.fisica.activa !== false));
       // física de las piezas: si el tiempo salta (vídeo renderizado por trozos, cabezal movido), se simula el segundo anterior para llegar
@@ -221,15 +303,15 @@
       if (conFisica && !(t > tAnterior && t - tAnterior <= 0.25)) { for (let u = Math.max(0, t - 1); u < t - 1e-6; u += 1 / 30) for (const A of actores) if (A.m) actor(A, u); }
       tAnterior = t;
       for (const A of actores) { if (!A.m) continue; const q = actor(A, t); orden.push({ g: A.g, p: q.p || 0 }); }
-      for (const O of objetos) orden.push({ g: O.g, p: objeto(O, t) + (O.ob.detras ? 0.0005 : -0.0005) });
+      for (const O of objetos) orden.push({ g: O.g, p: O.ob.alFondo ? 99 + objeto(O, t) : objeto(O, t) + (O.ob.detras ? 0.0005 : -0.0005) });   // alFondo: decorado de escena entera, detrás de todos
       orden.sort((x, y) => y.p - x.p).forEach((o) => mundo.appendChild(o.g));
       pintarAmbiente(gAmb, esc, t);
       pintarTextos(t);
     }
     let tAnterior = -1;
     function actor(A, t) { const a = A.a;
-        const q = claves(a.recorrido, t, ["x", "p", "giro"]) || { x: 0, p: 0, giro: 20 }, esc0 = (a.escala || 1) * (1 - 0.38 * (q.p || 0));
-        A.g.setAttribute("transform", `translate(${f1(q.x)} ${f1(-170 * (q.p || 0))}) scale(${esc0.toFixed(3)})`);
+        const q = claves(a.recorrido, t, ["x", "p", "giro"]) || { x: 0, p: 0, giro: 20 }, pr = proy(q.x, q.p), esc0 = (a.escala || 1) * pr.s, X0 = pr.x, Y0 = pr.y;
+        A.g.setAttribute("transform", `translate(${f1(X0)} ${f1(Y0)}) scale(${esc0.toFixed(3)})`);
         // velocidad: anda o corre sola si el recorrido la desplaza
         const q2 = claves(a.recorrido, t + 0.05, ["x", "p"]) || q, v = Math.hypot(q2.x - q.x, ((q2.p || 0) - (q.p || 0)) * 500) / 0.05;
         const anda = cl(v / 60), corre = cl((v - 330) / 200);
@@ -248,7 +330,7 @@
         const pp = Personajes.conControles(pz, A.j.controles, ctrl);
         // agarrar: la mano va (por IK) a la mano de otro personaje o a un objeto, con medio segundo de transición
         for (const L of ["Izq", "Der"]) { const g = enClave((a.agarra || []).filter((k) => (k.mano || "Der") === L), t); if (!g) continue;
-          const objetivo = (k) => { const w = puntoMundo(k?.a); return w ? [(w[0] - q.x) / esc0, (w[1] + 170 * (q.p || 0)) / esc0] : null; };
+          const objetivo = (k) => { const w = puntoMundo(k?.a); return w ? [(w[0] - X0) / esc0, (w[1] - Y0) / esc0] : null; };
           const o1 = objetivo(g.k), o0 = objetivo(g.ant); let obj = o1 && o0 && g.f < 1 ? [lerp(o0[0], o1[0], g.f), lerp(o0[1], o1[1], g.f)] : o1, w = o1 ? (o0 ? 1 : g.f) : (o0 ? 1 - g.f : 0); if (!o1) obj = o0;
           if (!obj || w <= 0.001) continue; const sol = Personajes.ikMano(A.j, pp, L, base.giro || 0, obj);
           for (const c of ["K", "Lado", "Frente", "Codo", "Hacia"]) pp["b" + L + c] = lerp(pp["b" + L + c] ?? 0, sol["b" + L + c], w);
@@ -256,7 +338,7 @@
         const e = Personajes.pose(pp, base);
         // mirar a un punto: la cabeza (±65°) y los ojos (±85°) giran hacia el objetivo; también arriba o abajo
         const mi = enClave(a.mirar, t);
-        if (mi) { const ojo = A.wp?.cabeza || [q.x, -170 * (q.p || 0) - 520 * esc0];
+        if (mi) { const ojo = A.wp?.cabeza || [X0, Y0 - 520 * esc0];
           const dir = (k) => { if (!k || !k.a || k.a === "nada") return null; if (k.a === "camara") return { yaw: 0, y: 0 };
             const w = puntoMundo(k.a === "habla" ? quienHabla(t, a.id) : k.a, "cabeza"); return w ? { yaw: Math.atan2(w[0] - ojo[0], 260), y: Math.max(-0.8, Math.min(0.8, (w[1] - ojo[1]) / 420)) } : null; };
           const d1 = dir(mi.k), d0 = dir(mi.ant), d = d1 && d0 && mi.f < 1 ? { yaw: lerp(d0.yaw, d1.yaw, mi.f), y: lerp(d0.y, d1.y, mi.f) } : d1 || d0, w = d1 ? (d0 ? 1 : mi.f) : (d0 ? 1 - mi.f : 0);
@@ -281,10 +363,21 @@
           if (vis) { const f = v == null ? 1.1 : 0.7 + 0.55 * cl(v * 1.5); e.visema = { abre: Math.min(1.2, vis.abre * f * 1.2), ancho: vis.ancho, dientes: vis.dientes }; break; }
           if (v != null && !au.palabras) { e.boca = cl(v * 1.15); e.bocaAncho = Math.sin(u * 11.3) * Math.sin(u * 4.1); } }
         if (a.variantes) e.variantes = Object.assign({}, A.j.variantes || {}, a.variantes);   // variantes propias en esta escena (con o sin velo…)
-        e.t = t; e.mundo = [q.x / esc0, -170 * (q.p || 0) / esc0];
+        // VIDA: nadie está quieto del todo. Respira (pecho y hombros), pasa el peso de un pie a otro y la cabeza se mueve un poco; los
+        // brazos que cuelgan sin acción se separan y doblan algo (colgados rectos parecían de madera). a.quieto = true lo desactiva.
+        if (!a.quieto && !e.tumbado) { const ph = a.id.length * 1.7 + (a.id.charCodeAt(0) || 0) * 0.13, quietud = 1 - cl(anda * 3);
+          e.altura = (e.altura || 0) + 2.5 * Math.sin(t * 2.1 + ph);
+          e.hombros = (e.hombros || 0) + 1.5 * Math.sin(t * 2.1 + ph + 0.6);
+          e.inclina = (e.inclina || 0) + 0.018 * quietud * Math.sin(t * 0.55 + ph);
+          e.ladeo = (e.ladeo || 0) + 1.6 * quietud * Math.sin(t * 0.43 + ph * 2);
+          if (!mi) { e.cabeza += 0.05 * quietud * Math.sin(t * 0.37 + ph); e.miraY = (e.miraY || 0) + 0.04 * quietud * Math.sin(t * 0.29 + ph); }
+          if (!e.amp) for (const L of ["Izq", "Der"]) if (!e["brazo" + L]) { const s2 = L === "Izq" ? 1 : -1;
+            e["brazo" + L] = { lado: 0.16 + 0.03 * Math.sin(t * 0.8 + ph + s2), frente: 0.1 + 0.04 * Math.sin(t * 0.55 + ph * s2), codo: 0.42 + 0.06 * Math.sin(t * 0.7 + ph), hacia: [0, -1, 0.3], k: 1 };
+            if (!e["mano" + L]) e["mano" + L] = { relajada: 1 }; } }
+        e.t = t; e.mundo = [X0 / esc0, Y0 / esc0];
         A.m.dibujar(e);
         // puntos del personaje en el mundo (para que otros le miren o le cojan de la mano en el fotograma siguiente)
-        const P2 = A.m.puntos || {}, aMundo = (pt) => pt && [q.x + pt[0] * esc0, -170 * (q.p || 0) + pt[1] * esc0];
+        const P2 = A.m.puntos || {}, aMundo = (pt) => pt && [X0 + pt[0] * esc0, Y0 + pt[1] * esc0];
         A.wp = { cabeza: aMundo(P2.cabeza), manoIzq: aMundo(P2.manoIzq), manoDer: aMundo(P2.manoDer), pecho: aMundo(P2.pecho) };
         return q; }
     // clave vigente de una lista ({ t, … }, se mantiene hasta la siguiente), la anterior y cuánto va de la transición (0…1 en 0,4 s)
@@ -293,8 +386,8 @@
     // punto del mundo por nombre: "pedro" (su cabeza), "pedro.manoIzq", un objeto del atrezo (su asa) o { x, y }
     function puntoMundo(ref, parte) { if (!ref || ref === "nada") return null; if (typeof ref === "object") return [ref.x || 0, ref.y || 0];
       const [id, pt] = String(ref).split("."); const A = actores.find((x) => x.a.id === id); if (A) return A.wp?.[pt || parte || "cabeza"] || A.wp?.cabeza || null;
-      const O = objetos.find((x) => (x.ob.id || x.ob.tipo) === id); if (O) { const ob = O.ob, k = (ob.escala || 1) * (1 - 0.38 * (ob.p || 0)), ag = ob.agarre || { x: 0, y: -120 };
-        return [(ob.x || 0) + ag.x * k * (ob.espejo ? -1 : 1), -170 * (ob.p || 0) + ag.y * k]; }
+      const O = objetos.find((x) => (x.ob.id || x.ob.tipo) === id); if (O) { const ob = O.ob, pr = proy(ob.x, ob.p), k = (ob.escala || 1) * pr.s, ag = ob.agarre || { x: 0, y: -120 };
+        return [pr.x + ag.x * k * (ob.espejo ? -1 : 1), pr.y + ag.y * k]; }
       return null; }
     // quién habla en t (otro actor con un audio sonando, o el de la voz del montaje)
     function quienHabla(t, yo) { for (const au of esc.audios || []) if (au.habla && au.habla !== yo && t >= (au.t || 0) && t < (au.t || 0) + (au.dur || 1e9)) return au.habla;

@@ -1,7 +1,7 @@
 {
   "id": "triste",
   "nombre": "Triste (cara y cuerpo)",
-  "duracion": 0.6,
+  "duracion": 8,
   "bucle": false,
   "locomocion": {
     "amp": 0
@@ -13,7 +13,62 @@
       "pose": {}
     },
     {
-      "t": 0.6,
+      "t": 0.5,
+      "pose": {
+        "cara": {
+          "triste": 1
+        },
+        "miraY": 0.35,
+        "inclina": 0.08
+      },
+      "curva": "frena"
+    },
+    {
+      "t": 2.1,
+      "pose": {
+        "cara": {
+          "triste": 1
+        },
+        "miraY": 0.35,
+        "inclina": 0.1,
+        "ladeo": 2
+      }
+    },
+    {
+      "t": 3.7,
+      "pose": {
+        "cara": {
+          "triste": 1
+        },
+        "miraY": 0.35,
+        "inclina": 0.068,
+        "ladeo": -1.2
+      }
+    },
+    {
+      "t": 5.3,
+      "pose": {
+        "cara": {
+          "triste": 1
+        },
+        "miraY": 0.35,
+        "inclina": 0.096,
+        "ladeo": 1.6
+      }
+    },
+    {
+      "t": 6.9,
+      "pose": {
+        "cara": {
+          "triste": 1
+        },
+        "miraY": 0.35,
+        "inclina": 0.072,
+        "ladeo": -0.8
+      }
+    },
+    {
+      "t": 8,
       "pose": {
         "cara": {
           "triste": 1

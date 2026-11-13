@@ -1,7 +1,7 @@
 {
   "id": "alegre",
   "nombre": "Alegre (cara)",
-  "duracion": 0.6,
+  "duracion": 8,
   "bucle": false,
   "locomocion": {
     "amp": 0
@@ -13,7 +13,56 @@
       "pose": {}
     },
     {
-      "t": 0.6,
+      "t": 0.5,
+      "pose": {
+        "cara": {
+          "alegre": 0.8
+        }
+      },
+      "curva": "frena"
+    },
+    {
+      "t": 2.1,
+      "pose": {
+        "cara": {
+          "alegre": 0.8
+        },
+        "inclina": 0.02,
+        "ladeo": 2
+      }
+    },
+    {
+      "t": 3.7,
+      "pose": {
+        "cara": {
+          "alegre": 0.8
+        },
+        "inclina": -0.012,
+        "ladeo": -1.2
+      }
+    },
+    {
+      "t": 5.3,
+      "pose": {
+        "cara": {
+          "alegre": 0.8
+        },
+        "inclina": 0.016,
+        "ladeo": 1.6
+      }
+    },
+    {
+      "t": 6.9,
+      "pose": {
+        "cara": {
+          "alegre": 0.8
+        },
+        "inclina": -0.008,
+        "ladeo": -0.8
+      }
+    },
+    {
+      "t": 8,
       "pose": {
         "cara": {
           "alegre": 0.8

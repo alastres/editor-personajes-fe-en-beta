@@ -1,0 +1,124 @@
+{
+  "id": "recoger",
+  "nombre": "Recoger del suelo",
+  "duracion": 2.8,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "prueba ysi2: se dobla por la cintura, la mano baja al suelo, coge y se levanta con ello",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.25,
+      "pose": {
+        "agacha": 0.08,
+        "inclina": -0.05,
+        "miraY": 0.35
+      },
+      "curva": "suave"
+    },
+    {
+      "t": 0.85,
+      "pose": {
+        "agacha": 0.6,
+        "inclina": 0.42,
+        "miraY": 0.75,
+        "pieDerFrente": 28,
+        "bDerK": 1,
+        "bDerLado": 0.18,
+        "bDerFrente": 1.2,
+        "bDerCodo": 0.25,
+        "mDer": {
+          "abierta": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.32,
+        "bIzqFrente": 0.55,
+        "bIzqCodo": 0.7,
+        "mIzq": {
+          "relajada": 1
+        }
+      },
+      "curva": "frena"
+    },
+    {
+      "t": 1.25,
+      "pose": {
+        "agacha": 0.6,
+        "inclina": 0.42,
+        "miraY": 0.8,
+        "pieDerFrente": 28,
+        "bDerK": 1,
+        "bDerLado": 0.18,
+        "bDerFrente": 1.2,
+        "bDerCodo": 0.22,
+        "mDer": {
+          "agarra": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.32,
+        "bIzqFrente": 0.55,
+        "bIzqCodo": 0.7,
+        "mIzq": {
+          "relajada": 1
+        }
+      },
+      "curva": "suave"
+    },
+    {
+      "t": 2.1,
+      "pose": {
+        "agacha": 0.05,
+        "inclina": 0.04,
+        "miraY": 0.25,
+        "bDerK": 1,
+        "bDerLado": 0.3,
+        "bDerFrente": 0.75,
+        "bDerCodo": 1.55,
+        "mDer": {
+          "agarra": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.28,
+        "bIzqFrente": 0.7,
+        "bIzqCodo": 1.4,
+        "mIzq": {
+          "abierta": 1
+        },
+        "cara": {
+          "alegre": 0.5
+        }
+      },
+      "curva": "frena"
+    },
+    {
+      "t": 2.8,
+      "pose": {
+        "agacha": 0,
+        "inclina": 0.02,
+        "miraY": 0.15,
+        "bDerK": 1,
+        "bDerLado": 0.3,
+        "bDerFrente": 0.72,
+        "bDerCodo": 1.6,
+        "mDer": {
+          "agarra": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.28,
+        "bIzqFrente": 0.68,
+        "bIzqCodo": 1.45,
+        "mIzq": {
+          "abierta": 1
+        },
+        "cara": {
+          "alegre": 0.6
+        }
+      }
+    }
+  ]
+}

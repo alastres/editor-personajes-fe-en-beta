@@ -1,0 +1,85 @@
+{
+  "id": "conmovido",
+  "nombre": "Conmovido (mira arriba)",
+  "duracion": 8,
+  "bucle": false,
+  "locomocion": {
+    "amp": 0
+  },
+  "origen": "prueba ysi2 (director a mano)",
+  "claves": [
+    {
+      "t": 0,
+      "pose": {}
+    },
+    {
+      "t": 0.5,
+      "pose": {
+        "cara": {
+          "sorpresa": 0.35,
+          "alegre": 0.45
+        },
+        "miraY": -0.4
+      },
+      "curva": "frena"
+    },
+    {
+      "t": 2.1,
+      "pose": {
+        "cara": {
+          "sorpresa": 0.35,
+          "alegre": 0.45
+        },
+        "miraY": -0.4,
+        "inclina": 0.02,
+        "ladeo": 2
+      }
+    },
+    {
+      "t": 3.7,
+      "pose": {
+        "cara": {
+          "sorpresa": 0.35,
+          "alegre": 0.45
+        },
+        "miraY": -0.4,
+        "inclina": -0.012,
+        "ladeo": -1.2
+      }
+    },
+    {
+      "t": 5.3,
+      "pose": {
+        "cara": {
+          "sorpresa": 0.35,
+          "alegre": 0.45
+        },
+        "miraY": -0.4,
+        "inclina": 0.016,
+        "ladeo": 1.6
+      }
+    },
+    {
+      "t": 6.9,
+      "pose": {
+        "cara": {
+          "sorpresa": 0.35,
+          "alegre": 0.45
+        },
+        "miraY": -0.4,
+        "inclina": -0.008,
+        "ladeo": -0.8
+      }
+    },
+    {
+      "t": 8,
+      "pose": {
+        "cara": {
+          "sorpresa": 0.35,
+          "alegre": 0.45
+        },
+        "miraY": -0.4
+      }
+    }
+  ]
+}

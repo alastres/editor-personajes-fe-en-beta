@@ -1,7 +1,7 @@
 {
   "id": "asombro",
   "nombre": "Asombro (cara y cuerpo)",
-  "duracion": 0.6,
+  "duracion": 8,
   "bucle": false,
   "locomocion": {
     "amp": 0
@@ -13,7 +13,62 @@
       "pose": {}
     },
     {
-      "t": 0.6,
+      "t": 0.5,
+      "pose": {
+        "cara": {
+          "sorpresa": 1
+        },
+        "miraY": -0.25,
+        "inclina": -0.04
+      },
+      "curva": "frena"
+    },
+    {
+      "t": 2.1,
+      "pose": {
+        "cara": {
+          "sorpresa": 1
+        },
+        "miraY": -0.25,
+        "inclina": -0.02,
+        "ladeo": 2
+      }
+    },
+    {
+      "t": 3.7,
+      "pose": {
+        "cara": {
+          "sorpresa": 1
+        },
+        "miraY": -0.25,
+        "inclina": -0.052,
+        "ladeo": -1.2
+      }
+    },
+    {
+      "t": 5.3,
+      "pose": {
+        "cara": {
+          "sorpresa": 1
+        },
+        "miraY": -0.25,
+        "inclina": -0.024,
+        "ladeo": 1.6
+      }
+    },
+    {
+      "t": 6.9,
+      "pose": {
+        "cara": {
+          "sorpresa": 1
+        },
+        "miraY": -0.25,
+        "inclina": -0.048,
+        "ladeo": -0.8
+      }
+    },
+    {
+      "t": 8,
       "pose": {
         "cara": {
           "sorpresa": 1

@@ -41,6 +41,9 @@
     <section class="escenario esc">
       <div class="marco-cont" id="marco-cont">
         <svg id="lienzo" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid meet"><defs></defs><g id="capa-escena"></g><g id="guias"></g></svg>
+        <div class="planta" id="planta-caja" title="Vista de planta: el espacio visto desde arriba. Arrastra un punto para moverlo en x y en profundidad; el triángulo es lo que ve la cámara.">
+          <div class="planta-cab">Planta <span class="tenue">(desde arriba)</span><button class="x" id="b-planta" title="Ocultar o mostrar">–</button></div>
+          <svg id="planta" viewBox="0 0 300 230"></svg></div>
       </div>
       <div class="linea">
         <div class="ctl">
@@ -87,7 +90,7 @@
         <div id="actor-det" class="detalle" hidden>
           <p class="ayuda" id="actor-ayuda">Arrastra al personaje en el escenario: izquierda/derecha lo mueve, arriba/abajo lo aleja o acerca. Se crea una clave de recorrido en el cabezal.</p>
           <div class="deslizador"><label>Posición X (en el cabezal)</label><input type="range" id="a-x" min="-1500" max="1500" step="1" /><output></output></div>
-          <div class="deslizador"><label>Profundidad (0 delante … 1 al fondo)</label><input type="range" id="a-p" min="0" max="1" step="0.01" /><output></output></div>
+          <div class="deslizador"><label>Profundidad z (negativo = primer término · 0 = plano principal · 1+ = lejos)</label><input type="range" id="a-p" min="-0.8" max="3" step="0.01" /><output></output></div>
           <div class="deslizador"><label>Hacia dónde mira</label><input type="range" id="a-giro" min="-180" max="180" step="1" /><output></output></div>
           <div class="deslizador"><label>Tamaño</label><input type="range" id="a-escala" min="0.4" max="2" step="0.01" /><output></output></div>
           <div class="campo"><label>Forma de andar <span class="tenue">(cuando el recorrido le mueve)</span></label><div class="seg pequeno" id="a-estilo"></div></div>
@@ -115,7 +118,7 @@
         <div id="objeto-det" class="detalle" hidden>
           <p class="ayuda">Arrástralo en el escenario: izquierda/derecha lo mueve, arriba/abajo lo aleja o acerca. Por la noche se pinta en tonos fríos.</p>
           <div class="deslizador"><label>Posición X</label><input type="range" id="o-x" min="-2500" max="2500" step="1" /><output></output></div>
-          <div class="deslizador"><label>Profundidad (0 delante … 1 al fondo)</label><input type="range" id="o-p" min="0" max="1.5" step="0.01" /><output></output></div>
+          <div class="deslizador"><label>Profundidad z (negativo = primer término, delante de todos · 1+ = lejos)</label><input type="range" id="o-p" min="-0.9" max="4" step="0.01" /><output></output></div>
           <div class="deslizador"><label>Tamaño</label><input type="range" id="o-escala" min="0.2" max="3" step="0.01" /><output></output></div>
           <div class="fila-botones dos"><label class="chk"><input type="checkbox" id="o-espejo" /> Espejo</label><label class="chk" title="A la misma profundidad que un personaje, queda detrás de él"><input type="checkbox" id="o-detras" /> Detrás de los personajes</label></div>
           <div id="o-params"></div>
@@ -129,6 +132,9 @@
         <div class="deslizador"><label>Mirar a X</label><input type="range" id="c-x" min="-1500" max="1500" step="1" /><output></output></div>
         <div class="deslizador"><label>Mirar a Y (altura)</label><input type="range" id="c-y" min="-1200" max="200" step="1" /><output></output></div>
         <div class="deslizador"><label>Zoom</label><input type="range" id="c-zoom" min="0.4" max="3" step="0.01" /><output></output></div>
+        <div class="deslizador"><label>Altura de la cámara (baja = contrapicado · alta = picado)</label><input type="range" id="c-alto" min="90" max="1500" step="5" /><output></output></div>
+        <div class="deslizador"><label>Ladeo (cámara inclinada, inquietud)</label><input type="range" id="c-roll" min="-15" max="15" step="0.5" /><output></output></div>
+        <div class="seg pequeno" id="c-angulos"></div>
         <div class="seg pequeno" id="c-planos"></div>
         <button id="b-quitar-cam">Quitar clave de cámara</button>
       </section>

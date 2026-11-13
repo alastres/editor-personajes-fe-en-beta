@@ -43,3 +43,11 @@ button.ancho { width: 100%; padding: 10px; }
 .opciones-render input[type=number] { width: 64px; font: inherit; color: var(--texto); background: var(--fondo); border: 1px solid var(--borde); border-radius: 6px; padding: 4px 6px; }
 .barra-render { height: 6px; border-radius: 3px; background: #ffffff14; margin-top: 6px; overflow: hidden; }
 .barra-render i { display: block; height: 100%; background: var(--acento, #f0a33a); transition: width .4s; }
+
+/* vista de planta: el espacio de la escena desde arriba (x a lo ancho, profundidad hacia arriba) */
+.marco-cont { position: relative; }
+.planta { position: absolute; left: 10px; top: 10px; width: 240px; background: #141826ee; border: 1px solid var(--borde); border-radius: 10px; padding: 4px 6px 6px; font-size: 11px; z-index: 3; }
+.planta.plegada svg { display: none; }
+.planta-cab { display: flex; gap: 6px; align-items: center; justify-content: space-between; color: #cfd6e8; }
+.planta svg { width: 100%; height: auto; display: block; cursor: crosshair; touch-action: none; }
+.planta .pl-act { cursor: grab; }

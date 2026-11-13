@@ -525,7 +525,10 @@
       // túnica con torsión (cadera → pecho) y el bajo empujado por las rodillas
       const df = (s, lv) => lv.bajo ? lerp(bajoDf[-1], bajoDf[1], cl((s / lv.A + 1) / 2)) : lv.y > -230 ? 0.15 * lerp(bajoDf[-1], bajoDf[1], cl((s / lv.A + 1) / 2)) : 0;
       const angNiv = (k) => lerp(aCad - tau, aT - tauS, k);
-      const anillos = NIV.map((lv) => anillo(lv, angNiv(lv.k), { s: sway, y: bob, f: lean(lv.y) }, df)), ext = anillos.map(extremos);
+      // al agacharse, el bajo de la falda no se hunde en el suelo: se queda apoyado y se abre (la tela se arruga contra el suelo)
+      const suelo = (lv) => { const tope = -10 - lv.y, hund = bob - tope; if (!(lv.bajo || lv.y > -130) || hund <= 0) return { y: bob, lv };
+        const k = cl(hund / 70); return { y: tope, lv: Object.assign({}, lv, { A: lv.A * (1 + 0.32 * k), B: lv.B * (1 + 0.3 * k) }) }; };
+      const anillos = NIV.map((lv0) => { const { y, lv } = suelo(lv0); return anillo(lv, angNiv(lv.k), { s: sway, y, f: lv.y > -192 ? lean(lv.y) * 0.15 : lean(lv.y) }, df); }), ext = anillos.map(extremos);   // por debajo de la cadera la tela no se inclina con el torso
       const izq = anillos.map((r, i) => r[ext[i][0]].q), der = anillos.map((r, i) => r[ext[i][1]].q);
       const nB = anillos.length - 1, arco = arcoDelantero(anillos[nB], ext[nB][0], ext[nB][1]);
       // contrapicado: el borde de la silueta es el arco de ATRÁS del bajo y se ve el hueco de dentro con las piernas

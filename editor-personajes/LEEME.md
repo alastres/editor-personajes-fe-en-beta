@@ -308,3 +308,27 @@ Un short es una sola voz y una secuencia de escenas, con subtítulos, música y 
 - Lo que falló o faltó en la prueba está en `ROADMAP.md`, en Fase 2, punto 1.
 - **Capa «cara»** en los bloques (Escenas → Capa → «Solo cara», ☺ en la línea de tiempo): pone solo la expresión y la mirada, sin tocar piernas ni brazos. Así una emoción se suma a arrodillarse, sentarse o andar; con «Solo cuerpo» las piernas volvían a la postura de pie. Las acciones de emoción del short la usan.
 - **Borrador 2** (voz en off, varios planos con corte en cada escena), después del veredicto del usuario sobre el 1: «aburrido, faltan cambios de cámara; el narrador distrae».
+
+## Fondos con vida y personajes que no se quedan quietos (13 nov 2026)
+Después del veredicto del usuario: «sin la herramienta hacías mejores vídeos; mejores fondos, con más dinamismo y vida; poses que no se ven bien».
+- **Montes en cuatro capas** (`montes()` en `comun/escena.js`): las lejanas se funden con el horizonte, cada una lleva un filo de luz del color del astro, rayas de cápsula y bruma en la base. Bruma del horizonte (`bruma()`).
+- **Sol y luna** con anillos de halo; la luna con cráteres y el sol con brillo.
+- **Nubes** como las de la barca: base plana, borde iluminado abajo y sombra de volumen dentro. Ahora hay nubes por defecto en noche, alba, día y atardecer (`fondo.nubes` las cambia; 0 las quita).
+- **Lo vivo:** estrellas que titilan y una estrella fugaz cada 6,5 s; bandadas de pájaros que aletean (día, alba, atardecer, mar, desierto; `fondo.pajaros: false` los quita); hierba que se mueve con el viento (`fondo.viento`, `fondo.hierba: false`); matas oscuras en las esquinas de abajo que hacen de primer plano en los planos abiertos (`fondo.delante: false`).
+- **Interior nuevo:** pared iluminada por la lámpara, arco de puerta, repisa con cántaros, viga con vigas cortas, ventana con parteluz y haz de luz con motas que flotan, alfombra de rayas.
+- **Cámara en mano:** una deriva lenta de pocos píxeles para que ningún plano esté muerto (`camaraFija: true` en la escena la quita).
+- **Vida en los personajes** (en la escena): respiran, pasan el peso de un pie a otro, la cabeza se mueve un poco y los brazos sin acción se separan del cuerpo y doblan algo el codo (antes colgaban rectos, «de madera»). `quieto: true` en el actor lo quita.
+- **Acciones de emoción y gesto** del short: ya no se congelan; oscilan un poco mientras duran. Se retocaron Tender la mano (palma arriba, codo doblado, la otra mano relajada) y Manos arriba.
+
+## Espacio 2,5D real: profundidad, cámara con altura y vista de planta (13 nov 2026)
+El usuario pidió «control de espacio 3D para profundidad y separar capas en el eje z»; también había fallos de proporción y perspectiva.
+- **Perspectiva de verdad** (`comun/escena.js`, `proy()`): la cámara está a 1600 del plano principal y a una altura `alto` (450 por defecto). Cada personaje u objeto se proyecta según su profundidad p (p = 1 son 980 de profundidad):
+  - lo lejano encoge y sube hacia el horizonte;
+  - el horizonte queda a la altura de la cámara (el fondo se coloca con él);
+  - al mover la cámara, lo lejano se mueve menos (paralaje).
+  - Con alto 450, p = 1 da la escala y la altura de antes.
+- **Profundidad negativa = primeros términos:** matas, rocas o ramas muy cerca de la cámara, delante de todo, que enmarcan y se mueven más que el resto. p puede ir de −0,9 a 4.
+- **Cámara** (claves de la pista Cámara): Altura (baja = contrapicado: horizonte bajo y personajes vistos desde abajo; alta = picado: el suelo se abre y se ven desde arriba), botones Contrapicado / Normal / Picado / Muy alto, y Ladeo (cámara inclinada). La altura ajusta sola el ángulo con que se dibuja el muñeco (`tilt`).
+- **Vista de planta** (arriba a la izquierda del lienzo, plegable): la escena vista desde arriba, con x a lo ancho y la profundidad hacia arriba. Los personajes son círculos con hacia dónde miran, el atrezo son cuadrados y el triángulo es lo que ve la cámara a cada profundidad. Arrastrar un punto lo mueve en x y en profundidad (en los personajes, con clave en el cabezal).
+- **Decorados de escena entera** (`alFondo: true`): se dibujan detrás de todos los personajes y reciben el horizonte de la escena. El primero es el **Mar Rojo** (`marRojo`, control «Se abre»): orilla de arena, mar hasta el horizonte y, al abrirse, un camino seco entre dos muros de agua con cresta de espuma, salpicaduras, peces y un frente curvo junto a la orilla.
+- **Recoger del suelo** (acción común): se dobla por la cintura, la mano baja al suelo, coge y se levanta con ello. Al agacharse, el bajo de la falda ya no se hunde en el suelo (se apoya y se abre), y por debajo de la cadera la tela no se inclina con el torso.

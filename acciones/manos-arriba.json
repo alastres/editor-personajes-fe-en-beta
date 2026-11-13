@@ -1,7 +1,7 @@
 {
   "id": "manos-arriba",
   "nombre": "Manos arriba (asombro)",
-  "duracion": 0.6,
+  "duracion": 8,
   "bucle": false,
   "locomocion": {
     "amp": 0
@@ -13,19 +13,123 @@
       "pose": {}
     },
     {
-      "t": 0.6,
+      "t": 0.5,
       "pose": {
         "bDerK": 1,
-        "bDerLado": 0.95,
-        "bDerFrente": 0.35,
-        "bDerCodo": 0.7,
+        "bDerLado": 0.85,
+        "bDerFrente": 0.45,
+        "bDerCodo": 1,
         "mDer": {
           "abierta": 1
         },
         "bIzqK": 1,
-        "bIzqLado": 0.95,
-        "bIzqFrente": 0.35,
-        "bIzqCodo": 0.7,
+        "bIzqLado": 0.85,
+        "bIzqFrente": 0.45,
+        "bIzqCodo": 1,
+        "mIzq": {
+          "abierta": 1
+        }
+      },
+      "curva": "frena"
+    },
+    {
+      "t": 2.1,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.92,
+        "bDerFrente": 0.52,
+        "bDerCodo": 1.14,
+        "mDer": {
+          "abierta": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.92,
+        "bIzqFrente": 0.52,
+        "bIzqCodo": 1.14,
+        "mIzq": {
+          "abierta": 1
+        },
+        "inclina": 0.02,
+        "ladeo": 2
+      }
+    },
+    {
+      "t": 3.7,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.808,
+        "bDerFrente": 0.408,
+        "bDerCodo": 0.916,
+        "mDer": {
+          "abierta": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.808,
+        "bIzqFrente": 0.408,
+        "bIzqCodo": 0.916,
+        "mIzq": {
+          "abierta": 1
+        },
+        "inclina": -0.012,
+        "ladeo": -1.2
+      }
+    },
+    {
+      "t": 5.3,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.906,
+        "bDerFrente": 0.506,
+        "bDerCodo": 1.112,
+        "mDer": {
+          "abierta": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.906,
+        "bIzqFrente": 0.506,
+        "bIzqCodo": 1.112,
+        "mIzq": {
+          "abierta": 1
+        },
+        "inclina": 0.016,
+        "ladeo": 1.6
+      }
+    },
+    {
+      "t": 6.9,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.822,
+        "bDerFrente": 0.422,
+        "bDerCodo": 0.944,
+        "mDer": {
+          "abierta": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.822,
+        "bIzqFrente": 0.422,
+        "bIzqCodo": 0.944,
+        "mIzq": {
+          "abierta": 1
+        },
+        "inclina": -0.008,
+        "ladeo": -0.8
+      }
+    },
+    {
+      "t": 8,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.85,
+        "bDerFrente": 0.45,
+        "bDerCodo": 1,
+        "mDer": {
+          "abierta": 1
+        },
+        "bIzqK": 1,
+        "bIzqLado": 0.85,
+        "bIzqFrente": 0.45,
+        "bIzqCodo": 1,
         "mIzq": {
           "abierta": 1
         }

@@ -7,50 +7,108 @@
   "texto": "Israel vio cómo el mar se abría delante de ellos.",
   "id": "ysi2-evidencia-03",
   "fondo": {
-    "tipo": "mar",
-    "oleaje": 1.4
+    "tipo": "dia",
+    "lejos": "nada",
+    "nubes": 0.6
   },
   "ambiente": {
-    "vineta": 0.3
+    "vineta": 0.3,
+    "tono": -0.05
   },
+  "camaraFija": false,
   "efectos": [
     {
-      "t": 1.72,
+      "t": 1.6700000000000002,
       "tipo": "sacudida",
-      "dur": 0.9,
-      "fuerza": 0.8
+      "dur": 1.4,
+      "fuerza": 0.9
     },
     {
       "t": 1.82,
       "tipo": "destello",
       "dur": 0.6,
-      "fuerza": 0.5
+      "fuerza": 0.45
+    }
+  ],
+  "objetos": [
+    {
+      "id": "mar",
+      "tipo": "marRojo",
+      "x": 0,
+      "p": 0,
+      "escala": 1,
+      "alFondo": true,
+      "claves": [
+        {
+          "t": 0,
+          "abre": 0
+        },
+        {
+          "t": 1.72,
+          "abre": 0.02
+        },
+        {
+          "t": 3.12,
+          "abre": 1,
+          "curva": "frena"
+        }
+      ]
     }
   ],
   "camara": [
     {
       "t": 0,
       "x": 0,
-      "y": -520,
-      "zoom": 0.95
+      "y": -470,
+      "zoom": 1,
+      "tilt": 0.18,
+      "roll": 0,
+      "alto": 450
     },
     {
-      "t": 1.719,
+      "t": 1.969,
       "x": 0,
-      "y": -520,
-      "zoom": 1.007
+      "y": -470,
+      "zoom": 1.06,
+      "tilt": 0.18,
+      "roll": 0,
+      "alto": 450
     },
     {
-      "t": 1.72,
+      "t": 1.97,
       "x": 20,
-      "y": -240,
-      "zoom": 1.7
+      "y": -244.70588235294116,
+      "zoom": 1.7,
+      "tilt": -0.196,
+      "roll": 0,
+      "alto": 90
+    },
+    {
+      "t": 2.919,
+      "x": 20,
+      "y": -244.70588235294116,
+      "zoom": 1.802,
+      "tilt": -0.196,
+      "roll": 0,
+      "alto": 90
+    },
+    {
+      "t": 2.92,
+      "x": 0,
+      "y": -560,
+      "zoom": 0.8,
+      "tilt": 0.436,
+      "roll": 0,
+      "alto": 970
     },
     {
       "t": 3.24,
-      "x": 20,
-      "y": -240,
-      "zoom": 1.802
+      "x": 0,
+      "y": -600,
+      "zoom": 0.8480000000000001,
+      "tilt": 0.436,
+      "roll": 0,
+      "alto": 970
     }
   ],
   "actores": [
@@ -62,13 +120,13 @@
         {
           "t": 0,
           "x": -280,
-          "p": 0.15,
+          "p": 0.12,
           "giro": 165
         }
       ],
       "bloques": [
         {
-          "t": 0.3,
+          "t": 1.82,
           "accion": "asombro",
           "dur": 4,
           "capa": "cara"
@@ -89,13 +147,13 @@
       ],
       "bloques": [
         {
-          "t": 1.82,
+          "t": 1.9200000000000002,
           "accion": "manos-arriba",
           "dur": 3,
           "capa": "brazos"
         },
         {
-          "t": 0.3,
+          "t": 1.82,
           "accion": "asombro",
           "dur": 4,
           "capa": "cara"
@@ -110,13 +168,13 @@
         {
           "t": 0,
           "x": 300,
-          "p": 0.25,
+          "p": 0.2,
           "giro": 195
         }
       ],
       "bloques": [
         {
-          "t": 0.5,
+          "t": 2.02,
           "accion": "asombro",
           "dur": 4,
           "capa": "cara"

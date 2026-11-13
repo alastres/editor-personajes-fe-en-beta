@@ -1,7 +1,7 @@
 {
   "id": "tender-mano",
   "nombre": "Tender la mano",
-  "duracion": 0.6,
+  "duracion": 8,
   "bucle": false,
   "locomocion": {
     "amp": 0
@@ -13,14 +13,137 @@
       "pose": {}
     },
     {
-      "t": 0.6,
+      "t": 0.5,
       "pose": {
         "bDerK": 1,
-        "bDerLado": 0.3,
-        "bDerFrente": 1.15,
-        "bDerCodo": 0.35,
+        "bDerLado": 0.42,
+        "bDerFrente": 0.85,
+        "bDerCodo": 0.7,
+        "bDerHacia": -0.15,
         "mDer": {
           "abierta": 1
+        },
+        "pDer": "arriba",
+        "bIzqK": 1,
+        "bIzqLado": 0.2,
+        "bIzqFrente": 0.15,
+        "bIzqCodo": 0.5,
+        "mIzq": {
+          "relajada": 1
+        }
+      },
+      "curva": "frena"
+    },
+    {
+      "t": 2.1,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.49,
+        "bDerFrente": 0.92,
+        "bDerCodo": 0.84,
+        "bDerHacia": -0.15,
+        "mDer": {
+          "abierta": 1
+        },
+        "pDer": "arriba",
+        "bIzqK": 1,
+        "bIzqLado": 0.27,
+        "bIzqFrente": 0.22,
+        "bIzqCodo": 0.64,
+        "mIzq": {
+          "relajada": 1
+        },
+        "inclina": 0.02,
+        "ladeo": 2
+      }
+    },
+    {
+      "t": 3.7,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.378,
+        "bDerFrente": 0.808,
+        "bDerCodo": 0.616,
+        "bDerHacia": -0.15,
+        "mDer": {
+          "abierta": 1
+        },
+        "pDer": "arriba",
+        "bIzqK": 1,
+        "bIzqLado": 0.158,
+        "bIzqFrente": 0.108,
+        "bIzqCodo": 0.416,
+        "mIzq": {
+          "relajada": 1
+        },
+        "inclina": -0.012,
+        "ladeo": -1.2
+      }
+    },
+    {
+      "t": 5.3,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.476,
+        "bDerFrente": 0.906,
+        "bDerCodo": 0.812,
+        "bDerHacia": -0.15,
+        "mDer": {
+          "abierta": 1
+        },
+        "pDer": "arriba",
+        "bIzqK": 1,
+        "bIzqLado": 0.256,
+        "bIzqFrente": 0.206,
+        "bIzqCodo": 0.612,
+        "mIzq": {
+          "relajada": 1
+        },
+        "inclina": 0.016,
+        "ladeo": 1.6
+      }
+    },
+    {
+      "t": 6.9,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.392,
+        "bDerFrente": 0.822,
+        "bDerCodo": 0.644,
+        "bDerHacia": -0.15,
+        "mDer": {
+          "abierta": 1
+        },
+        "pDer": "arriba",
+        "bIzqK": 1,
+        "bIzqLado": 0.172,
+        "bIzqFrente": 0.122,
+        "bIzqCodo": 0.444,
+        "mIzq": {
+          "relajada": 1
+        },
+        "inclina": -0.008,
+        "ladeo": -0.8
+      }
+    },
+    {
+      "t": 8,
+      "pose": {
+        "bDerK": 1,
+        "bDerLado": 0.42,
+        "bDerFrente": 0.85,
+        "bDerCodo": 0.7,
+        "bDerHacia": -0.15,
+        "mDer": {
+          "abierta": 1
+        },
+        "pDer": "arriba",
+        "bIzqK": 1,
+        "bIzqLado": 0.2,
+        "bIzqFrente": 0.15,
+        "bIzqCodo": 0.5,
+        "mIzq": {
+          "relajada": 1
         }
       }
     }

@@ -1,7 +1,7 @@
 {
   "id": "enfado",
   "nombre": "Enfado (cara y cuerpo)",
-  "duracion": 0.6,
+  "duracion": 8,
   "bucle": false,
   "locomocion": {
     "amp": 0
@@ -13,7 +13,62 @@
       "pose": {}
     },
     {
-      "t": 0.6,
+      "t": 0.5,
+      "pose": {
+        "cara": {
+          "enfado": 1
+        },
+        "inclina": 0.07,
+        "miraY": 0.1
+      },
+      "curva": "frena"
+    },
+    {
+      "t": 2.1,
+      "pose": {
+        "cara": {
+          "enfado": 1
+        },
+        "inclina": 0.09,
+        "miraY": 0.1,
+        "ladeo": 2
+      }
+    },
+    {
+      "t": 3.7,
+      "pose": {
+        "cara": {
+          "enfado": 1
+        },
+        "inclina": 0.058,
+        "miraY": 0.1,
+        "ladeo": -1.2
+      }
+    },
+    {
+      "t": 5.3,
+      "pose": {
+        "cara": {
+          "enfado": 1
+        },
+        "inclina": 0.086,
+        "miraY": 0.1,
+        "ladeo": 1.6
+      }
+    },
+    {
+      "t": 6.9,
+      "pose": {
+        "cara": {
+          "enfado": 1
+        },
+        "inclina": 0.062,
+        "miraY": 0.1,
+        "ladeo": -0.8
+      }
+    },
+    {
+      "t": 8,
       "pose": {
         "cara": {
           "enfado": 1

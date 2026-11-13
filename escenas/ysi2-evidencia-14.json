@@ -13,78 +13,120 @@
   "ambiente": {
     "tono": 0.35,
     "vineta": 0.35,
-    "particulas": "polvo",
-    "cantidad": 0.8
+    "particulas": "chispas",
+    "cantidad": 0.35
   },
+  "objetos": [
+    {
+      "id": "fuego",
+      "tipo": "hoguera",
+      "x": 60,
+      "p": 0.5,
+      "escala": 0.9,
+      "params": {
+        "fuego": 1
+      }
+    },
+    {
+      "id": "roca1",
+      "tipo": "roca",
+      "x": -230,
+      "p": 0.41,
+      "escala": 0.55,
+      "detras": true
+    },
+    {
+      "id": "roca2",
+      "tipo": "roca",
+      "x": 330,
+      "p": 0.49,
+      "escala": 0.55,
+      "detras": true
+    },
+    {
+      "id": "roca3",
+      "tipo": "roca",
+      "x": 80,
+      "p": 0.71,
+      "escala": 0.55,
+      "detras": true
+    }
+  ],
   "camara": [
     {
       "t": 0,
       "x": 0,
       "y": -430,
-      "zoom": 1
+      "zoom": 1,
+      "tilt": 0.436,
+      "roll": 0,
+      "alto": 970
     },
     {
-      "t": 3.109,
-      "x": 0,
+      "t": 1.1090000000000002,
+      "x": -40,
       "y": -430,
-      "zoom": 1.06
+      "zoom": 1.06,
+      "tilt": 0.436,
+      "roll": 0,
+      "alto": 970
     },
     {
-      "t": 3.11,
-      "x": 60,
-      "y": -334.46,
-      "zoom": 1.6
+      "t": 1.11,
+      "x": -230,
+      "y": -347.84,
+      "zoom": 1.75,
+      "tilt": 0.18,
+      "roll": 0,
+      "alto": 450
     },
     {
-      "t": 3.929,
-      "x": 60,
-      "y": -334.46,
-      "zoom": 1.6960000000000002
+      "t": 2.309,
+      "x": -230,
+      "y": -347.84,
+      "zoom": 1.855,
+      "tilt": 0.18,
+      "roll": 0,
+      "alto": 450
     },
     {
-      "t": 3.9299999999999997,
-      "x": 150,
-      "y": -650,
-      "zoom": 0.85
+      "t": 2.31,
+      "x": 380,
+      "y": -410,
+      "zoom": 2.2,
+      "tilt": 0.18,
+      "roll": 0,
+      "alto": 450
+    },
+    {
+      "t": 4.029,
+      "x": 380,
+      "y": -410,
+      "zoom": 2.3320000000000003,
+      "tilt": 0.18,
+      "roll": 0,
+      "alto": 450
+    },
+    {
+      "t": 4.03,
+      "x": 30,
+      "y": -520,
+      "zoom": 0.88,
+      "tilt": 0.18,
+      "roll": 0,
+      "alto": 450
     },
     {
       "t": 6.1,
-      "x": 150,
-      "y": -650,
-      "zoom": 0.901
+      "x": -10,
+      "y": -520,
+      "zoom": 0.9328000000000001,
+      "tilt": 0.18,
+      "roll": 0,
+      "alto": 450
     }
   ],
   "actores": [
-    {
-      "id": "maria",
-      "personaje": "maria-magdalena",
-      "escala": 1,
-      "recorrido": [
-        {
-          "t": 0,
-          "x": -300,
-          "p": 0.05,
-          "giro": 70
-        },
-        {
-          "t": 6.1,
-          "x": 80,
-          "p": 0.05,
-          "giro": 70
-        }
-      ],
-      "bloques": [
-        {
-          "t": 0,
-          "accion": "alegre",
-          "dur": 6.1,
-          "capa": "cara"
-        }
-      ],
-      "andar": {
-        "estilo": "alegre"
-      }
-    },
     {
       "id": "pedro",
       "personaje": "pedro",
@@ -92,18 +134,25 @@
       "recorrido": [
         {
           "t": 0,
-          "x": -80,
-          "p": 0.12,
-          "giro": 70
-        },
-        {
-          "t": 6.1,
-          "x": 300,
-          "p": 0.12,
-          "giro": 70
+          "x": -230,
+          "p": 0.4,
+          "giro": 40
         }
       ],
       "bloques": [
+        {
+          "t": 0,
+          "accion": "sentarse",
+          "dur": 6.1,
+          "desde": 1
+        },
+        {
+          "t": 0,
+          "accion": "explicar",
+          "dur": 6.1,
+          "capa": "brazos",
+          "desde": 1.1
+        },
         {
           "t": 0,
           "accion": "alegre",
@@ -111,9 +160,16 @@
           "capa": "cara"
         }
       ],
-      "andar": {
-        "estilo": "alegre"
-      }
+      "mirar": [
+        {
+          "t": 0,
+          "a": "disc"
+        },
+        {
+          "t": 1.6,
+          "a": "mujer"
+        }
+      ]
     },
     {
       "id": "disc",
@@ -122,28 +178,37 @@
       "recorrido": [
         {
           "t": 0,
-          "x": 140,
-          "p": 0.3,
-          "giro": 70
-        },
-        {
-          "t": 6.1,
-          "x": 520,
-          "p": 0.3,
-          "giro": 70
+          "x": 330,
+          "p": 0.48,
+          "giro": -55
         }
       ],
       "bloques": [
         {
           "t": 0,
+          "accion": "sentarse",
+          "dur": 6.1,
+          "desde": 1
+        },
+        {
+          "t": 0,
+          "accion": "pensativo",
+          "dur": 2.41,
+          "capa": "cara"
+        },
+        {
+          "t": 2.41,
           "accion": "alegre",
           "dur": 6.1,
           "capa": "cara"
         }
       ],
-      "andar": {
-        "estilo": "alegre"
-      }
+      "mirar": [
+        {
+          "t": 0,
+          "a": "pedro"
+        }
+      ]
     },
     {
       "id": "mujer",
@@ -152,15 +217,60 @@
       "recorrido": [
         {
           "t": 0,
-          "x": 330,
-          "p": 0.2,
-          "giro": 70
+          "x": 80,
+          "p": 0.7,
+          "giro": -5
+        }
+      ],
+      "bloques": [
+        {
+          "t": 0,
+          "accion": "sentarse",
+          "dur": 6.1,
+          "desde": 1
         },
         {
-          "t": 6.1,
-          "x": 710,
-          "p": 0.2,
-          "giro": 70
+          "t": 0,
+          "accion": "alegre",
+          "dur": 6.1,
+          "capa": "cara"
+        },
+        {
+          "t": 4.33,
+          "accion": "manos-arriba",
+          "dur": 6.1,
+          "capa": "brazos"
+        }
+      ],
+      "mirar": [
+        {
+          "t": 0,
+          "a": "pedro"
+        }
+      ]
+    },
+    {
+      "id": "maria",
+      "personaje": "maria-magdalena",
+      "escala": 1,
+      "recorrido": [
+        {
+          "t": 0,
+          "x": 380,
+          "p": 0,
+          "giro": -70
+        },
+        {
+          "t": 1.9600000000000002,
+          "x": 380,
+          "p": 0,
+          "giro": -70
+        },
+        {
+          "t": 2.56,
+          "x": 380,
+          "p": 0,
+          "giro": -15
         }
       ],
       "bloques": [
@@ -169,11 +279,24 @@
           "accion": "alegre",
           "dur": 6.1,
           "capa": "cara"
+        },
+        {
+          "t": 2.5100000000000002,
+          "accion": "tender-mano",
+          "dur": 6.1,
+          "capa": "brazos"
         }
       ],
-      "andar": {
-        "estilo": "alegre"
-      }
+      "mirar": [
+        {
+          "t": 0,
+          "a": "pedro"
+        },
+        {
+          "t": 2.1100000000000003,
+          "a": "camara"
+        }
+      ]
     }
   ]
 }
