@@ -62,7 +62,7 @@
     let x = f.dataset.base ? Object.assign(JSON.parse(JSON.stringify(esc)), { nombre }) : nueva(nombre); const pl = $("#plantilla-nueva").value; if (pl && !f.dataset.base) x = Escena.aplicarPlantilla(x, pl, x.duracion);
     await fetch(`/api/escenas/${id}`, { method: "PUT", body: JSON.stringify(x) }); await cargarLista(); await abrir(id); aviso("Creada: " + nombre); });
   let tPap = 0; $("#b-papelera").addEventListener("click", async () => { if (!actual) return; const b = $("#b-papelera");
-    if (Date.now() - tPap > 3000) { tPap = Date.now(); b.textContent = "¿Seguro?"; b.classList.add("armado"); setTimeout(() => { b.textContent = "Papelera"; b.classList.remove("armado"); }, 3000); return; }
+    if (Date.now() - tPap > 6000) { tPap = Date.now(); b.textContent = "¿Seguro? Pulsa otra vez"; b.classList.add("armado"); setTimeout(() => { b.textContent = "Papelera"; b.classList.remove("armado"); }, 6000); return; }
     tPap = 0; b.textContent = "Papelera"; b.classList.remove("armado"); await fetch(`/api/escenas/${actual}/papelera`, { method: "POST" }); aviso("Movida a escenas/papelera"); actual = null; esc = null; await cargarLista(); if (lista[0]) abrir(lista[0].id); });
 
   // ---- dibujo
@@ -197,7 +197,11 @@
       $("#b-add-bloque").disabled = !acc.length;
       const b = selBloque !== null ? a.bloques[selBloque] : null; $("#bloque-det").hidden = !b; if (b) { deslizar("b-dur", b.dur || 2, (v) => v.toFixed(1) + " s"); deslizar("b-mezcla", b.mezcla ?? 0.3, (v) => v.toFixed(2) + " s");
         seg("#b-capa", { todo: "Todo el cuerpo", cuerpo: "Solo cuerpo", brazos: "Solo brazos", cara: "Solo cara" }, b.capa || "todo", (k) => cambio((x) => { const bb = x.actores.find((y) => y.id === a.id).bloques[selBloque]; if (k === "todo") delete bb.capa; else bb.capa = k; }, null, false)); }
-      seg("#a-estilo", { "": "Normal", cansado: "Cansado", alegre: "Alegre", prisa: "Con prisa", sigiloso: "Sigiloso" }, a.andar?.estilo || "", (k) => cambio((x) => { const y = x.actores.find((z) => z.id === a.id); y.andar = Object.assign({}, y.andar); if (k) y.andar.estilo = k; else delete y.andar.estilo; }, null, false));
+      const ESTILOS = Object.fromEntries(Object.entries(window.Andares ? Andares.todos() : {}).map(([k, v]) => [k === "normal" ? "" : k, v.nombre || k]));
+      seg("#a-estilo", ESTILOS, a.andar?.estilo || "", (k) => cambio((x) => { const y = x.actores.find((z) => z.id === a.id); y.andar = Object.assign({}, y.andar); if (k) y.andar.estilo = k; else delete y.andar.estilo; }, null, false));
+      seg("#a-dir", DIRECCIONES_N, Object.keys(DIRECCIONES).find((k) => Math.abs(DIRECCIONES[k] - (q.giro ?? 20)) < 3) || "", (k) => ponDireccion(DIRECCIONES[k]));
+      $("#a-orientar").checked = !!a.orientar;
+      pintarTramo(a, ESTILOS);
       deslizar("a-zancada", a.andar?.zancada ?? 1, (v) => Math.round(v * 100) + "%");
       // mirar a / agarrar: a quién o a qué (otros personajes, sus manos, el atrezo)
       const otros = esc.actores.filter((x) => x.id !== a.id), nom = (x) => PJ[x.personaje]?.nombre || x.personaje, objs = esc.objetos || [];
@@ -256,7 +260,7 @@
         cambio((x) => { x.audios[i].habla = v || undefined; if (env) x.audios[i].envolvente = env; if (pal) x.audios[i].palabras = pal; }, null, false); });
       ua.append(h("li", { class: "fila-audio" }, h("span", {}, "♪"), h("div", { class: "audio-info" }, h("span", { title: au.archivo }, au.archivo.split("/").pop()), quien), vol, h("button", { class: "x", title: "Quitar", onclick: () => cambio((x) => { x.audios.splice(i, 1); }) }, "✕"))); }
     $("#t-tiempo").textContent = fmtT(tiempo) + " / " + fmtT(D());
-    const kc = claveCabezal(); $("#t-curva").disabled = !kc; if (kc) $("#t-curva").value = Array.isArray(kc.k.curva) ? "propia" : kc.k.curva || "suave"; $("#t-curva-ed").disabled = !kc;
+    const kc = claveCabezal(); $("#t-curva").disabled = !kc; $("#t-curva").title = kc ? "Ritmo del tramo que empieza en esta clave" : "Pon el cabezal sobre una clave (un rombo de la pista) para cambiar su curva"; if (kc) $("#t-curva").value = Array.isArray(kc.k.curva) ? "propia" : kc.k.curva || "suave"; $("#t-curva-ed").disabled = !kc;
   }
   // clave del cabezal a la que se aplica la curva: la del recorrido del personaje elegido; si no hay, la de cámara
   function claveCabezal() { const a = actor(), cerca = (k) => Math.abs(k.t - tiempo) < 0.02;
@@ -270,11 +274,43 @@
   $("#e-dur").addEventListener("input", (ev) => cambio((x) => { x.duracion = Number(ev.target.value); }, "e-dur", false));
   $("#b-add-actor").addEventListener("click", () => { const pid = $("#add-personaje").value; if (!pid) return; let n = 1, id = pid; while (esc.actores.some((a) => a.id === id)) id = pid + "-" + ++n;
     const x0 = esc.actores.length ? (esc.actores.length % 2 ? 260 : -260) * Math.ceil(esc.actores.length / 2) : 0;
-    cambio((x) => { x.actores.push({ id, personaje: pid, escala: 1, recorrido: [{ t: 0, x: x0, p: 0, giro: x0 > 0 ? -25 : 25 }], bloques: [] }); }); selActor = id; pintarPanel(); pintarPistas(); });
+    cambio((x) => { x.actores.push({ id, personaje: pid, escala: 1, orientar: true, recorrido: [{ t: 0, x: x0, p: 0, giro: x0 > 0 ? -25 : 25 }], bloques: [] }); }); selActor = id; pintarPanel(); pintarPistas(); });
+  // DIRECCIÓN: botones con los ángulos de siempre; marcan la clave como «giroFijo» (manda sobre «Mira hacia donde anda»)
+  const DIRECCIONES = { pi: -80, ti: -35, fr: 0, td: 35, pd: 80, es: 180 }, DIRECCIONES_N = { pi: "◀ Perfil", ti: "↙ 3/4", fr: "De frente", td: "3/4 ↘", pd: "Perfil ▶", es: "De espaldas" };
+  const ponDireccion = (g, clave) => { const a = actor(); if (!a) return; cambio((x) => { const r = x.actores.find((y) => y.id === a.id).recorrido; tocarClave(r, ["x", "p", "giro"], { giro: g });
+    const k = r.find((q) => Math.abs(q.t - tiempo) < 0.02); if (k) k.giroFijo = true; }, clave ? clave + "@" + tiempo.toFixed(2) : null, false); };
+  // TRAMO: la clave del recorrido en el cabezal decide cómo gira y anda hasta la siguiente (comun/andares.js)
+  const claveRec = (a) => (a?.recorrido || []).find((k) => Math.abs(k.t - tiempo) < 0.02);
+  const editaClave = (fn, clave) => { const a = actor(); if (!a) return; cambio((x) => { const r = x.actores.find((y) => y.id === a.id).recorrido, k = r.find((q) => Math.abs(q.t - tiempo) < 0.02); if (k) fn(k, r); }, clave ? clave + "@" + tiempo.toFixed(2) : null, false); };
+  function pintarTramo(a, ESTILOS) { const k = claveRec(a), ks = [...(a.recorrido || [])].sort((m, n) => m.t - n.t), i = k ? ks.indexOf(k) : -1, sig = i >= 0 ? ks[i + 1] : null;
+    $("#k-fuera").hidden = !!k; $("#k-det").hidden = !k; $("#k-titulo").textContent = k ? (sig ? `de ${fmtT(k.t)} a ${fmtT(sig.t)}` : `${fmtT(k.t)} · última clave`) : "";
+    if (!k) return; if (document.activeElement !== $("#k-t")) $("#k-t").value = k.t;
+    seg("#k-giromodo", { todo: "Durante todo el tramo", inicio: "Al empezar", final: "Al llegar" }, k.giroModo || (a.orientar ? "inicio" : "todo"), (v) => editaClave((kk) => { if (v === "todo") delete kk.giroModo; else kk.giroModo = v; }));
+    $("#k-girodur-f").hidden = (k.giroModo || (a.orientar ? "inicio" : "todo")) === "todo"; deslizar("k-girodur", k.giroDur ?? (a.orientar ? 0.35 : 0.5), (v) => v.toFixed(2) + " s");
+    seg("#k-sentido", { "": "Por el lado más corto", izquierda: "Hacia su izquierda", derecha: "Hacia su derecha" }, k.giroSentido || "", (v) => editaClave((kk) => { if (v) kk.giroSentido = v; else delete kk.giroSentido; }));
+    if (document.activeElement !== $("#k-girocurva")) $("#k-girocurva").value = Array.isArray(k.giroCurva) ? "propia" : k.giroCurva || "";
+    deslizar("k-cabeza", k.giroCabeza ?? 0.15, (v) => v.toFixed(2) + " s"); deslizar("k-pies", k.giroPies ?? 0.12, (v) => v.toFixed(2) + " s"); $("#k-pasitos").checked = k.giroPasitos ?? true;
+    seg("#k-andar", Object.assign({ "-": "Como el personaje" }, ESTILOS), k.andar ?? "-", (v) => editaClave((kk) => { if (v === "-") delete kk.andar; else kk.andar = v || "normal"; }));
+    const dist = sig ? Math.hypot((sig.x ?? 0) - (k.x ?? 0), ((sig.p ?? 0) - (k.p ?? 0)) * 500) : 0;
+    seg("#k-vel", dist > 20 ? { 90: "Despacio", 150: "Normal", 240: "Deprisa", 420: "Corriendo" } : { _: "Sin desplazamiento en este tramo" }, "", (v) => { if (v === "_") return; const dur = Math.max(0.3, dist / +v);
+      editaClave((kk, r) => { const s2 = [...r].sort((m, n) => m.t - n.t), j = s2.indexOf(kk), nx = s2[j + 1]; if (!nx) return; const dd = +(kk.t + dur - nx.t).toFixed(2); for (const q of s2.slice(j + 1)) q.t = +(q.t + dd).toFixed(2);
+        const ult = s2[s2.length - 1].t; return ult; }); aviso(`Tramo ajustado a ${dur.toFixed(1)} s`); }); }
+  $("#k-ant").addEventListener("click", () => { const a = actor(); if (!a) return; const k = [...a.recorrido].map((q) => q.t).filter((t) => t < tiempo - 0.02).pop(); if (k != null) { tiempo = k; dibujar(); pintarPistas(); pintarPanel(); } });
+  $("#k-sig").addEventListener("click", () => { const a = actor(); if (!a) return; const k = [...a.recorrido].map((q) => q.t).sort((m, n) => m - n).find((t) => t > tiempo + 0.02); if (k != null) { tiempo = k; dibujar(); pintarPistas(); pintarPanel(); } });
+  $("#k-t").addEventListener("change", (ev) => { const v = Math.max(0, Math.min(D(), +ev.target.value)); if (!isFinite(v)) return; editaClave((k) => { k.t = +v.toFixed(2); }); tiempo = +v.toFixed(2); dibujar(); pintarPistas(); pintarPanel(); });
+  $("#k-girodur").addEventListener("input", (ev) => editaClave((k) => { k.giroDur = +ev.target.value; if (!k.giroModo) k.giroModo = "inicio"; }, "kgd"));
+  $("#k-cabeza").addEventListener("input", (ev) => editaClave((k) => { k.giroCabeza = +ev.target.value; }, "kcab"));
+  $("#k-pies").addEventListener("input", (ev) => editaClave((k) => { k.giroPies = +ev.target.value; }, "kpie"));
+  $("#k-pasitos").addEventListener("change", (ev) => editaClave((k) => { k.giroPasitos = ev.target.checked; }));
+  $("#k-girocurva").addEventListener("change", (ev) => { const v = ev.target.value; if (v === "propia") { const k = claveRec(actor()); EditorCurva.abrir($("#k-girocurva"), k?.giroCurva || "suave", (c) => editaClave((kk) => { kk.giroCurva = c; })); return; }
+    editaClave((k) => { if (v) k.giroCurva = v; else delete k.giroCurva; }); });
+  $("#a-orientar").addEventListener("change", (ev) => { const a = actor(); if (a) cambio((x) => { const y = x.actores.find((z) => z.id === a.id); if (ev.target.checked) y.orientar = true; else delete y.orientar; }, null, false); });
+  $("#b-andares").addEventListener("click", () => { const a = actor(); if (!window.EditorAndares) return aviso("Falta el editor de formas de andar");
+    EditorAndares.abrir({ personajes: PJ, personaje: a?.personaje, estilo: a?.andar?.estilo, alElegir: (id) => { if (!a) return; cambio((x) => { const y = x.actores.find((z) => z.id === a.id); y.andar = Object.assign({}, y.andar); if (id && id !== "normal") y.andar.estilo = id; else delete y.andar.estilo; }, null, false); }, alCerrar: () => { pintarPanel(); dibujar(); } }); });
   const editarActor = (valores, clave) => { const a = actor(); if (!a) return; cambio((x) => { tocarClave(x.actores.find((y) => y.id === a.id).recorrido, ["x", "p", "giro"], valores); }, clave ? clave + "@" + tiempo.toFixed(2) : null, false); };
   $("#a-x").addEventListener("input", (ev) => editarActor({ x: Number(ev.target.value) }, "a-x"));
   $("#a-p").addEventListener("input", (ev) => editarActor({ p: Number(ev.target.value) }, "a-p"));
-  $("#a-giro").addEventListener("input", (ev) => editarActor({ giro: Number(ev.target.value) }, "a-giro"));
+  $("#a-giro").addEventListener("input", (ev) => ponDireccion(Number(ev.target.value), "a-giro"));
   $("#a-escala").addEventListener("input", (ev) => { const a = actor(); if (a) cambio((x) => { x.actores.find((y) => y.id === a.id).escala = Number(ev.target.value); }, "a-escala", false); });
   $("#b-add-bloque").addEventListener("click", () => { const a = actor(), acc = $("#a-accion").value; if (!a || !acc) return; const def = Personajes.buscarAccion(PJ[a.personaje], acc)?.duracion || 2;
     cambio((x) => { const ax = x.actores.find((y) => y.id === a.id); ax.bloques = ax.bloques || []; ax.bloques.push({ t: +tiempo.toFixed(2), accion: acc, dur: +Math.min(def * 2, D() - tiempo || def).toFixed(1) || def }); ax.bloques.sort((m, n) => m.t - n.t); selBloque = ax.bloques.findIndex((b) => b.accion === acc && Math.abs(b.t - tiempo) < 0.02); }, null, false); });
@@ -312,7 +348,7 @@
   $("#c-x").addEventListener("input", (ev) => editarCam({ x: Number(ev.target.value) }, "c-x")); $("#c-y").addEventListener("input", (ev) => editarCam({ y: Number(ev.target.value) }, "c-y"));
   $("#c-zoom").addEventListener("input", (ev) => editarCam({ zoom: Number(ev.target.value) }, "c-zoom"));
   $("#b-quitar-cam").addEventListener("click", () => cambio((x) => { const i = x.camara.findIndex((k) => Math.abs(k.t - tiempo) < 0.02); if (i >= 0 && x.camara.length > 1) x.camara.splice(i, 1); }, null, false));
-  $("#b-add-texto").addEventListener("click", () => { const t = $("#tx-texto").value.trim(); if (!t) return; $("#tx-texto").value = ""; cambio((x) => { x.textos.push({ t: +tiempo.toFixed(2), dur: 2, texto: t }); x.textos.sort((a, b) => a.t - b.t); }, null, false); });
+  $("#b-add-texto").addEventListener("click", () => { const t = $("#tx-texto").value.trim(); if (!t) { aviso("Escribe el texto del rótulo en la casilla y pulsa Añadir"); $("#tx-texto").focus(); return; } $("#tx-texto").value = ""; cambio((x) => { x.textos.push({ t: +tiempo.toFixed(2), dur: 2, texto: t }); x.textos.sort((a, b) => a.t - b.t); }, null, false); });
   // palabras con tiempos de una voz (VoiceStudio): la boca forma cada fonema; si no se puede transcribir, se queda con abrir y cerrar
   async function palabrasDe(archivo) { estado("Leyendo las palabras de la voz (labios por fonemas)…");
     try { const r = await (await fetch("/api/transcribir", { method: "POST", body: JSON.stringify({ archivo }) })).json(); return !r.error && r.fuente !== "estimado" && r.palabras?.length ? r.palabras : null; } catch { return null; } }

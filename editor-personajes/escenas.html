@@ -91,10 +91,30 @@
           <p class="ayuda" id="actor-ayuda">Arrastra al personaje en el escenario: izquierda/derecha lo mueve, arriba/abajo lo aleja o acerca. Se crea una clave de recorrido en el cabezal.</p>
           <div class="deslizador"><label>Posición X (en el cabezal)</label><input type="range" id="a-x" min="-1500" max="1500" step="1" /><output></output></div>
           <div class="deslizador"><label>Profundidad z (negativo = primer término · 0 = plano principal · 1+ = lejos)</label><input type="range" id="a-p" min="-0.8" max="3" step="0.01" /><output></output></div>
-          <div class="deslizador"><label>Hacia dónde mira</label><input type="range" id="a-giro" min="-180" max="180" step="1" /><output></output></div>
+          <div class="campo"><label>Hacia dónde mira <span class="tenue">(en el cabezal)</span></label><div class="seg pequeno" id="a-dir"></div></div>
+          <div class="deslizador"><label>Ángulo exacto</label><input type="range" id="a-giro" min="-180" max="180" step="1" /><output></output></div>
+          <label class="chk" title="Al andar gira solo hacia donde va (al empezar cada tramo) y se queda mirando así al pararse. Si eliges una dirección en una clave, esa manda."><input type="checkbox" id="a-orientar" /> Mira hacia donde anda</label>
           <div class="deslizador"><label>Tamaño</label><input type="range" id="a-escala" min="0.4" max="2" step="0.01" /><output></output></div>
-          <div class="campo"><label>Forma de andar <span class="tenue">(cuando el recorrido le mueve)</span></label><div class="seg pequeno" id="a-estilo"></div></div>
+          <div class="campo"><label>Forma de andar <span class="tenue">(cuando el recorrido le mueve)</span></label><div class="seg pequeno" id="a-estilo"></div>
+            <button id="b-andares" class="pequeno" style="margin-top:6px">Crear o retocar formas de andar…</button></div>
           <div class="deslizador"><label>Zancada</label><input type="range" id="a-zancada" min="0.6" max="1.5" step="0.05" /><output></output></div>
+          <div id="tramo" class="tramo">
+            <h4>Tramo <span class="tenue" id="k-titulo"></span></h4>
+            <p class="ayuda" id="k-fuera">Pon el cabezal en una clave del recorrido (un rombo en su pista, o «Clave anterior / siguiente») para decidir cómo gira y anda hasta la siguiente.</p>
+            <div class="fila-botones dos"><button id="k-ant">◀ Clave anterior</button><button id="k-sig">Clave siguiente ▶</button></div>
+            <div id="k-det">
+              <div class="campo"><label>Tiempo de esta clave (s)</label><input type="number" id="k-t" step="0.05" min="0" /></div>
+              <div class="campo"><label>Cuándo gira hacia la dirección de la clave siguiente</label><div class="seg pequeno" id="k-giromodo"></div></div>
+              <div class="deslizador" id="k-girodur-f"><label>Duración del giro</label><input type="range" id="k-girodur" min="0.1" max="2" step="0.05" /><output></output></div>
+              <div class="campo"><label>Sentido del giro</label><div class="seg pequeno" id="k-sentido"></div></div>
+              <div class="campo"><label>Ritmo del giro</label><div class="fila-anadir"><select id="k-girocurva"><option value="">Como el tramo</option><option value="suave">Suave</option><option value="lineal">Constante</option><option value="acelera">Acelera</option><option value="frena">Frena</option><option value="rebote">Se pasa y vuelve</option><option value="anticipa">Anticipa</option><option value="propia">Curva propia…</option></select></div></div>
+              <div class="deslizador"><label>La cabeza se adelanta</label><input type="range" id="k-cabeza" min="0" max="0.6" step="0.01" /><output></output></div>
+              <div class="deslizador"><label>Los pies van detrás</label><input type="range" id="k-pies" min="0" max="0.6" step="0.01" /><output></output></div>
+              <label class="chk"><input type="checkbox" id="k-pasitos" /> Da pasitos al girar parado</label>
+              <div class="campo"><label>Desde esta clave anda…</label><div class="seg pequeno" id="k-andar"></div></div>
+              <div class="campo"><label>Velocidad hasta la clave siguiente <span class="tenue">(mueve el tiempo de la siguiente; las demás se desplazan igual)</span></label><div class="seg pequeno" id="k-vel"></div></div>
+            </div>
+          </div>
           <div class="campo"><label>Poner una acción en el cabezal</label>
             <div class="fila-anadir"><select id="a-accion"></select><button id="b-add-bloque">Añadir</button></div></div>
           <div id="bloque-det" hidden>
@@ -176,9 +196,12 @@
   <script src="/comun/atrezo.js"></script>
   <script src="/acciones/todas.js"></script>
   <script src="/ilustraciones/todas.js"></script>
+  <script src="/andares/todas.js"></script>
+  <script src="/comun/andares.js"></script>
   <script src="/comun/escena.js"></script>
   <script src="dibujo.js"></script>
   <script src="curvas.js"></script>
+  <script src="andares-ui.js"></script>
   <script src="render-ui.js"></script>
   <script src="escenas.js"></script>
   <script src="herramientas.js"></script>

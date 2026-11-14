@@ -8,6 +8,7 @@
 !/editor-personajes/
 !/personajes/
 !/acciones/
+!/andares/
 !/piezas/
 !/escenas/
 !/shorts/
@@ -20,11 +21,14 @@
 !/comun/escena.js
 !/comun/montaje.js
 !/comun/atrezo.js
+!/comun/andares.js
 !/comun/vendor/
 
 # generados o temporales
 /personajes/todos.js
 /acciones/todas.js
+/andares/todas.js
+/andares/papelera/
 */papelera/
 *.bak
 !/ilustraciones/

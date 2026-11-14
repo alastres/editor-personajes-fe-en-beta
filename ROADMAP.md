@@ -159,4 +159,38 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [x] *(14 nov 2026)* Perspectiva de láminas: horizonte pintado = horizonte de la cámara, capas que se mueven con los picados y contrapicados, rejilla de profundidad en el editor; regla de duración mínima de plano y pausas en la voz.
 - [x] *(14 nov 2026)* Láminas con vida (`data-anim`: deriva, vaivén, latido, sube) y reparto en profundidad por puntos del dibujo (`PT`/`PD`); tumbas a escala de persona.
 - [x] *(14 nov 2026)* Medidor de la regla 60-30-10 (`comun/regla-603010.py`), armonía de color por escena y colores de ropa por escena.
-- [ ] Paletas de láminas pensadas en 60-30-10 desde el principio (los jardines mezclan cinco familias de color y no se arreglan solo tiñendo).
+- [x] *(14 nov 2026)* Paleta maestra 60-30-10 por short (`paleta.json` + `comun/aplicar-paleta.py`) aplicada a todas las láminas y a la ropa.
+- [ ] Acento en cada plano: en los primeros planos y en la sala el acento (luz cálida) ocupa menos del 4 %.
+
+## Auditoría de uso sin IA (14 nov 2026)
+- [x] Giros y caminatas editables:
+  - direcciones con botones y «mira hacia donde anda»;
+  - panel Tramo (cuándo y cómo gira, cabeza y pies, pasitos, andar por tramo, velocidad, tiempo exacto);
+  - editor de formas de andar con vista previa.
+- [x] Arreglado:
+  - el panel derecho se ensanchaba con las rutas largas;
+  - el lazo creaba formas invisibles;
+  - la confirmación de la papelera duraba poco;
+  - el rótulo vacío no avisaba;
+  - la curva desactivada no decía por qué.
+- [ ] Personajes → Animación: arrastrar cerca de la mano mueve el accesorio (lámpara) en vez de posar el brazo.
+- [ ] Pruebas: 16 casos de Demo piezas marcan «CAMBIÓ» (revisar si la referencia está vieja).
+- [ ] «Posición X» se queda en 0 al reproducir.
+- [ ] Tras borrar una escena se abre otra real (cualquier cambio se guarda en ella).
+- [ ] Taller de dibujo:
+  - botones de deshacer y rehacer;
+  - atajos visibles;
+  - nombrar el dibujo al guardar;
+  - goma;
+  - degradados;
+  - campo de color hexadecimal;
+  - girar libremente;
+  - renombrar, bloquear u ocultar formas;
+  - suavizado del pincel;
+  - unión, resta e intersección reales.
+- [ ] Rótulos: tamaño, posición, estilo y duración en el panel.
+- [ ] Copiar y pegar claves; tiempo exacto también para los bloques de acción.
+- [ ] Láminas elegibles desde la interfaz (hoy, solo con JSON y scripts).
+- [ ] Quitar la jerga y las referencias a archivos de la ayuda («smart bones», `LEEME.md`, `montar-musica.py`…).
+- [ ] Piezas repetidas en la lista del personaje (Rodillera ×3, Gorra ×2…).
+

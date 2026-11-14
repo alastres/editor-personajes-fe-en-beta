@@ -399,8 +399,13 @@
         const q = claves(a.recorrido, t, ["x", "p", "giro"]) || { x: 0, p: 0, giro: 20 }, pr = proy(q.x, q.p), esc0 = (a.escala || 1) * pr.s, X0 = pr.x, Y0 = pr.y;
         A.g.setAttribute("transform", `translate(${f1(X0)} ${f1(Y0)}) scale(${esc0.toFixed(3)})`);
         // velocidad: anda o corre sola si el recorrido la desplaza
-        const q2 = claves(a.recorrido, t + 0.05, ["x", "p"]) || q, v = Math.hypot(q2.x - q.x, ((q2.p || 0) - (q.p || 0)) * 500) / 0.05;
-        const anda = cl(v / 60), corre = cl((v - 330) / 200);
+        const vel = (u) => { const a1 = claves(a.recorrido, u, ["x", "p"]) || q, a2 = claves(a.recorrido, u + 0.05, ["x", "p"]) || a1; return Math.hypot(a2.x - a1.x, ((a2.p || 0) - (a1.p || 0)) * 500) / 0.05; };
+        const v = vel(t), EST = window.Andares ? Andares.estiloEn(a, t) : (ESTILOS_ANDAR[a.andar?.estilo] || {});
+        // arranque y frenada de la forma de andar: el paso crece poco a poco al empezar y se acorta antes de pararse
+        const ventana = (d, s) => { if (!(d > 0.01)) return cl(v / 60); let m = 0; for (let i = 1; i <= 4; i++) m += cl(vel(t + s * d * i / 4) / 60); return Math.min(cl(v / 60), m / 4 + 0.25 * cl(v / 60)); };
+        const anda = Math.min(ventana(EST.arranque ?? 0.25, -1), ventana(EST.frenada ?? 0.25, 1)), corre = cl((v - (EST.correrDesde ?? 330)) / 200);
+        // giro: cada tramo decide cómo gira (comun/andares.js); con a.orientar mira hacia donde anda
+        const G = window.Andares ? Andares.giroEn(a.orientar ? Andares.conRumbo(a.recorrido) : a.recorrido, t, v < 15) : null; if (G) q.giro = G.giro;
         // bloques activos en t, por capas: «todo» o «cuerpo» abajo, «brazos» encima (se puede saludar mientras se anda)
         // transición entre acciones: cada bloque entra y sale mezclándose (b.mezcla segundos, 0,3 por defecto; 0 = cambio seco).
         // Un bloque que acaba de terminar sigue pesando hasta desvanecerse, con la pose de su último instante.
@@ -422,6 +427,11 @@
           for (const c of ["K", "Lado", "Frente", "Codo", "Hacia"]) pp["b" + L + c] = lerp(pp["b" + L + c] ?? 0, sol["b" + L + c], w);
           pp["m" + L] = Personajes.mezclar({ m: pp["m" + L] }, { m: { agarra: 1 } }, w).m; }
         const e = Personajes.pose(pp, base);
+        // la cabeza se adelanta al cuerpo al girar y los pies van detrás; girando parado da pasitos
+        if (G) { const rd = Math.PI / 180, lim = (x, m) => Math.max(-m, Math.min(m, x));
+          if (G.cabeza) { const dc = lim(G.cabeza, 65) * rd; e.cabeza += dc; e.ojos += dc; }
+          if (G.pies) { e.pieIzq = e.torso + lim(G.pies, 70) * rd; e.pieDer = e.pieIzq; }
+          if (G.pasos > 0.05) { const w = 2 * Math.PI * t * 3; e.alzaIzq = 16 * G.pasos * Math.max(0, Math.sin(w)); e.alzaDer = 16 * G.pasos * Math.max(0, Math.sin(w + Math.PI)); } }
         // mirar a un punto: la cabeza (±65°) y los ojos (±85°) giran hacia el objetivo; también arriba o abajo
         const mi = enClave(a.mirar, t);
         if (mi) { const ojo = A.wp?.cabeza || [X0, Y0 - 520 * esc0];
@@ -432,8 +442,8 @@
             e.cabeza = lerp(e.cabeza, e.torso + rel, w); e.ojos = lerp(e.ojos, e.torso + relO, w); e.miraY = lerp(e.miraY || 0, d.y, w); } }
         if (loco) { const lo = loco.ac.locomocion; Object.assign(e, { amp: lo.amp, correr: lo.correr || 0, fase: (t - loco.t0) * (lo.cad || (lo.correr ? 1.45 : 0.95)) }); }
         // forma de andar del actor: zancada (más larga = menos pasos y más amplios) y estilo (cansado, alegre, con prisa, sigiloso)
-        if (anda > 0.02 && !e.amp) { const an = a.andar || {}, z = an.zancada || 1, est = ESTILOS_ANDAR[an.estilo] || {}, zz = z * (est.zancada || 1);
-          Object.assign(e, { amp: anda * Math.min(1.4, zz) * (est.amp || 1), correr: corre, fase: recorrido(a.recorrido, t) / ((corre > 0.5 ? 260 : 170) * zz) });
+        if (anda > 0.02 && !e.amp) { const est = EST, zz = window.Andares ? (est.zancada ?? 1) : (a.andar?.zancada || 1) * (est.zancada || 1);
+          Object.assign(e, { amp: anda * Math.min(1.4, zz) * (est.braceo ?? est.amp ?? 1), correr: corre, fase: recorrido(a.recorrido, t) * (est.cadencia ?? 1) / ((corre > 0.5 ? 260 : 170) * zz) });
           if (est.inclina) e.inclina = (e.inclina || 0) + est.inclina * anda; if (est.miraY) e.miraY = (e.miraY || 0) + est.miraY * anda;
           if (est.bote) e.altura = (e.altura || 0) + est.bote * anda * Math.abs(Math.sin(2 * Math.PI * e.fase));
           if (est.cara) { e.cara = Object.assign({}, e.cara); for (const k in est.cara) e.cara[k] = Math.max(e.cara[k] || 0, est.cara[k] * anda); }

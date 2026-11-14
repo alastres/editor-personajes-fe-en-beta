@@ -313,6 +313,8 @@
         f.puntos = arr.forma === "elipse" ? elipse((a.x + p.x) / 2, (a.y + p.y) / 2, w / 2, hh / 2) : rectR(a.x, a.y, p.x, p.y, arr.forma === "capsula" ? Math.min(w, hh) / 2 : Math.min(w, hh) * 0.2); pintarFormas(); } });
     const soltar = () => { if (!arr) return; const a = arr; arr = null;
       if (a.dibujo) { $("#tl-trazo", raiz).setAttribute("d", ""); const lazo = herr === "lazo"; if (a.dibujo.length < 3) return;
+        if (lazo) { let ar = 0; const q = a.dibujo; for (let i = 0; i < q.length; i++) { const u = q[i], v = q[(i + 1) % q.length]; ar += u.x * v.y - v.x * u.y; }
+          if (Math.abs(ar) / 2 < 60) { const ay = $("#tl-ayuda", raiz); if (ay) ay.textContent = "El lazo era demasiado pequeño o recto: dibuja un contorno cerrado."; return; } }
         const P = rdp(a.dibujo, 2.2 * escalaPx()); if (P.length < 2) return; guardarHist();
         nueva({ puntos: suavizar(lazo && P.length > 3 && Math.hypot(P[0].x - P[P.length - 1].x, P[0].y - P[P.length - 1].y) < 1e-6 ? P.slice(0, -1) : P, lazo), cerrada: lazo, relleno: lazo ? (estilo.relleno === "none" ? "{ropa}" : estilo.relleno) : "none", trazo: lazo ? estilo.trazo : estilo.trazo || "{tinta}", grosor: lazo ? estilo.grosor : f2((estilo.grosor || 6) * (a.lapiz && a.pres.length ? 0.4 + 1.2 * a.pres.reduce((x, y) => x + y, 0) / a.pres.length : 1)) });   // con lápiz, el grosor sigue la presión media
         sel = D.formas.length - 1; pintar(); return; }

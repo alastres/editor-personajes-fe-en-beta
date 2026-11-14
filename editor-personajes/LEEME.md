@@ -393,6 +393,13 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
 - **Escala y reparto en profundidad:**
   - `PT(xr, yr)` da un punto del dibujo en el mundo; `PD(xr, yr)` da `{ x, p }` de un punto del suelo pintado, para poner a alguien justo ahí; `VE(xr, yr, zoom)` encuadra un punto del dibujo.
   - Comprobación: un personaje en la puerta de una tumba debe medir como mucho unos 0,85 de la puerta. Por eso la tumba va a escala 2,6, el jardín 1 a 1,9 y el jardín 2 a 2,3.
+- **Paleta maestra 60-30-10 por short** (14 nov 2026, decidida con el usuario: una paleta para toda la animación, no por escena):
+  - `ysi2-evidencia/paleta.json` define tres papeles de 5 tonos cada uno: dominante índigo violeta, secundario tierra rosada y arena, acento naranja y oro. También fija la ropa de cada personaje: María, el acento; los demás, en tonos del secundario o del dominante.
+  - `python comun/aplicar-paleta.py <paleta.json> <lámina…>` lleva cada color de las láminas a su papel (frío → dominante; cálido apagado → secundario; cálido saturado y claro → acento) y al tono de luminosidad más cercana. Al regenerar una lámina desde su script hay que volver a aplicarla.
+  - `dirigir.js` pone la ropa de la paleta a cada actor y quita la `armonia`.
+  - `regla-603010.py <short> --paleta <paleta.json>` mide por papeles.
+  - Para que el dominante mande hacen falta luz y composición, no solo colores. Ejemplos: el desierto al atardecer con las filas lejanas en sombra violeta y la arena solo delante; el campamento de noche con el suelo iluminado solo junto al fuego; la sala con una puerta con luz cálida como acento.
+  - No usar `ambiente.tono` cálido alto: empuja todo al secundario.
 - **Regla 60-30-10 de color** (14 nov 2026):
   - `python comun/regla-603010.py <short>` mide cada escena del último render en 3 fotogramas. Agrupa los colores en familias (ΔE < 22, sin encadenar) y da el veredicto: dominante 50-70 %, secundario 20-40 % y acento de 4-16 % saturado y que contraste con el dominante. Es orientativo: en los primeros planos manda el personaje.
   - Herramientas para cumplirla:
@@ -403,3 +410,32 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
   - `planos()` quita los planos de menos de 1,5 s, y el último debe durar al menos 1,2 s.
   - `PAUSAS` en `dirigir.js` mete silencios en la voz tras las líneas clave: corta el WAV con ffmpeg, desplaza las palabras y la envolvente, y parte de `sh.vozBase`.
   - Resultado: 34 planos de 2,1 s de media y 71 s de short.
+
+## Giros y caminatas editables sin código (14 nov 2026)
+- **Hacia dónde mira:** en el panel del personaje, botones ◀ Perfil · ↙ 3/4 · De frente · 3/4 ↘ · Perfil ▶ · De espaldas, además del ángulo exacto. Elegir una dirección marca la clave como «fija».
+- **Mira hacia donde anda** (casilla, activada en los personajes nuevos): en cada tramo en que se desplaza gira al empezar hacia su rumbo y se queda así al pararse. Una clave con dirección fija manda.
+- **Panel «Tramo»:** con el cabezal sobre una clave del recorrido (botones «Clave anterior / siguiente») se decide cómo va hasta la siguiente:
+  - tiempo exacto de la clave;
+  - cuándo gira: durante todo el tramo, al empezar o al llegar, con su duración;
+  - sentido: por el lado corto, hacia su izquierda o hacia su derecha;
+  - ritmo del giro: curvas o una curva propia;
+  - cuánto se adelanta la cabeza y cuánto van detrás los pies;
+  - si da pasitos al girar parado;
+  - con qué forma de andar sigue desde ahí;
+  - velocidad del tramo (despacio, normal, deprisa, corriendo), que mueve el tiempo de la clave siguiente y desplaza las demás.
+- **Formas de andar** («Crear o retocar formas de andar…»): lista con vista previa en vivo de un personaje que va y viene. Deslizadores:
+  - largo y velocidad del paso;
+  - braceo;
+  - bote;
+  - inclinación;
+  - mirada y hombros;
+  - cuánto tarda en arrancar y en frenar;
+  - velocidad a la que pasa a correr;
+  - cara al andar.
+  
+  «Nueva (copia de esta)» y «Guardar» la dejan en `shorts-flow/andares/<id>.json` para todas las escenas y los vídeos; las de serie están en `comun/andares.js`.
+- **Datos:**
+  - en el actor: `orientar`, `andar: { estilo, zancada… }`;
+  - en cada clave de `recorrido`: `giroModo`, `giroDur`, `giroSentido`, `giroCurva`, `giroCabeza`, `giroPies`, `giroPasitos`, `giroFijo` y `andar`.
+  
+  El motor (`comun/escena.js`) las lee con `comun/andares.js`. Ejemplo: la escena «Ejemplo: giros y andares».

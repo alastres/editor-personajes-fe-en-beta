@@ -1,0 +1,70 @@
+{
+  "nombre": "Ejemplo: giros y andares",
+  "duracion": 8,
+  "fondo": {
+    "tipo": "dia"
+  },
+  "camara": [
+    {
+      "t": 0,
+      "x": 0,
+      "y": -420,
+      "zoom": 0.8
+    }
+  ],
+  "actores": [
+    {
+      "id": "pedro",
+      "personaje": "pedro",
+      "escala": 1,
+      "orientar": true,
+      "andar": {
+        "estilo": "prisa"
+      },
+      "recorrido": [
+        {
+          "t": 0,
+          "x": -500,
+          "p": 0.2,
+          "giro": 0
+        },
+        {
+          "t": 1,
+          "x": -500,
+          "p": 0.2,
+          "giro": 0
+        },
+        {
+          "t": 3.5,
+          "x": 400,
+          "p": 0.2,
+          "giro": 0,
+          "andar": "cansado"
+        },
+        {
+          "t": 4.5,
+          "x": 400,
+          "p": 0.2,
+          "giro": 0
+        },
+        {
+          "t": 7,
+          "x": -300,
+          "p": 0.6,
+          "giro": 0
+        },
+        {
+          "t": 8,
+          "x": -300,
+          "p": 0.6,
+          "giro": 0,
+          "giroFijo": true
+        }
+      ],
+      "bloques": []
+    }
+  ],
+  "textos": [],
+  "audios": [],
+  "id": "prueba-giros"
+}

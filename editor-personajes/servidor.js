@@ -23,7 +23,7 @@
 const http = require("http"), fs = require("fs"), path = require("path"), { spawn } = require("child_process");
 const PUERTO = Number(process.env.PORT || 3170);
 const AQUI = __dirname, RAIZ = path.join(AQUI, ".."), COMUN = path.join(RAIZ, "comun");
-const DIRS = { personajes: path.join(RAIZ, "personajes"), escenas: path.join(RAIZ, "escenas"), acciones: path.join(RAIZ, "acciones"), shorts: path.join(RAIZ, "shorts"), piezas: path.join(RAIZ, "piezas") };   // acciones = biblioteca común
+const DIRS = { personajes: path.join(RAIZ, "personajes"), escenas: path.join(RAIZ, "escenas"), acciones: path.join(RAIZ, "acciones"), andares: path.join(RAIZ, "andares"), shorts: path.join(RAIZ, "shorts"), piezas: path.join(RAIZ, "piezas") };   // acciones = biblioteca común
 const PY_VS = path.join(process.env.APPDATA || "", "VoiceStudio", "runtime", "project", ".venv", "Scripts", "python.exe");   // python con numpy y soundfile (montar-musica.py)
 const API_VS = "http://127.0.0.1:3900";   // VoiceStudio: transcripción con tiempos por palabra
 for (const d of Object.values(DIRS)) fs.mkdirSync(d, { recursive: true });
@@ -45,12 +45,15 @@ function regenerarAcciones() {
   const todas = {}; for (const { id } of lista("acciones")) { try { todas[id] = leerJSON(path.join(DIRS.acciones, id + ".json")); } catch {} }
   fs.writeFileSync(path.join(DIRS.acciones, "todas.js"), "// Generado por el editor: la biblioteca común de acciones (window.ACCIONES).\nwindow.ACCIONES = " + JSON.stringify(todas) + ";\n"); return todas;
 }
-regenerarTodos(); regenerarAcciones();
+function regenerarAndares() {   // formas de andar propias (window.ANDARES): las de serie están en comun/andares.js
+  const todas = {}; for (const { id } of lista("andares")) { try { todas[id] = leerJSON(path.join(DIRS.andares, id + ".json")); } catch {} }
+  fs.writeFileSync(path.join(DIRS.andares, "todas.js"), "// Generado por el editor: formas de andar propias (window.ANDARES).\nwindow.ANDARES = " + JSON.stringify(todas) + ";\n"); return todas; }
+regenerarTodos(); regenerarAcciones(); regenerarAndares();
 // eventos: vigila las carpetas; un cambio hecho por el propio servidor también se avisa (la interfaz ignora el suyo)
 const clientes = new Set();
 for (const [tipo, dir] of Object.entries(DIRS)) { let tmr = null; const pend = new Set();
   fs.watch(dir, (ev, f) => { if (!f || !f.endsWith(".json")) return; pend.add(f.slice(0, -5)); clearTimeout(tmr);
-    tmr = setTimeout(() => { if (tipo === "personajes") regenerarTodos(); if (tipo === "acciones") regenerarAcciones(); for (const id of pend) for (const c of clientes) c.write(`data: ${JSON.stringify({ tipo, id })}\n\n`); pend.clear(); }, 120); }); }
+    tmr = setTimeout(() => { if (tipo === "personajes") regenerarTodos(); if (tipo === "acciones") regenerarAcciones(); if (tipo === "andares") regenerarAndares(); for (const id of pend) for (const c of clientes) c.write(`data: ${JSON.stringify({ tipo, id })}\n\n`); pend.clear(); }, 120); }); }
 
 function servir(res, archivo, req) {
   fs.stat(archivo, (err, st) => { if (err || !st.isFile()) { res.writeHead(404); return res.end("no existe"); }
@@ -93,14 +96,14 @@ function laminasDe(escenas) { const L = {};
 function exportar(id) {
   const esc = leerJSON(path.join(DIRS.escenas, id + ".json")), [W, H] = esc.formato === "16:9" ? [1920, 1080] : [1080, 1920], dir = path.join(RAIZ, "escena-" + id), A = path.join(dir, "assets");
   for (const d of [dir, A, path.join(A, "vendor"), path.join(A, "audio"), path.join(dir, "compositions"), path.join(dir, "out")]) fs.mkdirSync(d, { recursive: true });
-  for (const f of ["titere25d.js", "personajes.js", "atrezo.js", "escena.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
+  for (const f of ["titere25d.js", "personajes.js", "atrezo.js", "andares.js", "escena.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
   fs.copyFileSync(path.join(COMUN, "vendor", "gsap.min.js"), path.join(A, "vendor", "gsap.min.js"));
   for (const f of ["figtree.woff2", "bricolage-grotesque.woff2", "newsreader-italic.woff2"]) fs.copyFileSync(path.join(COMUN, "vendor", f), path.join(A, "vendor", f));
   // solo los personajes que salen en la escena
   const usados = {}; for (const a of esc.actores || []) { const f = path.join(DIRS.personajes, a.personaje + ".json"); if (fs.existsSync(f)) usados[a.personaje] = leerJSON(f); }
   // acciones de la biblioteca común que usan los bloques de la escena
   const comunes = regenerarAcciones(), acc = {}; for (const a of esc.actores || []) for (const b of a.bloques || []) { const c = Object.values(comunes).find((x) => x.id === b.accion || x.nombre === b.accion); if (c) acc[c.id] = c; }
-  fs.writeFileSync(path.join(A, "personajes-escena.js"), "window.PERSONAJES = " + JSON.stringify(usados) + ";\nwindow.LAMINAS = " + JSON.stringify(laminasDe([esc])) + ";\nwindow.ACCIONES = " + JSON.stringify(acc) + ";\nwindow.RUTA_ARCHIVOS = \"assets/archivos/\";\n");
+  fs.writeFileSync(path.join(A, "personajes-escena.js"), "window.PERSONAJES = " + JSON.stringify(usados) + ";\nwindow.ANDARES = " + JSON.stringify(regenerarAndares()) + ";\nwindow.LAMINAS = " + JSON.stringify(laminasDe([esc])) + ";\nwindow.ACCIONES = " + JSON.stringify(acc) + ";\nwindow.RUTA_ARCHIVOS = \"assets/archivos/\";\n");
   copiarImagenes([esc], A);
   const D = Math.max(0.5, Number(esc.duracion) || 6).toFixed(3);
   let audios = "";
@@ -117,6 +120,7 @@ function exportar(id) {
     <script src="assets/titere25d.js"></script>
     <script src="assets/personajes.js"></script>
     <script src="assets/atrezo.js"></script>
+    <script src="assets/andares.js"></script>
     <script src="assets/escena.js"></script>
     <script src="assets/personajes-escena.js"></script>
     <style>
@@ -217,14 +221,14 @@ async function transcribir(archivo, guion) {
 async function exportarShort(id, r = {}) {
   const sh = leerJSON(path.join(DIRS.shorts, id + ".json")), [W, H] = sh.formato === "16:9" ? [1920, 1080] : [1080, 1920], dir = path.join(RAIZ, "short-" + id), A = path.join(dir, "assets");
   for (const d of [dir, A, path.join(A, "vendor"), path.join(A, "voz"), path.join(A, "musica"), path.join(A, "sfx"), path.join(dir, "compositions"), path.join(dir, "out")]) fs.mkdirSync(d, { recursive: true });
-  for (const f of ["titere25d.js", "personajes.js", "atrezo.js", "escena.js", "montaje.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
+  for (const f of ["titere25d.js", "personajes.js", "atrezo.js", "andares.js", "escena.js", "montaje.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
   for (const f of ["gsap.min.js", "figtree.woff2", "bricolage-grotesque.woff2", "newsreader-italic.woff2"]) fs.copyFileSync(path.join(COMUN, "vendor", f), path.join(A, "vendor", f));
   const ESC = {}, usados = {}, acc = {}, comunes = regenerarAcciones();
   for (const c of sh.clips || []) { const f = path.join(DIRS.escenas, c.escena + ".json"); if (!fs.existsSync(f) || ESC[c.escena]) continue; const esc = ESC[c.escena] = leerJSON(f);
     for (const a of esc.actores || []) { const fp = path.join(DIRS.personajes, a.personaje + ".json"); if (fs.existsSync(fp)) usados[a.personaje] = leerJSON(fp);
       for (const b of a.bloques || []) { const cc = Object.values(comunes).find((x) => x.id === b.accion || x.nombre === b.accion); if (cc) acc[cc.id] = cc; } } }
   const D = +(sh.duracion || (sh.voz?.duracion || 0) + 0.8 || 6).toFixed(3);
-  fs.writeFileSync(path.join(A, "datos.js"), `window.LAMINAS = ${JSON.stringify(laminasDe(Object.values(ESC)))};\nwindow.PERSONAJES = ${JSON.stringify(usados)};\nwindow.ACCIONES = ${JSON.stringify(acc)};\nwindow.ESCENAS = ${JSON.stringify(ESC)};\nwindow.SHORT = ${JSON.stringify(sh)};\nwindow.RUTA_ARCHIVOS = "assets/archivos/";\n`);
+  fs.writeFileSync(path.join(A, "datos.js"), `window.ANDARES = ${JSON.stringify(regenerarAndares())};\nwindow.LAMINAS = ${JSON.stringify(laminasDe(Object.values(ESC)))};\nwindow.PERSONAJES = ${JSON.stringify(usados)};\nwindow.ACCIONES = ${JSON.stringify(acc)};\nwindow.ESCENAS = ${JSON.stringify(ESC)};\nwindow.SHORT = ${JSON.stringify(sh)};\nwindow.RUTA_ARCHIVOS = "assets/archivos/";\n`);
   copiarImagenes(Object.values(ESC), A);
   const dentro = (a) => { const f = path.resolve(RAIZ, a || ""); return a && f.startsWith(path.resolve(RAIZ, "..")) && fs.existsSync(f) ? f : null; };
   let audios = "", pista = 10;
@@ -257,6 +261,7 @@ async function exportarShort(id, r = {}) {
     <script src="assets/titere25d.js"></script>
     <script src="assets/personajes.js"></script>
     <script src="assets/atrezo.js"></script>
+    <script src="assets/andares.js"></script>
     <script src="assets/escena.js"></script>
     <script src="assets/montaje.js"></script>
     <script src="assets/datos.js"></script>
@@ -339,16 +344,16 @@ http.createServer(async (req, res) => {
       if (req.method === "PUT") { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, await cuerpo(req)); res.writeHead(200); return res.end("ok"); }
       if (!fs.existsSync(f)) return enviarJSON(res, {}); return servir(res, f, req); }
     if (url === "/api/sincronizar" && req.method === "POST") { let b = {}; try { b = JSON.parse(await cuerpo(req) || "{}"); } catch {} return enviarJSON(res, await sincronizar(String(b.mensaje || "").slice(0, 200))); }
-    let mp = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)\/papelera$/);
+    let mp = url.match(/^\/api\/(personajes|escenas|acciones|andares|shorts|piezas)\/papelera$/);
     if (mp && req.method === "GET") return enviarJSON(res, papelera(mp[1]));
-    mp = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)\/papelera\/([^/]+\.json)\/recuperar$/);
+    mp = url.match(/^\/api\/(personajes|escenas|acciones|andares|shorts|piezas)\/papelera\/([^/]+\.json)\/recuperar$/);
     if (mp && req.method === "POST") { const [, tipo, arch] = mp, src = path.join(DIRS[tipo], "papelera", path.basename(arch)); if (!fs.existsSync(src)) { res.writeHead(404); return res.end(); }
       const info = papelera(tipo).find((x) => x.archivo === path.basename(arch)); let id = info?.id && idValido(info.id) ? info.id : "recuperado", n = 2; const base = id;
       while (fs.existsSync(path.join(DIRS[tipo], id + ".json"))) id = `${base}-${n++}`;
       fs.renameSync(src, path.join(DIRS[tipo], id + ".json")); return enviarJSON(res, { id }); }
-    let m = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)$/);
+    let m = url.match(/^\/api\/(personajes|escenas|acciones|andares|shorts|piezas)$/);
     if (m && req.method === "GET") return enviarJSON(res, lista(m[1]));
-    m = url.match(/^\/api\/(personajes|escenas|acciones|shorts|piezas)\/([^/]+)(\/[a-z]+)?$/);
+    m = url.match(/^\/api\/(personajes|escenas|acciones|andares|shorts|piezas)\/([^/]+)(\/[a-z]+)?$/);
     if (m) { const [, tipo, id, sub] = m; if (!idValido(id)) { res.writeHead(400); return res.end("id no válido: minúsculas, números y guiones"); }
       const f = path.join(DIRS[tipo], id + ".json");
       if (sub === "/papelera" && req.method === "POST") { if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
@@ -376,6 +381,7 @@ http.createServer(async (req, res) => {
     if (url.startsWith("/comun/")) return servir(res, path.join(COMUN, path.basename(url)), req);
     if (url.startsWith("/personajes/")) return servir(res, path.join(DIRS.personajes, path.basename(url)), req);
     if (url.startsWith("/acciones/")) return servir(res, path.join(DIRS.acciones, path.basename(url)), req);
+    if (url.startsWith("/andares/")) return servir(res, path.join(DIRS.andares, path.basename(url)), req);
     if (url.startsWith("/ilustraciones/")) return servir(res, path.join(RAIZ, "ilustraciones", path.basename(url)), req);
     const f = path.join(AQUI, url === "/" ? "index.html" : path.basename(url));
     return servir(res, f, req);

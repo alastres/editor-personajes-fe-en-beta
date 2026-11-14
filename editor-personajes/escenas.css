@@ -51,3 +51,25 @@ button.ancho { width: 100%; padding: 10px; }
 .planta-cab { display: flex; gap: 6px; align-items: center; justify-content: space-between; color: #cfd6e8; }
 .planta svg { width: 100%; height: auto; display: block; cursor: crosshair; touch-action: none; }
 .planta .pl-act { cursor: grab; }
+
+/* TRAMO: cómo gira y anda el personaje desde la clave del cabezal hasta la siguiente */
+.tramo { border: 1px solid var(--borde, #3a3450); border-radius: 10px; padding: 8px 10px; margin: 10px 0; background: #ffffff06; }
+.tramo h4 { margin: 0 0 6px; font-size: 13px; }
+button.pequeno { font-size: 12px; padding: 4px 10px; }
+
+/* EDITOR DE FORMAS DE ANDAR: ventana con lista, vista previa en vivo y deslizadores */
+.editor-andares { position: fixed; inset: 4vh 4vw; z-index: 70; background: var(--panel, #1e1a2c); border: 1px solid var(--borde, #3a3450); border-radius: 14px; box-shadow: 0 16px 50px #000c; display: flex; flex-direction: column; overflow: hidden; }
+.editor-andares[hidden] { display: none; }
+.editor-andares .ea-cab { display: flex; gap: 12px; align-items: baseline; padding: 10px 14px; border-bottom: 1px solid var(--borde, #3a3450); }
+.editor-andares .ea-cab .x { margin-left: auto; }
+.editor-andares .ea-cuerpo { flex: 1; display: grid; grid-template-columns: 170px minmax(0, 1fr) 300px; gap: 12px; padding: 12px; min-height: 0; }
+.editor-andares .ea-lista { display: flex; flex-direction: column; gap: 6px; overflow: auto; }
+.editor-andares .ea-lista button.activo { outline: 2px solid #f0a33a; }
+.editor-andares .ea-prev { display: flex; flex-direction: column; min-height: 0; }
+.editor-andares .ea-prev svg { flex: 1; width: 100%; min-height: 0; background: #232838; border-radius: 10px; }
+.editor-andares .ea-params { overflow: auto; }
+@media (max-width: 900px) { .editor-andares .ea-cuerpo { grid-template-columns: 1fr; overflow: auto; } .editor-andares .ea-prev svg { height: 300px; flex: none; } }
+
+/* listas con rutas largas (imagen de fondo, audios): no ensanchan el panel ni lo hacen desplazarse de lado */
+.panel select, .detalle select, #f-imagen, .fila-anadir select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
+.fila-anadir { min-width: 0; }
