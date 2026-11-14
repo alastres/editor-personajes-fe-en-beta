@@ -431,6 +431,8 @@
     const planoA = (O, ex, ey) => { const o = PR(O), a = PR(add(O, ex)), b = PR(add(O, ey)); return [a[0] - o[0], a[1] - o[1], b[0] - o[0], b[1] - o[1], o[0], o[1]]; };
     const visto = (pz, cara) => { const v = pz.vista || "siempre"; return v === "siempre" || (v === "frente" ? cara > 0.05 : cara < -0.05); };
     function dibujarCabeza(c, a, aOjo) {
+      CTRL.cabeza = difG((a * 180) / Math.PI, 0); const corrC = CORR.filter((x) => x.control === "cabeza" && x.d && !Array.isArray(x.d)).map((x) => [x, pesoCorr(x)]).filter((x) => x[1] > 0.001);
+      CABF.forEach((fz, fi) => { fz._ci = fi; });
       for (const fz of CABF) {
         const aa = fz.prof.ojo ? aOjo : a, pr = fz.prof;
         const pts = fz.pts.map(([x, y]) => { if (fz.pre) [x, y] = fz.pre(x, y);
@@ -440,6 +442,7 @@
           if (pr.lim) { const l0 = pr.lim * 0.75, ax = Math.abs(xg); if (ax > l0) xg = Math.sign(xg) * (l0 + (pr.lim - l0) * Math.tanh((ax - l0) / (pr.lim - l0))); }
           const xr = lerp(xg, x, w) + (pr.desp || 0) * Math.sin(aa);
           return [c[0] + xr, c[1] + y + TILT_H * zr * (1 - w) + EXP.miraY * 9 * Math.min(1, pr.k || 0) * (1 - w)]; });
+        for (const [cc, w] of corrC) { const dd = cc.d[fz._ci]; if (dd && dd.length === pts.length) for (let k = 0; k < pts.length; k++) { pts[k][0] += w * dd[k][0]; pts[k][1] += w * dd[k][1]; } }
         const d = escribir(fz.cmds, pts); fz.e.setAttribute("d", d);
         if (fz.e === caraF) clipCara.setAttribute("d", d);
         if (fz.e._copia) fz.e._copia.setAttribute("d", d);
@@ -769,7 +772,7 @@
       orden.sort((a, b) => a.z - b.z).forEach((o) => cuerpo.appendChild(o.g));
       J3.cintura = W(sway, -266 + bob, lean(-266), aT); J3.cuello = W(sway, -420 + bob, lean(-420), aT);
       for (const k in J3) JUNTAS[k] = PR(J3[k]);
-      ANG_T = aT; if (VEC) vectorial();
+      ANG_T = aT; controles(); if (VEC) vectorial();
     }
     // ---------------------------------------------------------------- MARIONETA VECTORIAL (op.vector)
     // Las partes del cuerpo (torso, brazos, piernas) son dibujos vectoriales guardados en el personaje (vector.capas, hechos al
@@ -789,11 +792,47 @@
         for (const k of L.g.children) if (k !== L.vg && !k.hasAttribute("data-pieza") && !k.hasAttribute("data-vector")) k.setAttribute("display", "none");
         if (L.vg.parentNode !== L.g) L.g.insertBefore(L.vg, L.g.firstChild);
         if (L.grupo === "torso" && L.vista != null) { if (L !== vistaT) { L.vg.setAttribute("display", "none"); continue; } L.vg.removeAttribute("display");
-          const giraT = cilindro(L, dif(gT_, L.vista), Cj); for (const P of L.paths) P.e.setAttribute("d", escribirV(P.cmds, P.pts.map(giraT))); continue; }
+          const giraT = cilindro(L, dif(gT_, L.vista), Cj); L.paths.forEach((P, pi) => P.e.setAttribute("d", escribirV(P.cmds, corregir(L, pi, P.pts.map(giraT))))); continue; }
         const T = L.grupo === "torso" ? afin3([Rj.cintura, Rj.hombroIzq, Rj.hombroDer], [Cj.cintura, Cj.hombroIzq, Cj.hombroDer]) : null;
         for (const P of L.paths) { const out = P.pts.map((v, i) => { if (T) return [T[0] * v[0] + T[2] * v[1] + T[4], T[1] * v[0] + T[3] * v[1] + T[5]];
             let x = 0, y = 0; for (const [b, w] of P.w[i]) { const q = huesoV(b, v); x += w * q[0]; y += w * q[1]; } return [x, y]; });
-          P.e.setAttribute("d", escribirV(P.cmds, out)); } } }
+          P.e.setAttribute("d", escribirV(P.cmds, corregir(L, L.paths.indexOf(P), out))); } } }
+    // ---------------------------------------------------------------- CORRECCIONES POR ÁNGULO (como los Smart Bones de Moho)
+    // vector.correcciones: [{ id, capa, control, desde, angulo, d }]. Al llegar el control (doblar un codo o una rodilla, girar el
+    // cuerpo o la cabeza) a «angulo», la capa toma la forma corregida a mano; entre «desde» (reposo) y «angulo» se mezcla poco a poco.
+    // Los giros (cíclicos) mezclan las correcciones vecinas: cada una pesa de lleno en su ángulo y nada a ±«ancho» grados (45).
+    // d: por trazo y por punto, cuánto se movió [a lo largo, a lo ancho] del hueso que más pesa en ese punto (en el torso, de la
+    // columna); así la corrección acompaña al brazo aunque el hombro apunte a otro sitio. En la cabeza, d: { forma: [[dx, dy], …] }.
+    const CORR = (op.vector?.correcciones || []).filter((c) => c && c.d && c.control);
+    let CTRL = {};
+    const difG = (a, b) => { let x = (a - b) % 360; if (x > 180) x -= 360; if (x < -180) x += 360; return x; };
+    function controles() { const deg = (r) => (r * 180) / Math.PI, ang = (a, b, c) => { if (!a || !b || !c) return null;
+        const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v = [c[0] - b[0], c[1] - b[1], c[2] - b[2]], lu = Math.hypot(...u) || 1, lv = Math.hypot(...v) || 1;
+        return deg(Math.acos(Math.max(-1, Math.min(1, (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]) / (lu * lv))))); };
+      const c = { giro: difG(deg(ANG_T), 0), cabeza: CTRL.cabeza };
+      for (const L of ["Izq", "Der"]) { c["codo" + L] = ang(J3["hombro" + L], J3["codo" + L], J3["muneca" + L]); c["rodilla" + L] = ang(J3["cadera" + L], J3["rodilla" + L], J3["tobillo" + L]); }
+      CTRL = c; }
+    function pesoCorr(c) { const v = CTRL[c.control]; if (v == null) return 0; const ss = (t) => { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
+      if (c.control === "giro" || c.control === "cabeza") return ss(1 - Math.abs(difG(v, c.angulo)) / (c.ancho || 45));
+      const r = (c.angulo ?? 0) - (c.desde ?? 0); return Math.abs(r) < 1 ? 0 : ss((v - (c.desde ?? 0)) / r); }
+    // el marco de cada punto: [ux, uy] del hueso que más pesa (el pie no gira) o de la columna en el torso
+    function marcoV(L, pi, i) { const Cj = JUNTAS, col = () => { const o = Cj.cintura, e = Cj.cuello; if (!o || !e) return [0, -1]; const dx = e[0] - o[0], dy = e[1] - o[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; };
+      if (L.grupo === "torso") return col(); const w = L.paths[pi]?.w?.[i]; if (!w || !w.length) return [1, 0];
+      const b = w.reduce((m, x) => (x[1] > m[1] ? x : m))[0], [a, z] = HV[b]; if (!z) return [1, 0];
+      const o = Cj[a], e = Cj[z]; if (!o || !e) return [1, 0]; const dx = e[0] - o[0], dy = e[1] - o[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; }
+    function corregir(L, pi, pts) { for (const c of CORR) { if (c.capa !== L.id || !Array.isArray(c.d)) continue; const dd = c.d[pi]; if (!dd || dd.length !== pts.length) continue;
+        const w = pesoCorr(c); if (w <= 0.001) continue;
+        pts = pts.map((p, i) => { const q = dd[i]; if (!q) return p; const [ux, uy] = marcoV(L, pi, i); return [p[0] + w * (q[0] * ux - q[1] * uy), p[1] + w * (q[0] * uy + q[1] * ux)]; }); }
+      return pts; }
+    // para el editor: cuánto hay que mover cada punto de la capa (en su pose de ahora) para llegar a los trazos nuevos `ds`
+    function medirCorreccion(capaId, ds) { const L = VEC?.listas.find((x) => x.id === capaId); if (!L?.paths) return null;
+      return L.paths.map((P, pi) => { const cur = parsearV(P.e.getAttribute("d") || "").pts, nu = ds[pi] != null ? parsearV(ds[pi]).pts : null; if (!nu || nu.length !== cur.length) return null;
+        return cur.map((p, i) => { const dx = nu[i][0] - p[0], dy = nu[i][1] - p[1]; if (Math.abs(dx) + Math.abs(dy) < 0.05) return null; const [ux, uy] = marcoV(L, pi, i);
+          return [+(dx * ux + dy * uy).toFixed(2), +(-dx * uy + dy * ux).toFixed(2)]; }); }); }
+    function medirCorreccionCabeza(ds) { const out = {}; for (const [i, d] of Object.entries(ds)) { const fz = CABF[+i]; if (!fz) continue;
+        const cur = parsear(fz.e.getAttribute("d") || "").pts, nu = parsear(d).pts; if (nu.length !== cur.length) continue;
+        const dd = cur.map((p, k) => [+(nu[k][0] - p[0]).toFixed(2), +(nu[k][1] - p[1]).toFixed(2)]); if (dd.some((q) => Math.abs(q[0]) + Math.abs(q[1]) > 0.05)) out[i] = dd; }
+      return out; }
     // torso de una vista girado Δ grados: cada punto está sobre un cilindro alrededor de la columna (de la cintura al cuello);
     // al girar se desliza con la profundidad (x·cos Δ + z·sin Δ), y la columna sigue a la de este fotograma (inclinarse, agacharse)
     function cilindro(L, delta, Cj) { const J = L.juntas || {}, o = J.cintura, e = J.cuello, o2 = Cj.cintura, e2 = Cj.cuello; if (!o || !e || !o2 || !e2) return (v) => v;
@@ -843,12 +882,14 @@
           if (juntas_.has(r)) { const q = juntas_.get(r); q.setAttribute("d", q.getAttribute("d") + " " + (pe.getAttribute("d") || "")); } else juntas_.set(r, pe); }
         for (const pe of [...juntas_.values(), ...sueltas]) { const dd = pe.getAttribute("d") || "", r = pe.getAttribute("data-ref"), i = r != null ? +r : NaN, at = {};
           for (const k of ["fill", "stroke", "stroke-width", "opacity", "stroke-linecap", "stroke-linejoin"]) if (pe.getAttribute(k) != null) at[k] = pe.getAttribute(k);
-          if (Number.isFinite(i) && CABF[i] && refs.has(i)) { const fz = CABF[i]; Object.assign(fz, parsear(dd)); for (const k in at) fz.e.setAttribute(k, at[k]); vistos.add(i); }
-          else CF(dd, prof0, at, (CABF[(capa.refs || [])[0]]?.e.parentNode) || gC); }
+          if (Number.isFinite(i) && CABF[i] && refs.has(i)) { const fz = CABF[i]; Object.assign(fz, parsear(dd)); for (const k in at) fz.e.setAttribute(k, at[k]); fz.capa = capa.id; vistos.add(i); }
+          else { CF(dd, prof0, at, (CABF[(capa.refs || [])[0]]?.e.parentNode) || gC); CABF[CABF.length - 1].capa = capa.id; } }
         for (const i of refs) if (!vistos.has(i) && CABF[i]) { CABF[i].e.setAttribute("display", "none"); CABF[i].borrada = true; } } }
     // partes del cuerpo y juntas: para convertir el muñeco en marioneta vectorial desde el editor
     const partes = () => ({ torso: gT, brazoIzq: brazos.find((b) => b.sg > 0).g, brazoDer: brazos.find((b) => b.sg < 0).g, piernaIzq: piernas.find((b) => b.sg > 0).g, piernaDer: piernas.find((b) => b.sg < 0).g });
-    return { g: raiz, dibujar, escala: [KBX, KBY], puntos, juntas: JUNTAS, partes, cabezaBase };
+    // formas de la cabeza de una capa vectorial, tal como están dibujadas ahora (para corregirlas en el taller)
+    const formasCabeza = (capaId) => CABF.map((fz, i) => ({ i, capa: fz.capa, borrada: fz.borrada, d: fz.e.getAttribute("d") || "", at: Object.fromEntries(["fill", "stroke", "stroke-width", "opacity", "stroke-linecap", "stroke-linejoin"].map((k) => [k, fz.e.getAttribute(k)]).filter((x) => x[1] != null)) })).filter((f) => f.capa === capaId && !f.borrada);
+    return { g: raiz, dibujar, escala: [KBX, KBY], puntos, juntas: JUNTAS, partes, cabezaBase, formasCabeza, controles: () => Object.assign({}, CTRL), medirCorreccion, medirCorreccionCabeza };
   }
 
   // ---------------------------------------------------------------- encuadres

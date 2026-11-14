@@ -143,6 +143,12 @@
         <div class="fila-botones dos"><button id="vec-convertir" class="primario">Convertir el cuerpo en vectores</button><button id="vec-activo">Usar el muñeco automático</button></div>
         <div class="fila-botones dos"><button id="vec-cabeza" class="primario">Convertir la cabeza en vectores</button><button id="vec-cabeza-activo">Usar la cabeza automática</button></div>
         <ul id="vec-capas" class="piezas"></ul>
+        <div id="vc-caja" hidden>
+          <h4>Correcciones por ángulo <span class="tenue">(como los Smart Bones de Moho)</span></h4>
+          <p class="ayuda">Elige una parte, qué la mueve y el ángulo. Se abre el taller con la parte en esa pose: corrige la forma <b>moviendo puntos</b> (sin añadir ni borrar). Al llegar a ese ángulo la parte tomará tu forma, y entre medias se mezcla poco a poco. En los giros se mezclan las correcciones vecinas (cada una llega hasta 45° a cada lado).</p>
+          <div class="fila-anadir"><select id="vc-capa" title="La parte que se corrige"></select><select id="vc-control" title="Qué la mueve"></select><input id="vc-angulo" type="number" step="5" value="90" title="El ángulo, en grados" style="width:5.5em"><button id="vc-nueva">＋ Corregir</button></div>
+          <ul id="vc-lista" class="piezas"></ul>
+        </div>
         <div id="biblio" class="biblio" hidden></div>
         <ul id="piezas" class="piezas"></ul>
         <div id="detalle-pieza" class="detalle" hidden>

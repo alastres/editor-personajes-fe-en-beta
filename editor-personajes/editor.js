@@ -409,7 +409,60 @@
   $("#vec-cabeza").addEventListener("click", () => { if (j.vector?.cabeza && !confirm("Se vuelve a copiar la cabeza del muñeco y se pierden los retoques. ¿Seguir?")) return;
     const cab = exportarCabeza(); cambio((x) => { x.vector = Object.assign({ activo: false, juntas: null, capas: [] }, x.vector, { cabeza: cab }); }); aviso("Cabeza convertida en vectores: edita cada capa con ✎"); pintarVector(); });
   $("#vec-cabeza-activo").addEventListener("click", () => { if (!j.vector?.cabeza) return; cambio((x) => { x.vector.cabeza.activo = !x.vector.cabeza.activo; }); pintarVector(); });
-  function pintarVector() { const v = j?.vector, ul = $("#vec-capas"); if (!ul) return; ul.replaceChildren();
+  // ---- CORRECCIONES POR ÁNGULO (fase 3, como los Smart Bones de Moho): una parte vectorial se corrige a mano en una pose (codo o
+  // rodilla doblados, cuerpo o cabeza girados) y el motor (titere25d.js, vector.correcciones) la mezcla poco a poco al llegar a ese ángulo
+  const CONTROLES_V = { codoIzq: "doblar el codo izquierdo", codoDer: "doblar el codo derecho", rodillaIzq: "doblar la rodilla izquierda", rodillaDer: "doblar la rodilla derecha", giro: "girar el cuerpo", cabeza: "girar la cabeza" };
+  const controlesDe = (capaId) => /^cab-/.test(capaId) ? ["cabeza"] : /^torso/.test(capaId) ? ["giro"] : [(/^brazo/.test(capaId) ? "codo" : "rodilla") + (/Izq$/.test(capaId) ? "Izq" : "Der"), "giro"];
+  const capasVec = () => [...(j?.vector?.capas || []).map((c) => [c.id, c.nombre, c.vista]), ...(j?.vector?.cabeza?.capas || []).map((c) => [c.id, "Cabeza · " + c.nombre])];
+  function pintarCorr() { const v = j?.vector, caja = $("#vc-caja"); if (!caja) return; const cs = capasVec(); caja.hidden = !cs.length; if (!cs.length) return;
+    const sc = $("#vc-capa"), prev = sc.value; sc.replaceChildren(...cs.map(([id, n]) => h("option", { value: id }, n))); if (cs.some((c) => c[0] === prev)) sc.value = prev;
+    // al cambiar de parte: su primer control y un ángulo de partida (90° al doblar; en una vista del torso, la de esa vista)
+    const pc = (nueva) => { const ctl = $("#vc-control"), p = ctl.value; ctl.replaceChildren(...controlesDe(sc.value).map((k) => h("option", { value: k }, CONTROLES_V[k]))); if (!nueva && [...ctl.options].some((o) => o.value === p)) ctl.value = p;
+      if (!nueva) return; const vista = cs.find((c) => c[0] === sc.value)?.[2]; $("#vc-angulo").value = ctl.value === "giro" ? vista ?? 45 : ctl.value === "cabeza" ? 45 : 90; };
+    sc.onchange = () => pc(true); pc(false); $("#vc-control").onchange = () => { $("#vc-angulo").value = /^(codo|rodilla)/.test($("#vc-control").value) ? 90 : 45; };
+    const ul = $("#vc-lista"); ul.replaceChildren();
+    for (const c of v?.correcciones || []) { const nom = cs.find((x) => x[0] === c.capa)?.[1] || c.capa;
+      ul.append(h("li", {}, h("span", {}, "◇"), h("span", {}, `${nom}: ${CONTROLES_V[c.control] || c.control} ${Math.round(c.angulo)}°`), h("button", { onclick: () => abrirCorreccion(c) }, "✎"),
+        h("button", { title: "Borrar la corrección", onclick: () => { if (!confirm("¿Borrar esta corrección?")) return; cambio((x) => { x.vector.correcciones = x.vector.correcciones.filter((y) => y.id !== c.id); }); pintarCorr(); } }, "✕"))); } }
+  $("#vc-nueva").addEventListener("click", () => { const capa = $("#vc-capa").value, control = $("#vc-control").value, A = +$("#vc-angulo").value || 0; if (!capa || !control) return;
+    abrirCorreccion({ id: "corr-" + Date.now().toString(36), capa, control, pedido: A }); });
+  // la pose del muñeco con ese control a A grados (la rodilla se dobla levantando el pie: se busca la altura que más se acerca)
+  function ponerControl(m, control, A) { const dib = (p, b) => m.dibujar(Object.assign(P.pose(P.completa(p), b), { parpadeo: 1 }));
+    if (control === "giro" || control === "cabeza") { dib({}, { giro: A }); return; }
+    const L = control.endsWith("Izq") ? "Izq" : "Der";
+    if (control.startsWith("codo")) { dib({ ["b" + L + "K"]: 1, ["b" + L + "Codo"]: (A * Math.PI) / 180 }, { giro: 0 }); return; }
+    let mejor = [1e9, 0]; for (let alto = 0; alto <= 260; alto += 4) { dib({ ["pie" + L + "Alto"]: alto }, { giro: 0 }); const e = Math.abs((m.controles()[control] ?? 0) - A); if (e < mejor[0]) mejor = [e, alto]; }
+    dib({ ["pie" + L + "Alto"]: mejor[1] }, { giro: 0 }); }
+  function abrirCorreccion(c) { const NSv = "http://www.w3.org/2000/svg", cab = /^cab-/.test(c.capa);
+    const hecho = (conEsta) => { const svg = document.createElementNS(NSv, "svg"); svg.style.cssText = "position:absolute;left:-9999px;width:10px;height:10px"; document.body.append(svg);
+      const jj = JSON.parse(JSON.stringify(j)); jj.piezas = []; jj.vector.activo = true; if (jj.vector.cabeza) jj.vector.cabeza.activo = true;
+      jj.vector.correcciones = (jj.vector.correcciones || []).filter((x) => conEsta || x.id !== c.id); return [P.crear(svg, jj, { id: "corr-" + (conEsta ? 1 : 0) }), svg]; };
+    const [m0, s0] = hecho(false), [m1, s1] = hecho(true), A = c.pedido ?? c.angulo;
+    // «desde»: el valor del control en reposo (de frente y sin mover nada)
+    m0.dibujar(Object.assign(P.pose(P.completa({}), { giro: 0 }), { parpadeo: 1 })); const desde = m0.controles()[c.control] ?? 0;
+    ponerControl(m0, c.control, A); ponerControl(m1, c.control, A); const angulo = m0.controles()[c.control] ?? A;
+    const at = (o) => Object.entries(o).map(([k, v]) => `${k}="${v}"`).join(" ");
+    let txt = "", caja = null;
+    if (cab) { txt = m1.formasCabeza(c.capa).map((f) => `<path d="${f.d}" data-ref="${f.i}" ${at(f.at)}/>`).join(""); }
+    else { const vg = m1.g.querySelector(`[data-vector="${c.capa}"]`); if (!vg || vg.getAttribute("display") === "none") { s0.remove(); s1.remove(); aviso("Esa vista del torso no se ve en ese giro: elige un ángulo más cercano a su vista"); return; }
+      txt = [...vg.querySelectorAll("path")].map((p) => p.outerHTML).join(""); try { const b = vg.getBBox(); caja = [b.x - 120, b.y - 120, b.x + b.width + 120, b.y + b.height + 120]; } catch {} }
+    let dib; try { dib = Taller.deSVG(txt); } catch { dib = { formas: [] }; }
+    if (cab && !caja) { const b = m1.formasCabeza(c.capa).length ? (() => { const g = document.createElementNS(NSv, "g"); g.innerHTML = txt; s1.append(g); const r = g.getBBox(); g.remove(); return r; })() : null; if (b) caja = [b.x - 120, b.y - 120, b.x + b.width + 120, b.y + b.height + 120]; }
+    const fondo = m1.g.innerHTML; s0.remove(); s1.remove();
+    const nom = capasVec().find((x) => x[0] === c.capa)?.[1] || c.capa;
+    Taller.abrir({ titulo: `Corrección · ${nom} · ${CONTROLES_V[c.control]} ${Math.round(angulo)}° (mueve puntos; no añadas ni borres)`, textoGuardar: "Guardar la corrección", colores: P.colores(j), dibujos: { frente: dib }, vistas: null, vista: "frente",
+      encuadre: caja || undefined,
+      referencia: (g) => { const r = document.createElementNS(NSv, "g"); r.setAttribute("opacity", "0.3"); r.setAttribute("pointer-events", "none"); r.innerHTML = fondo; g.append(r); },
+      alGuardar: (out) => { const r = out.frente; if (!r) return; const svgTxt = Taller.aSVG(r.dibujo).replace(/\{(\w+)\}/g, (m_, k) => P.colores(j)[k] || "#888888");
+        const doc = new DOMParser().parseFromString(`<svg xmlns="${NSv}">${svgTxt}</svg>`, "image/svg+xml"), paths = [...doc.querySelectorAll("path")];
+        let d, malos = 0;
+        if (cab) { const por = {}; for (const p of paths) { const i = p.getAttribute("data-ref"); if (i == null) { malos++; continue; } por[i] = por[i] ? por[i] + " " + p.getAttribute("d") : p.getAttribute("d"); } d = m0.medirCorreccionCabeza(por); }
+        else { d = m0.medirCorreccion(c.capa, paths.map((p) => p.getAttribute("d") || "")); malos = (d || []).filter((x) => x === null).length; if (paths.length !== dib.formas.length) malos++; }
+        if (!d || (Array.isArray(d) ? !d.some((x) => x && x.some((q) => q)) : !Object.keys(d).length)) { aviso("No se guardó: no se movió ningún punto (o se añadieron o borraron puntos)"); return; }
+        cambio((x) => { const q = { id: c.id, capa: c.capa, control: c.control, desde: +desde.toFixed(1), angulo: +angulo.toFixed(1), d };
+          x.vector.correcciones = (x.vector.correcciones || []).filter((y) => y.id !== c.id).concat([q]); });
+        pintarCorr(); aviso(malos ? `Corrección guardada (${malos} formas cambiaron de número de puntos y no cuentan)` : "Corrección guardada"); } }); }
+  function pintarVector() { const v = j?.vector, ul = $("#vec-capas"); if (!ul) return; ul.replaceChildren(); pintarCorr();
     $("#vec-cabeza").textContent = v?.cabeza ? "Volver a copiar la cabeza" : "Convertir la cabeza en vectores"; $("#vec-cabeza-activo").hidden = !v?.cabeza; $("#vec-cabeza-activo").textContent = v?.cabeza?.activo ? "Usar la cabeza automática" : "Usar la cabeza vectorial";
     for (const c of v?.cabeza?.capas || []) ul.append(h("li", {}, h("span", {}, "●"), h("span", {}, c.nombre), h("span", { class: "hueso" }, `${c.dibujo?.formas?.length || 0} formas`), h("button", { onclick: () => editarCapaCab(c.id) }, "✎ Editar")));
     const conCuerpo = !!v?.capas?.length; $("#vec-convertir").textContent = conCuerpo ? "Volver a copiar el cuerpo" : "Convertir el cuerpo en vectores";

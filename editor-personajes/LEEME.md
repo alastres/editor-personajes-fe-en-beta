@@ -523,3 +523,21 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
 - **Datos:** `vector.cabeza: { activo, capas: [{ id, nombre, refs, dibujo, svg }], vivas }`. La cabeza puede ser vectorial con el cuerpo automático, y al revés.
 - **Motor** (`comun/titere25d.js`): `cabezaBase()` devuelve las formas de frente con su categoría. Al crear el muñeco, las formas de `vector.cabeza` sustituyen a las de código antes del primer giro.
 
+## Marioneta vectorial, fase 3: correcciones por ángulo (14 nov 2026)
+Son como los **Smart Bones de Moho**: la forma de una parte se corrige a mano en una pose y el muñeco la va tomando al acercarse a ella.
+- En **«Correcciones por ángulo»** (bajo las capas vectoriales) eliges tres cosas:
+  - **la parte:** un brazo, una pierna, una vista del torso o una capa de la cabeza;
+  - **qué la mueve:** doblar el codo, doblar la rodilla, girar el cuerpo o girar la cabeza;
+  - **el ángulo**, en grados.
+- **«＋ Corregir»** abre el taller con la parte en esa pose y el resto del muñeco de calco. **Mueve puntos**: no añadas ni borres, porque una forma con otro número de puntos no cuenta. Al guardar aparece en la lista; ✎ la vuelve a abrir con la corrección puesta y ✕ la borra.
+- **Cómo se mezcla:**
+  - al doblar, la corrección entra poco a poco desde el reposo hasta ese ángulo, y más allá se queda entera;
+  - en los giros, cada corrección pesa de lleno en su ángulo y nada a 45° de él, así que dos correcciones vecinas se reparten;
+  - el ángulo que se guarda es el que mide el muñeco (la rodilla se dobla levantando el pie, y se busca la altura que más se acerca).
+- **Datos:** `vector.correcciones: [{ id, capa, control, desde, angulo, d }]`. En el cuerpo, `d` guarda por trazo y por punto `[a lo largo, a lo ancho]` del hueso que más pesa en ese punto, o de la columna en el torso; así la corrección acompaña al brazo aunque el hombro apunte a otro lado. En la cabeza, `d` es `{ forma: [[dx, dy], …] }` y se suma después de girarla.
+- **Motor:**
+  - `controles()` da los valores de este fotograma: `codoIzq/Der`, `rodillaIzq/Der`, `giro` y `cabeza`;
+  - `medirCorreccion(capa, trazos)` y `medirCorreccionCabeza({ forma: d })` convierten lo dibujado en `d`;
+  - `formasCabeza(capa)` da las formas de la cabeza tal como están dibujadas ahora.
+- **Ojo:** si cambias el número de formas de una capa (o la vuelves a copiar), rehaz sus correcciones.
+
