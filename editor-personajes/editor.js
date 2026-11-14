@@ -238,6 +238,7 @@
 
   // =====================================================================================================
   // ---- PIEZAS PROPIAS (fase 2): SVG atados a huesos, variantes, arrastrar en el escenario
+  const OCULTABLES = ["melena", "cinto", "pelo", "barba", "ojos", "cejas", "boca", "nariz", "orejas", "cabeza", "torso", "brazoIzq", "brazoDer", "manoIzq", "manoDer", "piernaIzq", "piernaDer"];
   const HUESOS = { cabeza: "Cabeza", pecho: "Pecho", cintura: "Cintura", brazoIzq: "Brazo izq.", brazoDer: "Brazo der.", antebrazoIzq: "Antebrazo izq.", antebrazoDer: "Antebrazo der.", manoIzq: "Mano izq.", manoDer: "Mano der.", musloIzq: "Muslo izq.", musloDer: "Muslo der.", piernaIzq: "Pierna izq.", piernaDer: "Pierna der.", pieIzq: "Pie izq.", pieDer: "Pie der." };
   const CAPAS = { delante: "Delante", detras: "Detrás" }, VISTAS_PZ = { siempre: "Siempre", frente: "De frente", espaldas: "De espaldas" }, MODOS = { silueta: "Fija (sombrero)", superficie: "Gira con la cara" };
   let sel = null;   // id de la pieza elegida
@@ -305,7 +306,7 @@
       const F = pz.fisica && pz.fisica.activa !== false ? pz.fisica : null; $("#pz-fis").checked = !!F; $("#pz-fis-det").hidden = !F;
       if (F) [["rig", F.rigidez ?? 0.4, (v) => Math.round(v * 100) + "%"], ["amo", F.amortiguacion ?? 0.35, (v) => Math.round(v * 100) + "%"], ["peso", F.peso ?? 1, (v) => v.toFixed(2)], ["px", (F.pivote || [0, 0])[0], (v) => Math.round(v)], ["py", (F.pivote || [0, 0])[1], (v) => Math.round(v)]]
         .forEach(([k, v, fmt]) => { const inp = $("#pz-fis-" + k); if (document.activeElement !== inp) inp.value = v; inp.nextElementSibling.textContent = fmt(v); });
-      ["melena", "cinto", "pelo", "barba", "ojos", "cejas", "boca", "nariz", "orejas"].forEach((k) => { $("#pz-oc-" + k).checked = (pz.oculta || []).includes(k); });
+      OCULTABLES.forEach((k) => { $("#pz-oc-" + k).checked = (pz.oculta || []).includes(k); });
       $("#pz-dob-campo").hidden = !/^(brazo|muslo)/.test(pz.hueso); $("#pz-dob").checked = !!pz.doblar; $("#pz-dob-det").hidden = !pz.doblar;
       { const zi = $("#pz-dob-zona"), zv = pz.doblarZona ?? 18; if (document.activeElement !== zi) zi.value = zv; zi.nextElementSibling.textContent = Math.round(zv); }
       const Cd = pz.cadena && pz.cadena.activa !== false ? pz.cadena : null; $("#pz-cad").checked = !!Cd; $("#pz-cad-det").hidden = !Cd;
@@ -316,7 +317,7 @@
   }
   function cambioPz(fn, clave) { cambio((x) => { const q = x.piezas.find((y) => y.id === sel); if (q) fn(q, x); }, clave); }
   ["x", "y", "escala", "rot", "prof"].forEach((k) => $("#pz-" + k).addEventListener("input", (ev) => cambioPz((q) => { q[k] = Number(ev.target.value); }, "pz-" + k + sel)));
-  ["melena", "cinto", "pelo", "barba", "ojos", "cejas", "boca", "nariz", "orejas"].forEach((k) => $("#pz-oc-" + k).addEventListener("change", (ev) => cambioPz((q) => { const o = new Set(q.oculta || []); ev.target.checked ? o.add(k) : o.delete(k); q.oculta = [...o]; })));
+  OCULTABLES.forEach((k) => $("#pz-oc-" + k).addEventListener("change", (ev) => cambioPz((q) => { const o = new Set(q.oculta || []); ev.target.checked ? o.add(k) : o.delete(k); q.oculta = [...o]; })));
   let vistaImp = null;
   for (const v of ["perfil", "espaldas"]) { const campo = "svg" + v[0].toUpperCase() + v.slice(1);
     $("#pz-imp-" + v).addEventListener("click", () => { vistaImp = campo; $("#archivo-vista").click(); });
@@ -369,6 +370,15 @@
     var campos0 = {};
   }
   $("#b-dibujar").addEventListener("click", () => abrirTaller(null));
+  // REDIBUJAR UNA PARTE DEL MUÑECO: crea una pieza en el hueso de esa parte que oculta la original y abre el taller para dibujarla
+  const PARTES = { cabeza: ["Cabeza entera", "cabeza"], pelo: ["Pelo", "cabeza"], melena: ["Melena", "cabeza"], barba: ["Barba", "cabeza"], ojos: ["Ojos", "cabeza"], cejas: ["Cejas", "cabeza"],
+    nariz: ["Nariz", "cabeza"], boca: ["Boca", "cabeza"], orejas: ["Orejas", "cabeza"], torso: ["Torso y túnica", "pecho"], cinto: ["Cinturón", "cintura"],
+    brazoIzq: ["Brazo izq. (entero, se dobla en el codo)", "brazoIzq"], brazoDer: ["Brazo der. (entero, se dobla en el codo)", "brazoDer"], manoIzq: ["Mano izq.", "manoIzq"], manoDer: ["Mano der.", "manoDer"],
+    piernaIzq: ["Pierna izq. (entera, se dobla en la rodilla)", "musloIzq"], piernaDer: ["Pierna der. (entera, se dobla en la rodilla)", "musloDer"] };
+  $("#b-parte").replaceChildren(...Object.entries(PARTES).map(([k, [n]]) => h("option", { value: k }, n)));
+  $("#b-redibujar").addEventListener("click", () => { const k = $("#b-parte").value, [n, hueso] = PARTES[k] || []; if (!hueso || !j) return;
+    anadirPieza({ nombre: "Mi " + n.split(" (")[0].toLowerCase(), hueso, oculta: [k], doblar: /^(brazo|pierna)/.test(k) || undefined, modo: "silueta", capa: k === "torso" || /^pierna/.test(k) ? "detras" : "delante" });
+    const pz = pieza(); if (pz) abrirTaller(pz); });
   $("#pz-editar").addEventListener("click", () => { const pz = pieza(); if (pz) abrirTaller(pz); });
 
   function pintarVariantes() {

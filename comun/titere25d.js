@@ -519,6 +519,7 @@
         L.muslo.setAttribute("stroke", mix(cPierna, C.noche, os)); L.canilla.setAttribute("fill", mix(cPierna, C.noche, os)); L.empeine.setAttribute("fill", mix(moderno ? C.zapato : C.piel, C.noche, os));
         L.luz.setAttribute("opacity", (0.6 * (1 - os * 2.5)).toFixed(2));
         L.g.setAttribute("clip-path", `url(#${id}-piernas)`);
+        L.g.setAttribute("display", oculto.has(L.sg > 0 ? "piernaIzq" : "piernaDer") ? "none" : "inline");   // sustituida por una pieza dibujada
         orden.push({ g: L.g, z: TILT < -0.02 ? 10 + z * 0.01 : z - 1000 });   // desde abajo, delante del hueco de la falda                // las piernas siempre detrás de la túnica
       }
 
@@ -557,6 +558,7 @@
       // sombra = misma forma algo más abajo: media luna por delante, sin «collar» detrás
       escoteS.setAttribute("d", anilloD({ y: -414, A: 35, B: 23 }, 5));
       escote.setAttribute("d", anilloD({ y: -414, A: 34, B: 22 }, -1));
+      gT.setAttribute("display", oculto.has("torso") ? "none" : "inline");
       orden.push({ g: gT, z: 0 });
       if (oculto.has("cinto")) [cinto, cintoL, nudo].forEach((x) => x.setAttribute("opacity", 0));
       else { cinto.setAttribute("opacity", moderno ? 0 : 1); cintoL.setAttribute("opacity", moderno ? 0 : 0.8); }
@@ -724,6 +726,8 @@
         for (const P of PIEZAS) { if (P.pz.hueso !== (sg > 0 ? "manoIzq" : "manoDer")) continue;
           const k = kM * KG, u = dh, v = [-dh[1], dh[0]]; ponerPieza(P, [u[0] * k, u[1] * k, v[0] * k * sg, v[1] * k * sg, qm[0], qm[1]], e.variantes); }
         const manoS = sg * 76 + 88 * uL[0] + 86 * fL[0], manoF = 88 * uL[2] + 86 * fL[2], delPecho = Math.abs(manoS) < 72 && manoF > 22;
+        const ladoB = sg > 0 ? "Izq" : "Der", sinMano = oculto.has("mano" + ladoB) ? "none" : "inline";
+        B.g.setAttribute("display", oculto.has("brazo" + ladoB) ? "none" : "inline"); for (const x of [B.manoG, B.pulgar, B.pulgarBorde]) x && x.setAttribute("display", sinMano);
         orden.push({ g: B.g, z: z < -6 && !delPecho ? -500 + z : 500 + z });
       }
 
@@ -750,6 +754,7 @@
         const sil = pz.modo === "silueta", pf = pz.prof ?? (sil ? 0 : PROF0.cabeza), cara = espaldas ? -1 : 1;
         const sx = sil ? 1 : Math.cos(aCab), tx = sil ? 0 : pf * Math.sin(aCab) * (espaldas ? -1 : 1);
         ponerPieza(P, visto(pz, cara) && (sil || sx > 0.08) ? [sx, 0, 0, 1, cc[0] + tx, cc[1]] : null, e.variantes, false, aH); }
+      gC.setAttribute("display", oculto.has("cabeza") ? "none" : "inline");
       orden.push({ g: gC, z: 400 }, { g: gMelena, z: espaldas ? 350 : -700 });
       // puntos del cuerpo en las coordenadas del grupo del personaje (para encuadrar: cabeza, pecho, cintura, manos, pies)
       const dy = -subir * KBY, Q = (p) => { const q = PR(p); return [q[0] * KBX, q[1] * KBY + dy]; };

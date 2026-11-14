@@ -494,3 +494,10 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
 - En el taller de láminas no salen los colores del personaje: se dibuja con colores de verdad.
 - **API:** `GET /api/laminas`, `GET /api/laminas/<n>`, `POST /api/laminas/<n>` (nueva), `PUT /api/laminas/<n>/<capa>` (`{ svg, dibujo }`).
 
+## Redibujar cualquier parte de la marioneta (14 nov 2026)
+- En Personajes → Piezas propias, **«Redibujar una parte del muñeco»**: eliges la parte y pulsas **✎ Redibujar**. Se crea una pieza en el hueso de esa parte que oculta la original, y se abre el taller con la parte de calco.
+  - Brazos y piernas enteros se doblan en el codo y la rodilla.
+  - Partes: cabeza entera, pelo, melena, barba, ojos, cejas, nariz, boca, orejas, torso y túnica, cinturón, brazo izquierdo y derecho, mano izquierda y derecha, pierna izquierda y derecha.
+- Cualquier pieza puede ocultar esas partes desde «Mientras está puesta, oculta».
+- En el muñeco (`comun/titere25d.js`): `oculta` admite además `cabeza`, `torso`, `brazoIzq`/`brazoDer`, `manoIzq`/`manoDer` y `piernaIzq`/`piernaDer`.
+
