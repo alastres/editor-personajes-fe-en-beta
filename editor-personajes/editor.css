@@ -337,3 +337,5 @@ body:not(.es-libre) .libre-solo, body:not(.es-libre) details.libre-bloque { disp
 
 .lb-pin { padding: 4px 6px; opacity: .45; }
 .lb-pin.activo { opacity: 1; background: var(--acento); border-color: var(--acento); }
+#g-svg .g-tanl { stroke: #c8a0ff; stroke-width: 1.5; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+#g-svg .g-tan { fill: #c8a0ff; stroke: #13111f; stroke-width: 2; vector-effect: non-scaling-stroke; cursor: move; }

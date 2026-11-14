@@ -279,7 +279,8 @@ Por hacer:
 - [x] **Editor de gráficas** (como el de Moho): en Animación, «📈 Gráficas» enseña la curva real de un canal a lo largo de la acción.
   - Los canales son cualquier número de la pose, también `cara.alegre` o `huesos.cola`; primero salen los que cambian.
   - Cada clave es un punto que se arrastra arriba o abajo para cambiar su valor; un clic en la gráfica mueve el cabezal.
-  - [ ] Pendiente: tangentes propias por clave dentro de la gráfica (hoy la forma entre claves se elige con «Curva» o «Propia…»), y ver dos canales a la vez.
+  - [x] Tangentes: en la clave del cabezal, dos asas moradas dan forma al tramo hasta la siguiente. Se guardan como su curva propia; las de serie (suave, lineal, acelerar, frenar, rebote) se convierten al tocarlas.
+  - [ ] Pendiente: ver dos canales a la vez.
 - [x] **Deformador** (como el de malla de Moho y Cartoon Animator): todo objeto del atrezo, incluida la animación a mano, tiene «Doblar», «Ondear» y «Respirar».
   - Doblar curva el objeto desde la base, como un árbol con viento o una caña con peso; Ondear le pasa una onda que sube; Respirar lo hace latir suave.
   - Se animan con claves (casilla «Animar con claves»). Cuesta 0,3 ms por objeto y fotograma.

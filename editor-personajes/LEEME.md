@@ -644,7 +644,8 @@ Como el editor de gráficas de Moho: para ver y afinar cómo cambia un ajuste co
   - la línea naranja es el movimiento de verdad, con sus curvas (suave, lineal, rebote, propia…) y el seguimiento; la roja es el cabezal;
   - **arrastra un punto** (una clave) arriba o abajo para cambiar su valor en esa clave;
   - un **clic** en la gráfica lleva el cabezal a ese instante;
-  - la forma entre dos claves se cambia con **«Curva»** en la barra, o con «Propia…» para una curva a medida.
+  - la forma entre dos claves se cambia con **«Curva»** en la barra, o con «Propia…» para una curva a medida;
+  - **tangentes:** con el cabezal sobre una clave aparecen **dos asas moradas**. Arrástralas para dar forma al tramo hasta la clave siguiente: arrancar despacio, pasarse y volver, llegar de golpe… Se guardan como la curva propia de esa clave, así que el tramo cambia igual en todos los canales (como la curva de una clave en Moho). «Mantener» no tiene asas.
 - Todo entra en el deshacer (Ctrl+Z).
 
 ## Deformador: doblar, ondear y respirar (14 nov 2026)

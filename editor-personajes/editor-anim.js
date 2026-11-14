@@ -181,7 +181,7 @@
       if (typeof v === "number") s.set(x, (s.get(x) || new Set()).add(+v.toFixed(3))); else if (v && typeof v === "object") for (const [y, w] of Object.entries(v)) if (typeof w === "number") s.set(x + "." + y, (s.get(x + "." + y) || new Set()).add(+w.toFixed(3))); }
     // primero los que cambian entre claves
     return [...s.entries()].sort((m, n) => (n[1].size > 1) - (m[1].size > 1) || m[0].localeCompare(n[0])).map(([k, v]) => [k, v.size > 1]); }
-  function pintarGraficas() { const caja = $("#graficas"); if (!caja || caja.hidden) return; const a = accion(), sv = $("#g-svg"); sv.replaceChildren(); if (!a || !a.claves.length) return;
+  function pintarGraficas() { const caja = $("#graficas"); if (!caja || caja.hidden) return; const a = accion(), sv = $("#g-svg"); sv.replaceChildren(); $("#g-info").textContent = "Arrastra un punto arriba o abajo para cambiar el valor de esa clave. En la clave del cabezal, las asas moradas dan forma al tramo hasta la siguiente."; if (!a || !a.claves.length) return;
     const cs = canales(a), sel = $("#g-canal"); if (!canal || !cs.some((c) => c[0] === canal)) canal = cs.find((c) => c[1])?.[0] || cs[0]?.[0];
     const firma = cs.map((c) => c.join(":")).join("|"); if (sel.dataset.f !== firma) { sel.dataset.f = firma; sel.replaceChildren(...cs.map(([k, cambia]) => h("option", { value: k }, (cambia ? "● " : "  ") + k))); } sel.value = canal;
     const D = durac(a), N = 160, W = 1000, H = 220, pad = 18, ys = [];
@@ -193,10 +193,31 @@
     mk("polyline", { points: ys.map((v, i) => `${((i / N) * W).toFixed(1)},${Y(v).toFixed(1)}`).join(" "), class: "g-curva" });
     mk("line", { x1: X(tiempo), x2: X(tiempo), y1: 0, y2: H, class: "g-cabezal" });
     a.claves.forEach((k, i) => { const c = mk("circle", { cx: X(k.t), cy: Y(kv[i]), r: 9, class: "g-clave" + (Math.abs(k.t - tiempo) < 0.02 ? " activa" : ""), "data-i": i }); c.append(Object.assign(document.createElementNS("http://www.w3.org/2000/svg", "title"), { textContent: `${fmtT(k.t)} · ${canal} = ${kv[i].toFixed(2)}` })); });
+    // TANGENTES de la clave elegida (como en Moho): dos asas que dan forma al tramo hasta la siguiente clave. Son la curva propia de esa
+    // clave ([x1, y1, x2, y2], como un cubic-bezier), así que el tramo cambia igual en todos los canales.
+    const ks = [...a.claves].map((k, i) => ({ k, i })).sort((m, n) => m.k.t - n.k.t), pos = ks.findIndex((x) => Math.abs(x.k.t - tiempo) < 0.02);
+    gTan = null;
+    if (pos >= 0 && pos < ks.length - 1) { const k0 = ks[pos].k, k1 = ks[pos + 1].k, i0 = ks[pos].i, i1 = ks[pos + 1].i, v0 = kv[i0], v1 = kv[i1];
+      const cz = Array.isArray(k0.curva) ? k0.curva : BEZ[k0.curva || "suave"];
+      if (cz) { const dv = Math.abs(v1 - v0) > 1e-3 ? v1 - v0 : (hi - lo) * 0.3, x0 = X(k0.t), x1 = X(k1.t), h1 = [x0 + cz[0] * (x1 - x0), Y(v0 + cz[1] * dv)], h2 = [x0 + cz[2] * (x1 - x0), Y(v0 + cz[3] * dv)];
+        mk("line", { x1: x0, y1: Y(v0), x2: h1[0], y2: h1[1], class: "g-tanl" }); mk("line", { x1: x1, y1: Y(v1), x2: h2[0], y2: h2[1], class: "g-tanl" });
+        for (const [n, q] of [[1, h1], [2, h2]]) mk("rect", { x: q[0] - 7, y: q[1] - 7, width: 14, height: 14, class: "g-tan", "data-h": n }).append(Object.assign(document.createElementNS("http://www.w3.org/2000/svg", "title"), { textContent: "Arrástrala para dar forma al tramo hasta la clave siguiente" }));
+        gTan = { i: i0, cz: cz.slice(), x0, x1, v0, dv, Yinv: (yy) => lo + (1 - (yy - pad) / (H - 2 * pad)) * (hi - lo) }; }
+      else $("#g-info").textContent = "«Mantener» no tiene asas: elige otra curva en «Curva» para dar forma al tramo."; }
     sv.dataset.lo = lo; sv.dataset.hi = hi; }
+  // las curvas de serie como cubic-bezier, para poder retocarlas con asas (el de «suave» y «rebote» se aproxima)
+  const BEZ = { suave: [0.33, 0, 0.67, 1], lineal: [0.33, 0.33, 0.67, 0.67], acelera: [0.33, 0, 0.67, 0], frena: [0.33, 1, 0.67, 1], rebote: [0.33, 1.79, 0.67, 1] };
+  let gTan = null, tArr = null;
   $("#t-graficas").addEventListener("click", () => { const c = $("#graficas"); c.hidden = !c.hidden; $("#t-graficas").classList.toggle("activo", !c.hidden); pintarLinea(); });
   $("#g-canal").addEventListener("change", (ev) => { canal = ev.target.value; pintarGraficas(); });
   const gsv = $("#g-svg");
+  const enSvg = (ev) => { const pt = gsv.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const q = pt.matrixTransform(gsv.getScreenCTM().inverse()); return [q.x, q.y]; };
+  gsv.addEventListener("pointerdown", (ev) => { const t = ev.target.closest(".g-tan"); if (!t || !gTan) return; ev.stopImmediatePropagation(); tArr = Object.assign({ h: +t.dataset.h }, gTan); try { gsv.setPointerCapture(ev.pointerId); } catch {} }, true);
+  gsv.addEventListener("pointermove", (ev) => { if (!tArr) return; const a = accion(), [px, py] = enSvg(ev), T = tArr;
+    const x = Math.max(0, Math.min(1, (px - T.x0) / (T.x1 - T.x0 || 1))), y = Math.max(-1.5, Math.min(2.5, (T.Yinv(py) - T.v0) / T.dv)), c = T.cz;
+    if (T.h === 1) { c[0] = +x.toFixed(3); c[1] = +y.toFixed(3); } else { c[2] = +x.toFixed(3); c[3] = +y.toFixed(3); }
+    E.cambio((xx) => { xx.acciones.find((q) => q.id === a.id).claves[T.i].curva = c.slice(); }, "g-tan-" + T.i); }, true);
+  const tSoltar = () => { if (tArr) { tArr = null; pintarLinea(); } }; gsv.addEventListener("pointerup", tSoltar, true); gsv.addEventListener("pointercancel", tSoltar, true);
   gsv.addEventListener("pointerdown", (ev) => { const c = ev.target.closest(".g-clave"), a = accion(); if (!a) return; const r = gsv.getBoundingClientRect();
     if (!c) { tiempo = +Math.max(0, Math.min(durac(a), ((ev.clientX - r.left) / r.width) * durac(a))).toFixed(2); play = false; pintar(); return; }
     const i = +c.dataset.i; tiempo = a.claves[i].t; play = false; gArr = { i, y0: ev.clientY, v0: valorDe(P.completa(a.claves[i].pose), canal), esc: (+gsv.dataset.hi - +gsv.dataset.lo) / (r.height * (1 - 36 / 220)) };
