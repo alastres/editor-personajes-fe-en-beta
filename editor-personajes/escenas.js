@@ -63,7 +63,7 @@
     await fetch(`/api/escenas/${id}`, { method: "PUT", body: JSON.stringify(x) }); await cargarLista(); await abrir(id); aviso("Creada: " + nombre); });
   let tPap = 0; $("#b-papelera").addEventListener("click", async () => { if (!actual) return; const b = $("#b-papelera");
     if (Date.now() - tPap > 6000) { tPap = Date.now(); b.textContent = "¿Seguro? Pulsa otra vez"; b.classList.add("armado"); setTimeout(() => { b.textContent = "Papelera"; b.classList.remove("armado"); }, 6000); return; }
-    tPap = 0; b.textContent = "Papelera"; b.classList.remove("armado"); await fetch(`/api/escenas/${actual}/papelera`, { method: "POST" }); aviso("Movida a escenas/papelera"); actual = null; esc = null; await cargarLista(); if (lista[0]) abrir(lista[0].id); });
+    tPap = 0; b.textContent = "Papelera"; b.classList.remove("armado"); await fetch(`/api/escenas/${actual}/papelera`, { method: "POST" }); aviso("Movida a escenas/papelera"); actual = null; esc = null; motor = null; capa.replaceChildren(); await cargarLista(); pintarPistas?.(); estado("Elige una escena de la lista o crea una nueva", ""); });
 
   // ---- dibujo
   const lienzo = $("#lienzo"), capa = $("#capa-escena");
@@ -100,7 +100,8 @@
   $("#b-rejilla").addEventListener("click", () => { window.REJILLA_PROF = !window.REJILLA_PROF; $("#b-rejilla").classList.toggle("activo", !!window.REJILLA_PROF); dibujar(); });
   $("#b-planta").addEventListener("click", () => { const c = $("#planta-caja"); c.classList.toggle("plegada"); $("#b-planta").textContent = c.classList.contains("plegada") ? "+" : "–"; pintarPlanta(); });
   function bucle(ahora) { const t = ahora / 1000;
-    if (play && esc) { if (tAnt !== null) tiempo += t - tAnt; tAnt = t; if (tiempo >= D()) { tiempo = D(); parar(); } dibujar(); moverCabezal(); }
+    if (play && esc) { if (tAnt !== null) tiempo += t - tAnt; tAnt = t; if (tiempo >= D()) { tiempo = D(); parar(); } dibujar(); moverCabezal();
+      if (!(bucle.tP > t - 0.15)) { bucle.tP = t; const a = actor(); if (a) { const q = posActor(a); deslizar("a-x", q.x, (v) => Math.round(v)); deslizar("a-p", q.p || 0, (v) => v.toFixed(2)); deslizar("a-giro", q.giro ?? 20, (v) => Math.round(v) + "°"); } } }
     requestAnimationFrame(bucle); }
   requestAnimationFrame(bucle);
 

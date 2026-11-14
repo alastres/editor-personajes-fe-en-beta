@@ -173,10 +173,10 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
   - la confirmación de la papelera duraba poco;
   - el rótulo vacío no avisaba;
   - la curva desactivada no decía por qué.
-- [ ] Personajes → Animación: arrastrar cerca de la mano mueve el accesorio (lámpara) en vez de posar el brazo.
+- [x] Personajes → Animación: arrastrar cerca de la mano movía el accesorio (lámpara); ahora en esa pestaña solo se posa al personaje.
 - [ ] Pruebas: 16 casos de Demo piezas marcan «CAMBIÓ» (revisar si la referencia está vieja).
-- [ ] «Posición X» se queda en 0 al reproducir.
-- [ ] Tras borrar una escena se abre otra real (cualquier cambio se guarda en ella).
+- [x] «Posición X», profundidad y ángulo se actualizan al reproducir.
+- [x] Tras mandar una escena a la papelera ya no se abre otra real: queda el escenario vacío.
 - [ ] Taller de dibujo:
   - botones de deshacer y rehacer;
   - atajos visibles;
@@ -192,5 +192,5 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [ ] Copiar y pegar claves; tiempo exacto también para los bloques de acción.
 - [ ] Láminas elegibles desde la interfaz (hoy, solo con JSON y scripts).
 - [ ] Quitar la jerga y las referencias a archivos de la ayuda («smart bones», `LEEME.md`, `montar-musica.py`…).
-- [ ] Piezas repetidas en la lista del personaje (Rodillera ×3, Gorra ×2…).
+- [x] Piezas repetidas (copias en el mismo hueso): se numeran («Rodillera 2») y avisan al pasar el ratón.
 

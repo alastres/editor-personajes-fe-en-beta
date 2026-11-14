@@ -279,13 +279,17 @@
     if (!j) return; const ul = $("#piezas"); ul.replaceChildren();
     if (!j.piezas.length) ul.append(h("li", { class: "vacio" }, "Aún no tiene piezas. Importa un SVG o prueba la biblioteca."));
     if (sel && !pieza()) sel = null;
+    // piezas con el mismo nombre (copias): se numeran para distinguirlas («Rodillera 2») y se avisa de que son copias
+    const nNom = {}, iNom = {}; for (const q of j.piezas) nNom[q.nombre || q.id] = (nNom[q.nombre || q.id] || 0) + 1;
+    const etiqueta = (q) => { const n = q.nombre || q.id; if (nNom[n] < 2) return n; iNom[n] = (iNom[n] || 0) + 1; return `${n} ${iNom[n]}`; };
+    const etq = new Map(j.piezas.map((q) => [q, etiqueta(q)]));
     [...j.piezas].reverse().forEach((pz) => {   // la de más arriba en la lista es la que se dibuja encima
       const vis = pz.grupo ? (prueba.variantes[pz.grupo] ?? j.variantes[pz.grupo]) === pz.id : pz.activo !== false;
       const ojo = h("button", { class: "ojo" + (vis ? "" : " apagado"), title: pz.grupo ? "Elegir esta variante" : "Mostrar u ocultar", onclick: (ev) => { ev.stopPropagation();
         delete prueba.variantes[pz.grupo];
         cambio((x) => { const q = x.piezas.find((y) => y.id === pz.id); if (q.grupo) x.variantes[q.grupo] = x.variantes[q.grupo] === q.id ? "" : q.id; else q.activo = !vis; }); } }, vis ? "●" : "○");
       ul.append(h("li", { class: pz.id === sel ? "activo" : "", onclick: () => { sel = pz.id === sel ? null : pz.id; pintarPiezas(); marcarSel(); } },
-        ojo, h("span", {}, pz.nombre || pz.id), pz.grupo ? h("span", { class: "grupo-et" }, pz.grupo) : h("span"), h("span", { class: "hueso" }, HUESOS[pz.hueso] || pz.hueso)));
+        ojo, h("span", nNom[pz.nombre || pz.id] > 1 ? { title: "Hay varias piezas con este nombre (copias): renómbralas o borra las que sobren" } : {}, etq.get(pz)), pz.grupo ? h("span", { class: "grupo-et" }, pz.grupo) : h("span"), h("span", { class: "hueso" }, HUESOS[pz.hueso] || pz.hueso)));
     });
     const pz = pieza(), d = $("#detalle-pieza"); d.hidden = !pz;
     if (pz) {
@@ -379,6 +383,7 @@
   // arrastrar una pieza en el escenario (se mueve en las coordenadas de su hueso)
   const lienzo = $("#lienzo"); let arrastre = null;
   lienzo.addEventListener("pointerdown", (ev) => {
+    if (window.EPA?.activo()) return;   // pestaña Animación: arrastrar posa al personaje, no mueve accesorios
     const g = ev.target.closest && ev.target.closest("#principal [data-pieza]"); if (!g) return;
     const id = g.getAttribute("data-pieza"); if (sel !== id) { sel = id; pintarPiezas(); marcarSel(); }
     const pz = pieza(); if (!pz) return; ev.preventDefault(); try { lienzo.setPointerCapture(ev.pointerId); } catch {} lienzo.classList.add("arrastrando");
