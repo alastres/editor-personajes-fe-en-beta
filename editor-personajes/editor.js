@@ -462,6 +462,24 @@
         cambio((x) => { const q = { id: c.id, capa: c.capa, control: c.control, desde: +desde.toFixed(1), angulo: +angulo.toFixed(1), d };
           x.vector.correcciones = (x.vector.correcciones || []).filter((y) => y.id !== c.id).concat([q]); });
         pintarCorr(); aviso(malos ? `Corrección guardada (${malos} formas cambiaron de número de puntos y no cuentan)` : "Corrección guardada"); } }); }
+  // ---- EXPRESIONES DIBUJADAS (fase 4): la cara de una emoción, retocada a mano sobre el mismo dibujo (ojos, cejas, boca, nariz…).
+  // Se guarda en emociones[nombre].dibujo como cuánto se mueve cada punto; entra con la intensidad de la emoción (su deslizador)
+  function dibujarEmocion(nombre) { if (!nombre || nombre === "neutra") { aviso("Elige o crea primero una emoción"); return; } const NSv = "http://www.w3.org/2000/svg";
+    const hecho = (conDib) => { const svg = document.createElementNS(NSv, "svg"); svg.style.cssText = "position:absolute;left:-9999px;width:10px;height:10px"; document.body.append(svg);
+      const jj = JSON.parse(JSON.stringify(j)); jj.piezas = []; jj.emociones = Object.assign({}, jj.emociones); jj.emociones[nombre] = Object.assign({}, jj.emociones[nombre] || T.EMOCIONES[nombre] || {});
+      if (!conDib) delete jj.emociones[nombre].dibujo; const m = P.crear(svg, jj, { id: "emo-" + (conDib ? 1 : 0) }); m.dibujar(Object.assign(P.pose(P.completa({ cara: { [nombre]: 1 } }), { giro: 0 }), { parpadeo: 1 })); return [m, svg]; };
+    const [m0, s0] = hecho(false), [m1, s1] = hecho(true), fs = m1.formasCabeza("*");
+    const txt = fs.map((f) => `<path d="${f.d}" data-ref="${f.i}" ${Object.entries(f.at).map(([k, v]) => `${k}="${v}"`).join(" ")}/>`).join("");
+    const g = document.createElementNS(NSv, "g"); g.innerHTML = txt; s1.append(g); let caja; try { const b = g.getBBox(); caja = [b.x - 40, b.y - 40, b.x + b.width + 40, b.y + b.height + 40]; } catch {}
+    s0.remove(); s1.remove(); let dib; try { dib = Taller.deSVG(txt); } catch { dib = { formas: [] }; }
+    Taller.abrir({ titulo: `Expresión «${nombre}» dibujada a mano (mueve puntos de ojos, cejas, boca…; no añadas ni borres)`, textoGuardar: "Guardar la expresión", colores: P.colores(j), dibujos: { frente: dib }, vistas: null, vista: "frente", encuadre: caja,
+      alGuardar: (out) => { const r = out.frente; if (!r) return; const svgTxt = Taller.aSVG(r.dibujo).replace(/\{(\w+)\}/g, (m_, k) => P.colores(j)[k] || "#888888");
+        const doc = new DOMParser().parseFromString(`<svg xmlns="${NSv}">${svgTxt}</svg>`, "image/svg+xml"), por = {};
+        for (const p of doc.querySelectorAll("path")) { const i = p.getAttribute("data-ref"); if (i == null) continue; por[i] = por[i] ? por[i] + " " + p.getAttribute("d") : p.getAttribute("d"); }
+        const d = m0.medirCorreccionCabeza(por);
+        cambio((x) => { x.emociones = Object.assign({}, x.emociones); const em = Object.assign({}, x.emociones[nombre] || T.EMOCIONES[nombre] || {}); if (Object.keys(d).length) em.dibujo = d; else delete em.dibujo; x.emociones[nombre] = em; });
+        aviso(Object.keys(d).length ? `Expresión «${nombre}» guardada: sube y baja su intensidad para mezclarla` : "No se movió ningún punto: la expresión queda sin dibujo"); } }); }
+  function quitarDibujoEmocion(nombre) { if (!j?.emociones?.[nombre]?.dibujo) return; cambio((x) => { delete x.emociones[nombre].dibujo; }); aviso(`«${nombre}» vuelve a ser solo con los deslizadores`); }
   function pintarVector() { const v = j?.vector, ul = $("#vec-capas"); if (!ul) return; ul.replaceChildren(); pintarCorr();
     $("#vec-cabeza").textContent = v?.cabeza ? "Volver a copiar la cabeza" : "Convertir la cabeza en vectores"; $("#vec-cabeza-activo").hidden = !v?.cabeza; $("#vec-cabeza-activo").textContent = v?.cabeza?.activo ? "Usar la cabeza automática" : "Usar la cabeza vectorial";
     for (const c of v?.cabeza?.capas || []) ul.append(h("li", {}, h("span", {}, "●"), h("span", {}, c.nombre), h("span", { class: "hueso" }, `${c.dibujo?.formas?.length || 0} formas`), h("button", { onclick: () => editarCapaCab(c.id) }, "✎ Editar")));
@@ -527,7 +545,7 @@
   $("#b-png-giro").addEventListener("click", () => exportarPNG($("#tira"), `${actual}-giro.png`, 2400));
 
   // API para editor-anim.js (fase 3: posar, controles, línea de tiempo)
-  window.EP = { get j() { return j; }, get actual() { return actual; }, get m() { return m; }, cambio, h, el, seg, aviso, prueba, guardaPrueba, P, T, rad, slug, encuadrar, CAMARAS };
+  window.EP = { dibujarEmocion, quitarDibujoEmocion, get j() { return j; }, get actual() { return actual; }, get m() { return m; }, cambio, h, el, seg, aviso, prueba, guardaPrueba, P, T, rad, slug, encuadrar, CAMARAS };
 
   // ---- arranque
   (async () => {

@@ -217,10 +217,11 @@
     // ---- emociones: cada una mueve boca, cejas, ojos y mejillas; se mezclan por pesos ({ alegre: 1 }, { triste: 0.5, miedo: 0.5 }…)
     const EXP0 = { sonrisa: 0, abre: 0, ancho: 1, dientes: 0, cejaY: 0, cejaIn: 0, cejaOut: 0, ojoK: 1, parpado: 0, entorna: 0, rubor: 0, miraY: 0 };
     const EXP = Object.assign({}, EXP0);
+    let PESOS_CARA = {};
     function ponerCara(pesos) {
-      Object.assign(EXP, EXP0);
+      Object.assign(EXP, EXP0); PESOS_CARA = pesos || {};
       for (const n in pesos) { const em = (op.emociones || {})[n] || EMOCIONES[n], w = pesos[n]; if (!em || !w) continue;   // las del personaje primero
-        for (const k in em) EXP[k] += (em[k] - (k === "ancho" || k === "ojoK" ? 1 : 0)) * w; }
+        for (const k in em) if (typeof em[k] === "number") EXP[k] += (em[k] - (k === "ancho" || k === "ojoK" ? 1 : 0)) * w; }
     }
     const KAP = 0.5523, RC = 58;
     const elD = (cx, cy, rx, ry) => `M${cx + rx} ${cy} C ${cx + rx} ${cy + ry * KAP} ${cx + rx * KAP} ${cy + ry} ${cx} ${cy + ry} C ${cx - rx * KAP} ${cy + ry} ${cx - rx} ${cy + ry * KAP} ${cx - rx} ${cy} C ${cx - rx} ${cy - ry * KAP} ${cx - rx * KAP} ${cy - ry} ${cx} ${cy - ry} C ${cx + rx * KAP} ${cy - ry} ${cx + rx} ${cy - ry * KAP} ${cx + rx} ${cy} Z`;
@@ -433,6 +434,9 @@
     function dibujarCabeza(c, a, aOjo) {
       CTRL.cabeza = difG((a * 180) / Math.PI, 0); const corrC = CORR.filter((x) => x.control === "cabeza" && x.d && !Array.isArray(x.d)).map((x) => [x, pesoCorr(x)]).filter((x) => x[1] > 0.001);
       CABF.forEach((fz, fi) => { fz._ci = fi; });
+      // EXPRESIONES DIBUJADAS (fase 4): una emoción del personaje puede llevar la cara retocada a mano (emociones[n].dibujo, hecha de
+      // frente); entra con el peso de la emoción (su deslizador de intensidad) y, al girar la cabeza, lo de los lados se estrecha con ella
+      const exD = Object.entries(PESOS_CARA).map(([n, w]) => [(op.emociones || {})[n]?.dibujo, w]).filter((x) => x[0] && x[1] > 0.001), kx = Math.max(0, Math.cos(a));
       for (const fz of CABF) {
         const aa = fz.prof.ojo ? aOjo : a, pr = fz.prof;
         const pts = fz.pts.map(([x, y]) => { if (fz.pre) [x, y] = fz.pre(x, y);
@@ -443,6 +447,7 @@
           const xr = lerp(xg, x, w) + (pr.desp || 0) * Math.sin(aa);
           return [c[0] + xr, c[1] + y + TILT_H * zr * (1 - w) + EXP.miraY * 9 * Math.min(1, pr.k || 0) * (1 - w)]; });
         for (const [cc, w] of corrC) { const dd = cc.d[fz._ci]; if (dd && dd.length === pts.length) for (let k = 0; k < pts.length; k++) { pts[k][0] += w * dd[k][0]; pts[k][1] += w * dd[k][1]; } }
+        for (const [ex, w] of exD) { const dd = ex[fz._ci]; if (dd && dd.length === pts.length) for (let k = 0; k < pts.length; k++) { pts[k][0] += w * kx * dd[k][0]; pts[k][1] += w * dd[k][1]; } }
         const d = escribir(fz.cmds, pts); fz.e.setAttribute("d", d);
         if (fz.e === caraF) clipCara.setAttribute("d", d);
         if (fz.e._copia) fz.e._copia.setAttribute("d", d);
@@ -826,11 +831,20 @@
       return pts; }
     // para el editor: cuánto hay que mover cada punto de la capa (en su pose de ahora) para llegar a los trazos nuevos `ds`
     function medirCorreccion(capaId, ds) { const L = VEC?.listas.find((x) => x.id === capaId); if (!L?.paths) return null;
-      return L.paths.map((P, pi) => { const cur = parsearV(P.e.getAttribute("d") || "").pts, nu = ds[pi] != null ? parsearV(ds[pi]).pts : null; if (!nu || nu.length !== cur.length) return null;
+      return L.paths.map((P, pi) => { const o = parsearV(P.e.getAttribute("d") || ""), cur = o.pts, nu = ds[pi] != null ? alinear(o, parsearV(ds[pi])) : null; if (!nu) return null;
         return cur.map((p, i) => { const dx = nu[i][0] - p[0], dy = nu[i][1] - p[1]; if (Math.abs(dx) + Math.abs(dy) < 0.05) return null; const [ux, uy] = marcoV(L, pi, i);
           return [+(dx * ux + dy * uy).toFixed(2), +(-dx * uy + dy * ux).toFixed(2)]; }); }); }
+    // el taller guarda las rectas (L) como curvas (C) y cierra las formas con un tramo más: se vuelve a la forma de los comandos originales
+    function alinear(o, nu) { if (nu.pts.length === o.pts.length) return nu.pts;
+      const oc = o.cmds.filter((c) => c[0] !== "Z"), nc = nu.cmds.filter((c) => c[0] !== "Z"); if (nc.length < oc.length) return null;
+      const out = []; let pn = 0, prev = null;
+      for (let k = 0; k < oc.length; k++) { const n0 = oc[k][1], n1 = nc[k][1], seg = nu.pts.slice(pn, pn + n1); pn += n1;
+        if (n0 === n1) out.push(...seg); else if (n0 === 1) out.push(seg[seg.length - 1]);
+        else if (n0 === 2 && n1 === 3 && prev) out.push([prev[0] + 1.5 * (seg[0][0] - prev[0]), prev[1] + 1.5 * (seg[0][1] - prev[1])], seg[2]); else return null;
+        prev = seg[seg.length - 1]; }
+      return out.length === o.pts.length ? out : null; }
     function medirCorreccionCabeza(ds) { const out = {}; for (const [i, d] of Object.entries(ds)) { const fz = CABF[+i]; if (!fz) continue;
-        const cur = parsear(fz.e.getAttribute("d") || "").pts, nu = parsear(d).pts; if (nu.length !== cur.length) continue;
+        const o = parsear(fz.e.getAttribute("d") || ""), cur = o.pts, nu = alinear(o, parsear(d)); if (!nu) continue;
         const dd = cur.map((p, k) => [+(nu[k][0] - p[0]).toFixed(2), +(nu[k][1] - p[1]).toFixed(2)]); if (dd.some((q) => Math.abs(q[0]) + Math.abs(q[1]) > 0.05)) out[i] = dd; }
       return out; }
     // torso de una vista girado Δ grados: cada punto está sobre un cilindro alrededor de la columna (de la cintura al cuello);
@@ -872,7 +886,8 @@
     // número); las formas nuevas toman la de su capa. Ojos, cejas y boca siguen automáticos (son los que hacen las expresiones).
     const VIVAS = new Set(["ojos", "cejas", "boca"]);
     const cabezaBase = () => CABF.map((fz, i) => ({ ref: i, cat: fz.cat || (fz.e === caraF ? "cara" : "cara"), viva: !!fz.pre || VIVAS.has(fz.cat) || fz.prof.ojo,
-      d: escribir(fz.cmds, fz.pts), at: Object.fromEntries(["fill", "stroke", "stroke-width", "opacity", "stroke-linecap", "stroke-linejoin"].map((k) => [k, fz.e.getAttribute(k)]).filter((x) => x[1] != null)) }));
+      d: escribir(fz.cmds, fz.pts), at: Object.fromEntries(["fill", "stroke", "stroke-width", "opacity", "stroke-linecap", "stroke-linejoin"].map((k) => [k, fz.e.getAttribute(k)]).filter((x) => x[1] != null)) }))
+      .sort((x, y) => (CABF[x.ref].e.compareDocumentPosition(CABF[y.ref].e) & 4 ? -1 : 1));   // en el orden en que se ven
     if (op.vector?.cabeza?.activo) { const doc = new DOMParser();
       for (const capa of op.vector.cabeza.capas || []) { const refs = new Set(capa.refs || []), vistos = new Set(), prof0 = CABF[(capa.refs || [])[0]]?.prof || CARA;
         const svgDoc = doc.parseFromString(`<svg xmlns="${NS}">${capa.svg || ""}</svg>`, "image/svg+xml");
@@ -888,7 +903,12 @@
     // partes del cuerpo y juntas: para convertir el muñeco en marioneta vectorial desde el editor
     const partes = () => ({ torso: gT, brazoIzq: brazos.find((b) => b.sg > 0).g, brazoDer: brazos.find((b) => b.sg < 0).g, piernaIzq: piernas.find((b) => b.sg > 0).g, piernaDer: piernas.find((b) => b.sg < 0).g });
     // formas de la cabeza de una capa vectorial, tal como están dibujadas ahora (para corregirlas en el taller)
-    const formasCabeza = (capaId) => CABF.map((fz, i) => ({ i, capa: fz.capa, borrada: fz.borrada, d: fz.e.getAttribute("d") || "", at: Object.fromEntries(["fill", "stroke", "stroke-width", "opacity", "stroke-linecap", "stroke-linejoin"].map((k) => [k, fz.e.getAttribute(k)]).filter((x) => x[1] != null)) })).filter((f) => f.capa === capaId && !f.borrada);
+    const formasCabeza = (capaId) => CABF.map((fz, i) => ({ i, capa: fz.capa, borrada: fz.borrada, d: fz.e.getAttribute("d") || "", at: Object.fromEntries(["fill", "stroke", "stroke-width", "opacity", "stroke-linecap", "stroke-linejoin"].map((k) => [k, fz.e.getAttribute(k)]).filter((x) => x[1] != null)) })).filter((f) => (capaId === "*" || f.capa === capaId) && !f.borrada && fz_visible(f.i))
+      .sort((x, y) => (CABF[x.i].e.compareDocumentPosition(CABF[y.i].e) & 4 ? -1 : 1));   // en el orden en que se ven (lo de detrás primero)
+    // se ve (ni ella ni sus grupos están escondidos) y no va recortada (la nuca y el rubor van recortados: en el taller saldrían enteros)
+    const fz_visible = (i) => { let e = CABF[i]?.e; if (!e) return false; if (e.getAttribute("visibility") === "hidden") return false;
+      const idCara = clipCara.parentNode?.id, deCara = (v) => !!idCara && v.includes("#" + idCara);   // recortadas a la cara (ojos, rubor): sí
+      for (; e && e !== raiz; e = e.parentNode) { const cp = e.getAttribute?.("clip-path"); if (e.getAttribute?.("display") === "none" || (cp && !deCara(cp))) return false; } return true; };
     return { g: raiz, dibujar, escala: [KBX, KBY], puntos, juntas: JUNTAS, partes, cabezaBase, formasCabeza, controles: () => Object.assign({}, CTRL), medirCorreccion, medirCorreccionCabeza };
   }
 

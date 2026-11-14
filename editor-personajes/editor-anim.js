@@ -52,6 +52,10 @@
     for (const [k, et, mn, mx, st] of RASGOS) { const inp = h("input", { type: "range", min: mn, max: mx, step: st, "data-rasgo": k }), out = h("output");
       inp.addEventListener("input", () => { out.textContent = (+inp.value).toFixed(2); guardarEmo(); }); fe.append(h("div", { class: "deslizador" }, h("label", {}, et), inp, out)); }
     fe.append(h("div", { class: "fila-botones dos" }, h("button", { onclick: () => { nomE.value = ""; cargarEmo(null); } }, "Nueva"), h("button", { class: "peligro", onclick: borrarEmo }, "Borrar esta emoción")));
+    // fase 4 de la marioneta vectorial: la cara de la emoción retocada a mano en el taller (se mezcla con su intensidad)
+    const nomDib = () => $("#emo-nombre").value.trim().toLowerCase() || emoActual();
+    fe.append(h("div", { class: "fila-botones dos" }, h("button", { title: "Abre la cara con esta emoción en el taller: mueve puntos de ojos, cejas, boca, nariz… Se mezcla con su intensidad", onclick: () => E.dibujarEmocion(nomDib()) }, "✎ Dibujar la cara a mano"),
+      h("button", { title: "Quita lo dibujado a mano y deja solo los deslizadores", onclick: () => E.quitarDibujoEmocion(nomDib()) }, "Quitar el dibujo")));
     fe.append(h("p", { class: "ayuda" }, "Parte de la emoción elegida arriba. Al mover un rasgo, se guarda en el personaje con ese nombre y se pone en la pose."));
     // biblioteca de poses del personaje: instantáneas reutilizables
     const bp = bloque("Poses guardadas"); bp.append(h("div", { class: "chips", id: "poses-lista" }));
@@ -67,7 +71,7 @@
     for (const i of document.querySelectorAll("[data-rasgo]")) { if (document.activeElement === i) continue; i.value = em[i.dataset.rasgo]; i.nextElementSibling.textContent = (+i.value).toFixed(2); } }
   function guardarEmo() { const nombre = $("#emo-nombre").value.trim().toLowerCase(); if (!nombre) return E.aviso ? E.aviso("Ponle nombre a la emoción") : null;
     const em = {}; for (const i of document.querySelectorAll("[data-rasgo]")) { const v = +i.value, k = i.dataset.rasgo; if (Math.abs(v - RASGO0[k]) > 1e-3) em[k] = v; }
-    E.cambio((x) => { x.emociones = Object.assign({}, x.emociones, { [nombre]: em }); }, "emo-" + nombre); editar((p) => { p.cara = { [nombre]: 1 }; }, "emo-cara"); }
+    E.cambio((x) => { const dib = x.emociones?.[nombre]?.dibujo; if (dib) em.dibujo = dib; x.emociones = Object.assign({}, x.emociones, { [nombre]: em }); }, "emo-" + nombre); editar((p) => { p.cara = { [nombre]: 1 }; }, "emo-cara"); }
   function borrarEmo() { const n = $("#emo-nombre").value.trim().toLowerCase(); if (!n || !(j().emociones || {})[n]) return; E.cambio((x) => { delete x.emociones[n]; }); }
   function guardarPose() { const nombre = $("#pose-nombre").value.trim(); if (!nombre) return; const pz = limpia(P.completa(poseActual()));
     E.cambio((x) => { x.poses = (x.poses || []).filter((q) => q.nombre !== nombre); x.poses.push({ nombre, pose: pz }); }); $("#pose-nombre").value = ""; }

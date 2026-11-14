@@ -541,3 +541,20 @@ Son como los **Smart Bones de Moho**: la forma de una parte se corrige a mano en
   - `formasCabeza(capa)` da las formas de la cabeza tal como están dibujadas ahora.
 - **Ojo:** si cambias el número de formas de una capa (o la vuelves a copiar), rehaz sus correcciones.
 
+## Marioneta vectorial, fase 4: expresiones dibujadas (14 nov 2026)
+- En **Animar → Cara → «Crear o editar una emoción propia»**, escribe o elige la emoción y pulsa **«✎ Dibujar la cara a mano»**:
+  - se abre la cara de frente con esa emoción puesta;
+  - mueve puntos de ojos, cejas, boca, nariz, pelo… sin añadir ni borrar;
+  - **«Quitar el dibujo»** la deja solo con los deslizadores.
+- **Cómo se mezcla:**
+  - lo dibujado entra con el peso de la emoción: el deslizador **Intensidad** o las claves `cara: { alegre: 0.6 }` de las acciones;
+  - dos emociones a la vez suman sus dibujos;
+  - al girar la cabeza, lo que se movió a los lados se estrecha con ella (por el coseno del giro).
+- Si es una emoción de serie (alegre, triste…), al dibujarla se copia al personaje con sus mismos deslizadores. Mover luego un deslizador no borra lo dibujado.
+- **Datos:** `emociones[nombre].dibujo: { forma: [[dx, dy], …] }`, donde `forma` es el número de la forma en la cabeza del muñeco.
+- **Motor:**
+  - `ponerCara` guarda los pesos y salta lo que no es número;
+  - `dibujarCabeza` suma los dibujos después de girar, como las correcciones de la cabeza;
+  - `formasCabeza("*")` da todas las formas visibles en el orden en que se ven: deja fuera las que van recortadas, como la nuca, pero no las recortadas a la cara, como ojos y rubor.
+- En el taller, una forma cerrada de dos puntos (lente, como la boca) ya conserva su segunda curva.
+

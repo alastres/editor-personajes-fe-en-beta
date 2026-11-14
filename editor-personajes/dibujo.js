@@ -18,7 +18,7 @@
   // ---------------- geometría
   const d = (f) => { const P = f.puntos; if (!P.length) return ""; let s = `M${f2(P[0].x)} ${f2(P[0].y)}`;
     const seg = (a, b) => (s += ` C ${f2(a.ox ?? a.x)} ${f2(a.oy ?? a.y)} ${f2(b.ix ?? b.x)} ${f2(b.iy ?? b.y)} ${f2(b.x)} ${f2(b.y)}`);
-    for (let i = 1; i < P.length; i++) seg(P[i - 1], P[i]); if (f.cerrada && P.length > 2) { seg(P[P.length - 1], P[0]); s += " Z"; } return s; };
+    for (let i = 1; i < P.length; i++) seg(P[i - 1], P[i]); if (f.cerrada && P.length > 1) { seg(P[P.length - 1], P[0]); s += " Z"; } return s; };   // > 1: una forma de lente (dos puntos y dos curvas, como la boca) también se cierra
   const pto = (x, y) => ({ x, y, ix: x, iy: y, ox: x, oy: y, esquina: true });
   // simplificación de Ramer-Douglas-Peucker y suavizado (Catmull-Rom → Bézier): el pulso tembloroso queda limpio
   function rdp(P, eps) { if (P.length < 3) return P; const [a, b] = [P[0], P[P.length - 1]]; let dm = 0, im = 0;
