@@ -7,7 +7,98 @@
   "texto": "Y, mientras Moisés tardaba en bajar del monte, se hicieron un becerro de oro.",
   "id": "ysi2-evidencia-05",
   "fondo": {
-    "tipo": "atardecer"
+    "tipo": "lamina",
+    "lamina": "campamento-formas",
+    "escala": 1.6,
+    "centro": {
+      "x": -238,
+      "y": -492
+    },
+    "capas": [
+      {
+        "id": "lejos",
+        "par": 0.45
+      },
+      {
+        "id": "rayo",
+        "par": 0.45,
+        "claves": [
+          {
+            "t": 0,
+            "op": 0
+          },
+          {
+            "t": 0.4,
+            "op": 0
+          },
+          {
+            "t": 0.45,
+            "op": 1
+          },
+          {
+            "t": 0.5800000000000001,
+            "op": 0.15
+          },
+          {
+            "t": 0.64,
+            "op": 1
+          },
+          {
+            "t": 0.9,
+            "op": 0
+          },
+          {
+            "t": 2.3,
+            "op": 0
+          },
+          {
+            "t": 2.3499999999999996,
+            "op": 1
+          },
+          {
+            "t": 2.48,
+            "op": 0.15
+          },
+          {
+            "t": 2.54,
+            "op": 1
+          },
+          {
+            "t": 2.8,
+            "op": 0
+          },
+          {
+            "t": 4.199999999999999,
+            "op": 0
+          },
+          {
+            "t": 4.249999999999999,
+            "op": 1
+          },
+          {
+            "t": 4.379999999999999,
+            "op": 0.15
+          },
+          {
+            "t": 4.4399999999999995,
+            "op": 1
+          },
+          {
+            "t": 4.699999999999999,
+            "op": 0
+          }
+        ]
+      },
+      {
+        "id": "medio",
+        "par": 0.1
+      },
+      {
+        "id": "delante",
+        "par": -0.25,
+        "delante": true
+      }
+    ]
   },
   "ambiente": {
     "tono": 0.6,
@@ -17,43 +108,6 @@
   },
   "objetos": [
     {
-      "id": "sinai",
-      "tipo": "sinai",
-      "x": 380,
-      "p": 3.6,
-      "escala": 1
-    },
-    {
-      "id": "t1",
-      "tipo": "tienda",
-      "x": -640,
-      "p": 0.7,
-      "escala": 1,
-      "params": {
-        "tono": 0
-      }
-    },
-    {
-      "id": "t2",
-      "tipo": "tienda",
-      "x": 660,
-      "p": 0.9,
-      "escala": 1,
-      "params": {
-        "tono": 1
-      }
-    },
-    {
-      "id": "t3",
-      "tipo": "tienda",
-      "x": -150,
-      "p": 1.5,
-      "escala": 1,
-      "params": {
-        "tono": 2
-      }
-    },
-    {
       "id": "fuego",
       "tipo": "hoguera",
       "x": 0,
@@ -62,23 +116,6 @@
       "params": {
         "fuego": 1.4
       }
-    },
-    {
-      "id": "roca",
-      "tipo": "roca",
-      "x": 360,
-      "p": -0.5,
-      "escala": 1,
-      "params": {
-        "ancho": 1.4
-      }
-    },
-    {
-      "id": "cantaro",
-      "tipo": "cantaro",
-      "x": -360,
-      "p": -0.35,
-      "escala": 1
     }
   ],
   "camara": [
@@ -165,6 +202,13 @@
           "capa": "cara"
         }
       ],
+      "luz": {
+        "noche": 0.3,
+        "color": "#ff9a50",
+        "lado": 1,
+        "ancho": 7,
+        "fuerza": 0.8
+      },
       "mirar": [
         {
           "t": 0,
@@ -198,6 +242,13 @@
           "capa": "cara"
         }
       ],
+      "luz": {
+        "noche": 0.3,
+        "color": "#ff9a50",
+        "lado": -1,
+        "ancho": 7,
+        "fuerza": 0.8
+      },
       "mirar": [
         {
           "t": 0,

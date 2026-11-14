@@ -7,47 +7,33 @@
   "texto": "Así que la pregunta no es si hay pruebas. Es qué harías con ellas.",
   "id": "ysi2-evidencia-13",
   "fondo": {
-    "tipo": "alba"
+    "tipo": "lamina",
+    "lamina": "jardin2-formas",
+    "escala": 1.8,
+    "centro": {
+      "x": -128,
+      "y": -730
+    },
+    "capas": [
+      {
+        "id": "lejos",
+        "par": 0.45
+      },
+      {
+        "id": "medio",
+        "par": 0.1
+      },
+      {
+        "id": "delante",
+        "par": -0.25,
+        "delante": true
+      }
+    ]
   },
   "ambiente": {
     "tono": 0.3,
     "vineta": 0.45
   },
-  "objetos": [
-    {
-      "id": "tumba",
-      "tipo": "ladera",
-      "x": 380,
-      "p": 0.5,
-      "escala": 1.1,
-      "params": {
-        "abierta": 1,
-        "luz": 1
-      }
-    },
-    {
-      "id": "cip",
-      "tipo": "cipres",
-      "x": -700,
-      "p": 0.8,
-      "escala": 1
-    },
-    {
-      "id": "flores",
-      "tipo": "flores",
-      "x": -430,
-      "p": -0.5,
-      "escala": 1
-    },
-    {
-      "id": "flores2",
-      "tipo": "flores",
-      "x": 600,
-      "p": -0.6,
-      "escala": 1.2,
-      "espejo": true
-    }
-  ],
   "camara": [
     {
       "t": 0,
@@ -60,7 +46,7 @@
     },
     {
       "t": 2.089,
-      "x": 230,
+      "x": 220,
       "y": -520,
       "zoom": 0.9540000000000001,
       "tilt": 0.18,
@@ -134,7 +120,10 @@
       "mirar": [
         {
           "t": 0,
-          "a": "tumba"
+          "a": {
+            "x": 330,
+            "y": -300
+          }
         },
         {
           "t": 2.9099999999999997,

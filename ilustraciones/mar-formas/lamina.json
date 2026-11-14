@@ -1,0 +1,11 @@
+{
+  "nombre": "mar-formas",
+  "ancho": 1536,
+  "alto": 2752,
+  "capas": [
+    "lejos",
+    "cerrado",
+    "medio"
+  ],
+  "origen": "formas b\u00c3\u00a1sicas (comun/formas.py)"
+}

@@ -7,7 +7,28 @@
   "texto": "Un abrazo y que Dios te bendiga.",
   "id": "ysi2-evidencia-15",
   "fondo": {
-    "tipo": "alba"
+    "tipo": "lamina",
+    "lamina": "jardin1-formas",
+    "escala": 1.45,
+    "centro": {
+      "x": 0,
+      "y": -759
+    },
+    "capas": [
+      {
+        "id": "lejos",
+        "par": 0.45
+      },
+      {
+        "id": "medio",
+        "par": 0.1
+      },
+      {
+        "id": "delante",
+        "par": -0.25,
+        "delante": true
+      }
+    ]
   },
   "rol": "despedida",
   "ambiente": {

@@ -7,10 +7,55 @@
   "texto": "Israel vio cómo el mar se abría delante de ellos.",
   "id": "ysi2-evidencia-03",
   "fondo": {
-    "tipo": "dia",
-    "lejos": "nada",
-    "nubes": 0.6,
-    "astro": false
+    "tipo": "lamina",
+    "lamina": "mar-formas",
+    "escala": 1.6,
+    "centro": {
+      "x": 0,
+      "y": -1039
+    },
+    "capas": [
+      {
+        "id": "lejos",
+        "par": 0.45
+      },
+      {
+        "id": "cerrado",
+        "par": 0.1,
+        "claves": [
+          {
+            "t": 0,
+            "op": 1
+          },
+          {
+            "t": 1.82,
+            "op": 1
+          },
+          {
+            "t": 2.92,
+            "op": 0
+          }
+        ]
+      },
+      {
+        "id": "medio",
+        "par": 0.1,
+        "claves": [
+          {
+            "t": 0,
+            "op": 0
+          },
+          {
+            "t": 1.72,
+            "op": 0
+          },
+          {
+            "t": 2.92,
+            "op": 1
+          }
+        ]
+      }
+    ]
   },
   "ambiente": {
     "vineta": 0.3,
@@ -29,31 +74,6 @@
       "tipo": "destello",
       "dur": 0.6,
       "fuerza": 0.45
-    }
-  ],
-  "objetos": [
-    {
-      "id": "mar",
-      "tipo": "marRojo",
-      "x": 0,
-      "p": 0,
-      "escala": 1,
-      "alFondo": true,
-      "claves": [
-        {
-          "t": 0,
-          "abre": 0
-        },
-        {
-          "t": 1.72,
-          "abre": 0.02
-        },
-        {
-          "t": 3.12,
-          "abre": 1,
-          "curva": "frena"
-        }
-      ]
     }
   ],
   "camara": [
@@ -96,8 +116,8 @@
     {
       "t": 2.92,
       "x": 0,
-      "y": -560,
-      "zoom": 0.8,
+      "y": -640,
+      "zoom": 0.86,
       "tilt": 0.436,
       "roll": 0,
       "alto": 970
@@ -105,8 +125,8 @@
     {
       "t": 3.24,
       "x": 0,
-      "y": -600,
-      "zoom": 0.8480000000000001,
+      "y": -680,
+      "zoom": 0.9116000000000001,
       "tilt": 0.436,
       "roll": 0,
       "alto": 970

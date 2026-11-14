@@ -7,7 +7,28 @@
   "texto": "Tú ya tienes más de lo que crees: la creación, la historia, una tumba vacía.",
   "id": "ysi2-evidencia-12",
   "fondo": {
-    "tipo": "dia"
+    "tipo": "lamina",
+    "lamina": "jardin1-formas",
+    "escala": 1.45,
+    "centro": {
+      "x": 0,
+      "y": -759
+    },
+    "capas": [
+      {
+        "id": "lejos",
+        "par": 0.45
+      },
+      {
+        "id": "medio",
+        "par": 0.1
+      },
+      {
+        "id": "delante",
+        "par": -0.25,
+        "delante": true
+      }
+    ]
   },
   "ambiente": {
     "tono": 0.2,
@@ -15,118 +36,43 @@
     "particulas": "polvo",
     "cantidad": 0.4
   },
-  "objetos": [
-    {
-      "id": "olivo",
-      "tipo": "olivo",
-      "x": -950,
-      "p": 0.4,
-      "escala": 1.2
-    },
-    {
-      "id": "palmera",
-      "tipo": "palmera",
-      "x": -1250,
-      "p": 0.7,
-      "escala": 1.1
-    },
-    {
-      "id": "arbusto",
-      "tipo": "arbusto",
-      "x": -760,
-      "p": 0.1,
-      "escala": 1
-    },
-    {
-      "id": "mata",
-      "tipo": "arbusto",
-      "x": -700,
-      "p": -0.6,
-      "escala": 1.3
-    },
-    {
-      "id": "roca",
-      "tipo": "roca",
-      "x": 900,
-      "p": -0.45,
-      "escala": 1
-    },
-    {
-      "id": "casa",
-      "tipo": "casa",
-      "x": -40,
-      "p": 0.5,
-      "escala": 1,
-      "params": {
-        "ventana": 0.5
-      }
-    },
-    {
-      "id": "columnas",
-      "tipo": "columna",
-      "x": 300,
-      "p": 0.7,
-      "escala": 0.9,
-      "params": {
-        "n": 3
-      }
-    },
-    {
-      "id": "tumba",
-      "tipo": "ladera",
-      "x": 1250,
-      "p": 0.5,
-      "escala": 1.1,
-      "params": {
-        "abierta": 1,
-        "luz": 1
-      }
-    },
-    {
-      "id": "cip",
-      "tipo": "cipres",
-      "x": 820,
-      "p": 1.2,
-      "escala": 1
-    }
-  ],
   "camara": [
     {
       "t": 0,
-      "x": -1000,
-      "y": -700,
-      "zoom": 1,
+      "x": -250,
+      "y": -900,
+      "zoom": 1.15,
       "tilt": 0.1
     },
     {
       "t": 2.9499999999999997,
-      "x": -900,
-      "y": -640,
-      "zoom": 1.05,
+      "x": -200,
+      "y": -850,
+      "zoom": 1.2,
       "tilt": 0.1,
       "curva": "suave"
     },
     {
       "t": 3.71,
-      "x": 100,
-      "y": -470,
-      "zoom": 1.1,
+      "x": 0,
+      "y": -600,
+      "zoom": 1,
       "tilt": 0.18,
       "curva": "frena"
     },
     {
       "t": 4.62,
-      "x": 1250,
-      "y": -440,
-      "zoom": 1.2,
+      "x": 420,
+      "y": -560,
+      "zoom": 1.6,
       "tilt": 0.05,
       "curva": "frena"
     },
     {
       "t": 5.17,
-      "x": 1250,
-      "y": -450,
-      "zoom": 1.35
+      "x": 420,
+      "y": -570,
+      "zoom": 1.75
     }
   ],
   "actores": []

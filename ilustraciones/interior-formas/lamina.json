@@ -1,0 +1,10 @@
+{
+  "nombre": "interior-formas",
+  "ancho": 1536,
+  "alto": 2752,
+  "capas": [
+    "sala",
+    "arco"
+  ],
+  "origen": "formas básicas (comun/formas.py)"
+}

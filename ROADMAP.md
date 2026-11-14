@@ -155,3 +155,4 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [ ] Capas y faldas del torso que se doblan con el cuerpo (hoy rígidas, con física).
 - [ ] Unión booleana real de formas en el taller (hoy se agrupan).
 - [ ] Texto convertido en curvas.
+- [x] *(14 nov 2026)* Fondos de láminas dibujadas con formas básicas (`comun/formas.py`) para todas las escenas de la prueba ysi2-evidencia; capas con claves de opacidad (fundidos, relámpagos).

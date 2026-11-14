@@ -15,7 +15,24 @@
   "texto": "«Bienaventurados los que no vieron, y creyeron».",
   "id": "ysi2-evidencia-11",
   "fondo": {
-    "tipo": "interior"
+    "tipo": "lamina",
+    "lamina": "interior-formas",
+    "escala": 1.45,
+    "centro": {
+      "x": 0,
+      "y": -759
+    },
+    "capas": [
+      {
+        "id": "sala",
+        "par": 0.1
+      },
+      {
+        "id": "arco",
+        "par": -0.25,
+        "delante": true
+      }
+    ]
   },
   "ambiente": {
     "tono": 0.45,
@@ -93,7 +110,14 @@
           "dur": 2.96,
           "capa": "cara"
         }
-      ]
+      ],
+      "luz": {
+        "noche": 0.35,
+        "color": "#ffb060",
+        "lado": 1,
+        "ancho": 6,
+        "fuerza": 0.6
+      }
     }
   ]
 }

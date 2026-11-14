@@ -1,0 +1,11 @@
+{
+  "nombre": "jardin1-formas",
+  "ancho": 1536,
+  "alto": 2752,
+  "capas": [
+    "lejos",
+    "medio",
+    "delante"
+  ],
+  "origen": "formas básicas (comun/formas.py)"
+}

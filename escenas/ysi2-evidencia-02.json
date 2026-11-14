@@ -7,27 +7,27 @@
   "texto": "Casi todos decimos que sí. La Biblia cuenta otra historia.",
   "id": "ysi2-evidencia-02",
   "fondo": {
-    "tipo": "dia"
+    "tipo": "lamina",
+    "lamina": "desierto2-formas",
+    "escala": 1.45,
+    "centro": {
+      "x": 0,
+      "y": -759
+    },
+    "capas": [
+      {
+        "id": "lejos",
+        "par": 0.45
+      },
+      {
+        "id": "medio",
+        "par": 0.1
+      }
+    ]
   },
   "ambiente": {
     "vineta": 0.25
   },
-  "objetos": [
-    {
-      "id": "mata",
-      "tipo": "arbusto",
-      "x": -400,
-      "p": -0.55,
-      "escala": 1.2
-    },
-    {
-      "id": "roca",
-      "tipo": "roca",
-      "x": 420,
-      "p": -0.4,
-      "escala": 0.9
-    }
-  ],
   "camara": [
     {
       "t": 0,
@@ -69,7 +69,7 @@
       "t": 2.1,
       "x": 0,
       "y": -560,
-      "zoom": 0.85,
+      "zoom": 0.88,
       "tilt": 0.5,
       "roll": 0,
       "alto": 1100
@@ -78,7 +78,7 @@
       "t": 3.75,
       "x": 0,
       "y": -560,
-      "zoom": 0.901,
+      "zoom": 0.9328000000000001,
       "tilt": 0.5,
       "roll": 0,
       "alto": 1100

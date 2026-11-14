@@ -7,7 +7,23 @@
   "texto": "Cada mañana comían pan que llovía del cielo.",
   "id": "ysi2-evidencia-04",
   "fondo": {
-    "tipo": "desierto"
+    "tipo": "lamina",
+    "lamina": "desierto1-formas",
+    "escala": 1.45,
+    "centro": {
+      "x": 0,
+      "y": -759
+    },
+    "capas": [
+      {
+        "id": "lejos",
+        "par": 0.45
+      },
+      {
+        "id": "medio",
+        "par": 0.1
+      }
+    ]
   },
   "ambiente": {
     "tono": 0.25,

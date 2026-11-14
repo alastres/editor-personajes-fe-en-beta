@@ -1,0 +1,13 @@
+{
+  "nombre": "jardin2-formas",
+  "ancho": 1536,
+  "alto": 2752,
+  "capas": [
+    "lejos",
+    "medio",
+    "rodada",
+    "piedra",
+    "delante"
+  ],
+  "origen": "formas básicas (comun/formas.py)"
+}

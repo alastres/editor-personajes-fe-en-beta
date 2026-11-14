@@ -7,7 +7,28 @@
   "texto": "¿Qué otro «y si» quieres que sigamos? Déjalo en los comentarios y suscríbete para ver el siguiente.",
   "id": "ysi2-evidencia-14",
   "fondo": {
-    "tipo": "alba"
+    "tipo": "lamina",
+    "lamina": "jardin1-formas",
+    "escala": 1.45,
+    "centro": {
+      "x": 0,
+      "y": -759
+    },
+    "capas": [
+      {
+        "id": "lejos",
+        "par": 0.45
+      },
+      {
+        "id": "medio",
+        "par": 0.1
+      },
+      {
+        "id": "delante",
+        "par": -0.25,
+        "delante": true
+      }
+    ]
   },
   "rol": "cierre",
   "ambiente": {
@@ -111,7 +132,7 @@
       "t": 4.03,
       "x": 30,
       "y": -520,
-      "zoom": 0.88,
+      "zoom": 0.9,
       "tilt": 0.18,
       "roll": 0,
       "alto": 450
@@ -120,7 +141,7 @@
       "t": 6.1,
       "x": -10,
       "y": -520,
-      "zoom": 0.9328000000000001,
+      "zoom": 0.9540000000000001,
       "tilt": 0.18,
       "roll": 0,
       "alto": 450

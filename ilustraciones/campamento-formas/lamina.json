@@ -1,0 +1,12 @@
+{
+  "nombre": "campamento-formas",
+  "ancho": 1536,
+  "alto": 2752,
+  "capas": [
+    "lejos",
+    "rayo",
+    "medio",
+    "delante"
+  ],
+  "origen": "formas básicas (comun/formas.py)"
+}
