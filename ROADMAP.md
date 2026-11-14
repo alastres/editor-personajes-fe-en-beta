@@ -278,6 +278,9 @@ Por hacer:
   - Los canales son cualquier número de la pose, también `cara.alegre` o `huesos.cola`; primero salen los que cambian.
   - Cada clave es un punto que se arrastra arriba o abajo para cambiar su valor; un clic en la gráfica mueve el cabezal.
   - [ ] Pendiente: tangentes propias por clave dentro de la gráfica (hoy la forma entre claves se elige con «Curva» o «Propia…»), y ver dos canales a la vez.
-- [ ] **Deformador libre (malla)** sobre piezas y láminas: doblar, ondear y respirar.
+- [x] **Deformador** (como el de malla de Moho y Cartoon Animator): todo objeto del atrezo, incluida la animación a mano, tiene «Doblar», «Ondear» y «Respirar».
+  - Doblar curva el objeto desde la base, como un árbol con viento o una caña con peso; Ondear le pasa una onda que sube; Respirar lo hace latir suave.
+  - Se animan con claves (casilla «Animar con claves»). Cuesta 0,3 ms por objeto y fotograma.
+  - [ ] Pendiente: lo mismo para las capas de las láminas y para las piezas del personaje, y una rejilla de puntos arrastrables (deformación libre a mano).
 - [ ] **Efectos de capa** en Escenas: sombra, desenfoque, resplandor y máscara por objeto o capa.
 

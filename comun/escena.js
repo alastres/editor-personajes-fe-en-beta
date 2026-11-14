@@ -314,7 +314,7 @@
       O.g.setAttribute("transform", `translate(${f1(pr.x)} ${f1(pr.y)}) scale(${((ob.espejo ? -1 : 1) * esc0).toFixed(3)} ${esc0.toFixed(3)})`);
       const params = Object.assign({}, ob.params || {}, q); delete params.x; delete params.t; delete params.curva;
       if (ob.alFondo) params.horizonte = Math.round(horizonte(18000) / esc0);   // decorados de escena entera (mar Rojo): su horizonte es el del fondo
-      const A = window.ATREZO && ATREZO[ob.tipo], clave = JSON.stringify([ob.tipo, params, frio]) + (A && A.anima ? "|" + t.toFixed(3) : "");
+      const A = window.ATREZO && ATREZO[ob.tipo], clave = JSON.stringify([ob.tipo, params, frio]) + (A && (A.anima || (window.Atrezo?.deforma?.(params) && ((params.ondear || 0) > 0.005 || (params.respirar || 0) > 0.005))) ? "|" + t.toFixed(3) : "");
       if (clave !== O.k) { O.k = clave; O.g.innerHTML = window.Atrezo ? Atrezo.dibujar({ tipo: ob.tipo, params, frio }, t) : ""; }
       return ob.p || 0; }
     function camara(t) { const c = claves(esc.camara, t, ["x", "y", "zoom", "tilt", "roll", "alto"]) || { x: 0, y: -360, zoom: 1 }; const [dx, dy] = sacudida(esc, t);   // tilt: ángulo (−0,3 contrapicado … 0,6 picado; 0,18 normal); roll: cámara ladeada (grados)

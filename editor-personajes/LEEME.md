@@ -638,3 +638,14 @@ Como el editor de gráficas de Moho: para ver y afinar cómo cambia un ajuste co
   - la forma entre dos claves se cambia con **«Curva»** en la barra, o con «Propia…» para una curva a medida.
 - Todo entra en el deshacer (Ctrl+Z).
 
+## Deformador: doblar, ondear y respirar (14 nov 2026)
+Como el deformador de malla de Moho y Cartoon Animator, en todos los objetos del atrezo de **Escenas** (también la animación a mano):
+- **Doblar** (de −1 a 1): curva el objeto desde la base hacia un lado, más cuanto más arriba, como un árbol con viento, una caña que pesa o una llama inclinada.
+- **Ondear** (de 0 a 1): una onda que sube por el objeto, como una bandera, humo o agua.
+- **Respirar** (de 0 a 1): late suave desde la base, como algo vivo o una brasa.
+- Están en el panel del objeto junto a sus otros ajustes. Con **«Animar con claves en el cabezal»** cambian con el tiempo: un árbol que se dobla con una ráfaga y vuelve.
+- **Cómo funciona** (`comun/atrezo.js`, `deformar`):
+  - la primera vez, cada figura (círculo, rectángulo, trazo con arcos…) se convierte en puntos, con sus giros ya aplicados, y se guarda;
+  - en cada fotograma solo se mueven los puntos, unos 0,3 ms por objeto;
+  - los objetos sin deformar salen exactamente igual que antes.
+

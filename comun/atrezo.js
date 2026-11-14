@@ -235,6 +235,34 @@
   };
   window.ATREZO = ATREZO;
   // un objeto de escena { tipo, frio, params… } en t → SVG
-  window.Atrezo = { dibujar: (ob, t) => { const A = ATREZO[ob.tipo]; if (!A) return `<text fill="#f66" font-size="40" y="-20">falta «${ob.tipo}»</text>`; return A.dibujar(Object.assign({}, ob.params || {}, { frio: ob.frio }), t || 0); },
+  // ---- DEFORMADOR (como el deformador de malla de Moho / Cartoon Animator): cualquier objeto se puede doblar desde la base (viento,
+  // peso), ondear (una onda que sube) o respirar (late suave). Son parámetros más del objeto, así que se animan con claves.
+  // La geometría (círculos, rectángulos, trazos con arcos…) se muestrea una vez en puntos y se guarda; cada fotograma solo los mueve.
+  const DEF = { doblar: [-1, 1, 0.01, 0, "Doblar (viento, peso)"], ondear: [0, 1, 0.01, 0, "Ondear"], respirar: [0, 1, 0.01, 0, "Respirar (late suave)"] };
+  for (const A of Object.values(ATREZO)) A.params = Object.assign({}, A.params, DEF);
+  const NSs = "http://www.w3.org/2000/svg", GEO = new Map(); let medidor = null;
+  function geometria(svg) { if (GEO.has(svg)) return GEO.get(svg); if (GEO.size > 200) GEO.clear();
+    if (!medidor) { medidor = document.createElementNS(NSs, "svg"); medidor.setAttribute("style", "position:absolute;left:-99999px;top:0;width:10px;height:10px;visibility:hidden"); document.body.appendChild(medidor); }
+    const raiz = document.createElementNS(NSs, "g"); raiz.innerHTML = svg; medidor.appendChild(raiz);
+    const items = [], base = raiz.getCTM().inverse(); let minY = 0;
+    for (const e of [...raiz.querySelectorAll("path, circle, ellipse, rect, line, polyline, polygon")]) { if (e.closest("defs, clipPath, mask")) continue;
+      let L = 0; try { L = e.getTotalLength(); } catch { continue; } if (!(L > 0)) continue;
+      const M = base.multiply(e.getCTM()), n = Math.max(12, Math.min(160, Math.round(L / 6))), paso = L / n, subs = []; let cur = null, ant = null;
+      for (let i = 0; i <= n; i++) { const p = e.getPointAtLength(Math.min(L, i * paso)), q = [M.a * p.x + M.c * p.y + M.e, M.b * p.x + M.d * p.y + M.f];
+        if (!cur || (ant && Math.hypot(q[0] - ant[0], q[1] - ant[1]) > paso * 3 + 2)) { cur = []; subs.push(cur); } cur.push(q); ant = q; minY = Math.min(minY, q[1]); }
+      const fill = getComputedStyle(e).fill, cerrada = e.tagName !== "line" && e.tagName !== "polyline" && fill !== "none";
+      const pe = document.createElementNS(NSs, "path"); for (const a of [...e.attributes]) if (!["d", "cx", "cy", "r", "rx", "ry", "x", "y", "width", "height", "x1", "y1", "x2", "y2", "points", "transform"].includes(a.name)) pe.setAttribute(a.name, a.value);
+      e.replaceWith(pe); items.push({ pe, subs, cerrada }); }
+    for (const g of raiz.querySelectorAll("g[transform]")) if (!g.querySelector("text")) g.removeAttribute("transform");   // ya va en los puntos
+    raiz.remove(); const r = { raiz, items, H: Math.max(60, -minY) }; GEO.set(svg, r); return r; }
+  function deformar(svg, o, t) { const d = o.doblar || 0, on = o.ondear || 0, re = o.respirar || 0; if (Math.abs(d) < 0.005 && on < 0.005 && re < 0.005) return svg;
+    const G = geometria(svg), H = G.H, s = 1 + 0.035 * re * Math.sin(t * 2.2), sx = 1 + (s - 1) * 0.6;
+    const mover = ([x, y]) => { const u = Math.max(0, Math.min(1.2, -y / H)); let X = x * sx, Y = y * s;
+      X += d * H * 0.45 * u * u; Y += Math.abs(d) * H * 0.08 * u * u * u;
+      X += on * H * 0.06 * u * Math.sin(2 * Math.PI * (u * 1.2 - t * 0.6)); return [X, Y]; };
+    for (const it of G.items) it.pe.setAttribute("d", it.subs.map((sub) => "M" + sub.map(mover).map((q) => q[0].toFixed(1) + " " + q[1].toFixed(1)).join(" L") + (it.cerrada ? " Z" : "")).join(" "));
+    return G.raiz.innerHTML; }
+  window.Atrezo = { dibujar: (ob, t) => { const A = ATREZO[ob.tipo]; if (!A) return `<text fill="#f66" font-size="40" y="-20">falta «${ob.tipo}»</text>`; const o = Object.assign({}, ob.params || {}, { frio: ob.frio }); return deformar(A.dibujar(o, t || 0), o, t || 0); },
+    deforma: (p) => !!(p && (Math.abs(p.doblar || 0) > 0.005 || (p.ondear || 0) > 0.005 || (p.respirar || 0) > 0.005)),
     lista: () => Object.entries(ATREZO).map(([k, v]) => [k, v.nombre]) };
 })();
