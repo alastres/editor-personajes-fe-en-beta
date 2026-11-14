@@ -16,6 +16,11 @@
   const pal = (o, dia, noche) => (o.frio ? noche : dia);
 
   const ATREZO = {
+    // ANIMACIÓN A MANO, cuadro a cuadro (como las capas fotograma a fotograma de Moho): humo, chispas, agua, un efecto dibujado.
+    // params.cuadros: [svg de cada cuadro] (se dibujan en el taller desde Escenas, con papel cebolla); se repiten «veces» (0 = sin parar).
+    cuadros: { nombre: "Animación a mano (cuadro a cuadro)", anima: true, params: { fps: [2, 24, 1, 12, "Cuadros por segundo"], desde: [0, 60, 0.1, 0, "Empieza en (segundos)"], veces: [0, 20, 1, 0, "Veces (0 = sin parar)"] },
+      dibujar(o, t) { const c = o.cuadros || []; if (!c.length) return `<rect x="-160" y="-240" width="320" height="240" rx="18" fill="none" stroke="#f0a33a" stroke-width="5" stroke-dasharray="14 10"/><text x="0" y="-110" text-anchor="middle" font-size="30" fill="#f0a33a" font-family="Inter, sans-serif">Dibuja los cuadros (✎)</text>`;
+        const u = t - (o.desde || 0); if (u < 0) return ""; const i = Math.floor(u * (o.fps || 12) + 1e-6); if (o.veces > 0 && i >= c.length * o.veces) return ""; return c[i % c.length] || ""; } },
     olivo: { nombre: "Olivo", params: {}, dibujar(o) { const h = pal(o, ["#6a4a3a", "#5a7a4a", "#7a9a5a", "#4a6a3a", "#9aba72"], ["#3e3e52", "#45465f", "#555670", "#30314a", "#64668a"]);
       return sombra(150) + P("M-16 0 C -10 -120 -34 -180 -8 -270 L 14 -270 C 0 -170 22 -110 18 0 Z", h[0]) + T("M-6 -200 C -40 -230 -70 -240 -90 -260", h[0], 12)
         + `<ellipse cx="-70" cy="-290" rx="125" ry="72" fill="${h[3]}"/><ellipse cx="74" cy="-306" rx="112" ry="66" fill="${h[1]}"/><ellipse cx="0" cy="-360" rx="125" ry="72" fill="${h[2]}"/>`

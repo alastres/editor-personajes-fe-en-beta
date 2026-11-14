@@ -615,3 +615,16 @@ Como los huesos de Moho, para todo lo que no es el muñeco humano: animales, obj
 - **Datos:** `tipo: "libre"`, `libre: { huesos: [{ nombre, padre, o, e }], capas: [{ id, nombre, svg | imagen, hueso? }] }`; en la pose, `huesos: { nombre: grados }`.
 - **Motor:** `comun/libre.js` (`Libre.crear`, misma interfaz que `Titere25D.crear`) sobre `comun/rig2d.js` (copia del de lab-huesos). `Personajes.crear` elige el motor según el tipo.
 
+## Animación a mano, cuadro a cuadro (14 nov 2026)
+Como las capas fotograma a fotograma de Moho, para lo que se dibuja mejor a mano: humo, chispas, salpicaduras, un rayo, fuego o un efecto de cómic.
+- En **Escenas → Atrezo y decorados**, añade **«Animación a mano (cuadro a cuadro)»**. Se coloca, se aleja, se escala, se refleja y se anima con claves como cualquier objeto (la base del dibujo es el suelo, y = 0).
+- En su panel sale la **tira de cuadros**:
+  - **«＋ Cuadro»** añade uno detrás del elegido, copia de él, para retocarlo (así se anima: copiar y cambiar un poco);
+  - **doble clic** en un cuadro, o **«✎ Dibujar»**, lo abre en el taller con **papel cebolla**: el cuadro anterior en rojizo y el siguiente en verdoso, y una línea en el suelo;
+  - **← →** mueven el cuadro elegido y **✕** lo borra.
+- **Ritmo:**
+  - **Cuadros por segundo** (12 es lo clásico; 6–8 da un aire más dibujado);
+  - **Empieza en** (segundos de la escena);
+  - **Veces** (0 = se repite sin parar; 1 = una vez y desaparece).
+- **Datos:** un objeto `tipo: "cuadros"` con `params: { fps, desde, veces, cuadros: [svg], dibujos: [dibujo del taller] }` (`comun/atrezo.js`).
+

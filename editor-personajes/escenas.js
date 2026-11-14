@@ -17,6 +17,28 @@
   const nueva = (nombre) => ({ nombre, duracion: 6, fondo: { tipo: "noche" }, camara: [{ t: 0, x: 0, y: -360, zoom: 1 }], actores: [], textos: [], audios: [] });
   const normaliza = (x) => Object.assign({ duracion: 6, fondo: { tipo: "noche" }, camara: [], actores: [], textos: [], audios: [], objetos: [] }, x);
   const objeto = (id = selObjeto) => (esc?.objetos || []).find((o) => o.id === id);
+  // ---- ANIMACIÓN A MANO (objeto «cuadros»): una tira de cuadros; cada uno se dibuja en el taller con papel cebolla (el anterior en
+  // rojizo y el siguiente en verdoso, como en Moho). Se guardan en params.cuadros (SVG) y params.dibujos (para volver a editarlos).
+  let selCuadro = 0;
+  function hojaCuadros(ob) { const c = ob.params?.cuadros || [], n = c.length; selCuadro = Math.min(selCuadro, Math.max(0, n - 1));
+    const mini = (svg, i) => h("button", { class: "cuadro-mini" + (i === selCuadro ? " activo" : ""), title: `Cuadro ${i + 1} (doble clic: dibujarlo)`, onclick: () => { document.activeElement?.blur(); document.activeElement?.blur(); selCuadro = i; pintarPanel(); }, ondblclick: () => dibujarCuadro(ob.id, i) },
+      (() => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "-300 -560 600 600"); s.innerHTML = svg; return s; })(), h("span", {}, String(i + 1)));
+    const cambiarC = (fn, msg) => { cambio((x) => { const o2 = x.objetos.find((y) => y.id === ob.id), p = (o2.params = o2.params || {}); p.cuadros = p.cuadros || []; p.dibujos = p.dibujos || []; fn(p); }); if (msg) aviso(msg); };
+    return h("div", { class: "hoja-cuadros" }, h("label", { class: "et" }, `Cuadros (${n})`), h("div", { class: "tira-cuadros" }, ...c.map(mini)),
+      h("div", { class: "fila-botones" }, h("button", { class: "primario", title: "Dibujar el cuadro elegido", ...(n ? {} : { disabled: "" }), onclick: () => dibujarCuadro(ob.id, selCuadro) }, "✎ Dibujar"),
+        h("button", { title: "Cuadro nuevo detrás del elegido, copia de él (para retocarlo)", onclick: () => { document.activeElement?.blur(); const k = n ? selCuadro + 1 : 0; cambiarC((p) => { p.cuadros.splice(k, 0, n ? p.cuadros[selCuadro] : ""); p.dibujos.splice(k, 0, n ? JSON.parse(JSON.stringify(p.dibujos[selCuadro] || null)) : null); }); selCuadro = k; if (!n) dibujarCuadro(ob.id, 0); } }, "＋ Cuadro"),
+        h("button", { title: "Mover el cuadro antes", ...(selCuadro > 0 ? {} : { disabled: "" }), onclick: () => { document.activeElement?.blur(); const i = selCuadro; cambiarC((p) => { for (const a of [p.cuadros, p.dibujos]) [a[i - 1], a[i]] = [a[i], a[i - 1]]; }); selCuadro--; } }, "←"),
+        h("button", { title: "Mover el cuadro después", ...(selCuadro < n - 1 ? {} : { disabled: "" }), onclick: () => { document.activeElement?.blur(); const i = selCuadro; cambiarC((p) => { for (const a of [p.cuadros, p.dibujos]) [a[i + 1], a[i]] = [a[i], a[i + 1]]; }); selCuadro++; } }, "→"),
+        h("button", { class: "peligro", title: "Borrar el cuadro elegido", ...(n ? {} : { disabled: "" }), onclick: () => { document.activeElement?.blur(); const i = selCuadro; cambiarC((p) => { p.cuadros.splice(i, 1); p.dibujos.splice(i, 1); }, "Cuadro borrado (Ctrl+Z lo recupera)"); } }, "✕")),
+      h("p", { class: "ayuda" }, "Doble clic en un cuadro para dibujarlo. «＋ Cuadro» copia el elegido para retocarlo: así sale la animación. En el taller se ven el cuadro anterior (rojizo) y el siguiente (verdoso)."));
+  }
+  function dibujarCuadro(id, i) { if (!window.Taller) return aviso("El taller de dibujo no está cargado"); const ob = objeto(id), p = ob?.params || {}, c = p.cuadros || [];
+    const fan = (svg, color, op) => `<g opacity="${op}" style="filter: drop-shadow(0 0 0 ${color})"><g fill="${color}" stroke="${color}">${(svg || "").replace(/ (fill|stroke)="(?!none)[^"]*"/g, "")}</g></g>`;
+    Taller.abrir({ titulo: `Animación a mano · cuadro ${i + 1} de ${Math.max(c.length, i + 1)}`, textoGuardar: "Guardar el cuadro", colores: {}, dibujos: { frente: p.dibujos?.[i] || (c[i] ? Taller.deSVG(c[i]) : { formas: [] }) }, vistas: null, vista: "frente", encuadre: [-420, -680, 420, 80],
+      referencia: (g) => { const r = document.createElementNS("http://www.w3.org/2000/svg", "g"); r.setAttribute("pointer-events", "none"); r.innerHTML = (i > 0 ? fan(c[i - 1], "#e0705a", 0.35) : "") + (i < c.length - 1 ? fan(c[i + 1], "#6ac08a", 0.2) : "")
+        + `<line x1="-420" y1="0" x2="420" y2="0" stroke="#f0a33a" stroke-width="2" stroke-dasharray="10 8" opacity="0.5"/>`; g.append(r); },
+      alGuardar: (out) => { const d = out.frente?.dibujo; if (!d) return; const svg = Taller.aSVG(d);
+        cambio((x) => { const o2 = x.objetos.find((y) => y.id === id), q = (o2.params = o2.params || {}); q.cuadros = q.cuadros || []; q.dibujos = q.dibujos || []; q.cuadros[i] = svg; q.dibujos[i] = d; }); aviso(`Cuadro ${i + 1} guardado`); } }); }
   const D = () => Math.max(0.5, esc?.duracion || 6);
   const actor = (id = selActor) => esc?.actores.find((a) => a.id === id);
 
@@ -276,7 +298,8 @@
         for (const [k, [mn, mx, paso, , etq]] of Object.entries(defs)) { const i = h("input", { type: "range", min: mn, max: mx, step: paso, value: vals[k] }), out = h("output", {}, String(vals[k]));
           i.addEventListener("input", () => { out.textContent = i.value; cambio((x) => { const o2 = x.objetos.find((y) => y.id === ob.id);
             if (o2.claves?.length) tocarClave(o2.claves, Object.keys(defs), Object.assign({}, paramsObjeto(o2), { [k]: +i.value })); else (o2.params = o2.params || {})[k] = +i.value; }, "op" + ob.id + k + tiempo.toFixed(2), false); });
-          cont.append(h("div", { class: "deslizador" }, h("label", {}, etq), i, out)); } } }
+          cont.append(h("div", { class: "deslizador" }, h("label", {}, etq), i, out)); }
+        if (ob.tipo === "cuadros") cont.append(hojaCuadros(ob)); } }
     // cámara
     const c = posCam(); deslizar("c-x", c.x, (v) => Math.round(v)); deslizar("c-y", c.y, (v) => Math.round(v)); deslizar("c-zoom", c.zoom || 1, (v) => v.toFixed(2) + "×");
     deslizar("c-alto", c.alto ?? 450, (v) => Math.round(v) + (v < 300 ? " · contrapicado" : v > 700 ? " · picado" : "")); deslizar("c-roll", c.roll || 0, (v) => v.toFixed(1) + "°");
