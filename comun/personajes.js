@@ -88,7 +88,7 @@
   // pose → parámetros de dibujar(); base: { giro (grados), variantes … }
   function pose(p, base = {}) { p = completa(p); const g = base.giro || 0, aT = rad(g + p.torso);
     const e = { torso: aT, brazos: aT, cabeza: rad(g + p.torso + p.cabeza), ojos: rad(g + p.torso + p.cabeza), inclina: p.inclina, ladeo: p.ladeo, hombros: p.hombros,
-      agacha: p.agacha, altura: p.altura, miraY: p.miraY, cara: p.cara, tumbado: p.tumbado, estira: p.estira };
+      agacha: p.agacha, altura: p.altura, miraY: p.miraY, cara: p.cara, tumbado: p.tumbado, estira: p.estira, huesos: p.huesos };
     for (const L of ["Izq", "Der"]) if (p["pie" + L + "Lado"] || p["pie" + L + "Alto"] || p["pie" + L + "Frente"]) e["paso" + L] = { lado: p["pie" + L + "Lado"], alto: p["pie" + L + "Alto"], frente: p["pie" + L + "Frente"] };
     for (const L of ["Izq", "Der"]) { const k = p["b" + L + "K"];
       if (k > 0.001) e["brazo" + L] = { lado: p["b" + L + "Lado"], frente: p["b" + L + "Frente"], codo: p["b" + L + "Codo"], hacia: [p["b" + L + "Hacia"], -1, 0.3], k: Math.min(1, k) };
@@ -171,6 +171,6 @@
       if (!mejoro) paso *= 0.5; }
     return { q, e: e0 }; }
 
-  window.Personajes = { op, colores, DERIVA, mix, crear: (padre, j, extra) => Titere25D.crear(padre, op(j, extra)),
+  window.Personajes = { op, colores, DERIVA, mix, crear: (padre, j, extra) => (j?.tipo === "libre" && window.Libre ? Libre.crear(padre, j, extra) : Titere25D.crear(padre, op(j, extra))),   // marioneta libre: comun/libre.js
     POSE0, PALMAS, mezclar, completa, conControles, accionPose, pose, accion, control, buscarAccion, enCapas, CURVAS, curva, VISEMAS, fonemas, visemas, visemaEn, manoFK, ikMano, medidas };
 })();

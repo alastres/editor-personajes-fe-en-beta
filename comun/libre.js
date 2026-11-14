@@ -1,0 +1,52 @@
+// libre.js — MARIONETA LIBRE (como los huesos de Moho): cualquier dibujo o imagen PNG con su propio esqueleto, para animales,
+// objetos, criaturas o personajes que no son el muñeco humano. Necesita comun/rig2d.js (window.Rig2D).
+// El personaje guarda { tipo: "libre", libre: { huesos, capas } }:
+//   huesos: [{ nombre, padre, o: [x, y], e: [x, y] }]   origen y punta en reposo (los pies en y = 0, hacia arriba y negativa)
+//   capas:  [{ id, nombre, svg, dibujo?, imagen?: { href, x, y, w, h }, hueso? }]   en orden de atrás adelante.
+//           Una capa con «hueso» va rígida pegada a ese hueso; sin él, cada punto se reparte entre todos los huesos por cercanía
+//           (se dobla en las articulaciones). Las imágenes van siempre rígidas (a su hueso o al más cercano a su centro).
+// Devuelve lo mismo que Titere25D.crear (g, dibujar, puntos…), así que sirve en el editor, en Escenas y en Montaje.
+// La pose: { huesos: { nombre: grados } } girando cada hueso respecto a su padre; además usa del muñeco el giro (de espaldas o
+// de frente se refleja, como una tarjeta), estira (elástico), altura (despegar del suelo) y tumbado.
+(function () {
+  const NS = "http://www.w3.org/2000/svg", f1 = (x) => (Math.round(x * 10) / 10).toFixed(1);
+  const el = (t, at = {}, p) => { const e = document.createElementNS(NS, t); for (const k in at) e.setAttribute(k, at[k]); if (p) p.appendChild(e); return e; };
+  const BASE = { huesos: [{ nombre: "cuerpo", padre: null, o: [0, -120], e: [0, -300] }], capas: [] };
+
+  function crear(padre, j, extra = {}) {
+    const L = j.libre || BASE, huesos = (L.huesos || []).filter((h) => h && h.nombre && h.o && h.e);
+    const raiz = el("g", { "data-libre": j.id || "" }, padre), sombra = el("ellipse", { cx: 0, cy: 2, rx: 90, ry: 13, fill: "#000", opacity: 0.25 }, raiz), cuerpo = el("g", {}, raiz);
+    const sk = huesos.length ? Rig2D.esqueleto(huesos) : null, nombres = huesos.map((h) => h.nombre);
+    // capas: trazos que se doblan (mallas) o rígidos, e imágenes rígidas
+    const capas = (L.capas || []).map((c) => { const g = el("g", { "data-capa": c.id }, cuerpo);
+      if (c.imagen) { const im = el("image", { href: c.imagen.href, x: c.imagen.x, y: c.imagen.y, width: c.imagen.w, height: c.imagen.h, preserveAspectRatio: "none" }, g);
+        const cx = c.imagen.x + c.imagen.w / 2, cy = c.imagen.y + c.imagen.h / 2;
+        const hb = c.hueso && sk?.H[c.hueso] ? c.hueso : sk ? nombres.reduce((m, n) => (Rig2D.distSeg([cx, cy], sk.H[n].o, sk.H[n].e).d < Rig2D.distSeg([cx, cy], sk.H[m].o, sk.H[m].e).d ? n : m)) : null;
+        return { g, im, hueso: hb, rigida: true }; }
+      g.innerHTML = c.svg || ""; if (!sk) return { g, mallas: [] };
+      const mallas = [...g.querySelectorAll("path")].map((e) => { const d = e.getAttribute("d") || ""; try { return { e, m: Rig2D.malla(sk, d, c.hueso && sk.H[c.hueso] ? { rigido: c.hueso } : { huesos: nombres }) }; } catch { return null; } }).filter(Boolean);
+      return { g, mallas }; });
+    let alto = 0; for (const h of huesos) alto = Math.max(alto, -h.o[1], -h.e[1]);
+    const puntos = { pies: [0, 0], alto: Math.max(120, alto + 40), cabeza: [0, -alto] };
+    let T = null;
+
+    function dibujar(e = {}) {
+      const pose = {}; for (const [n, g] of Object.entries(e.huesos || {})) pose[n] = (g * Math.PI) / 180;
+      T = sk ? sk.posar(pose) : null;
+      for (const c of capas) {
+        if (c.rigida) { c.g.setAttribute("transform", c.hueso && T ? sk.matriz(T, c.hueso) : ""); continue; }
+        for (const { e: pe, m } of c.mallas) pe.setAttribute("d", m.d(T)); }
+      // giro: de frente (−90…90) normal; de espaldas, reflejada. Cerca de 90° se estrecha un poco, como una tarjeta que da la vuelta
+      const g = e.torso || 0, cg = Math.cos(g), sx = Math.sign(cg || 1) * Math.min(1, Math.abs(cg) * 3 + 0.12);
+      const EST = Math.max(-0.6, Math.min(0.8, e.estira || 0)), sy = 1 + EST, kx = 1 / Math.sqrt(sy);
+      const subir = Math.max(0, e.altura || 0), TB = Math.max(0, Math.min(1, e.tumbado || 0));
+      cuerpo.setAttribute("transform", `translate(0 ${f1(-subir)})${TB > 0.001 ? ` rotate(${f1(90 * TB * (e.tumbadoLado || 1))} 0 0)` : ""} scale(${(sx * kx).toFixed(4)} ${sy.toFixed(4)})`);
+      sombra.setAttribute("rx", f1(90 * Math.max(0.4, 1 - subir / 600)));
+    }
+    // juntas: el origen y la punta de cada hueso en la pose de ahora (para dibujar el esqueleto encima en el editor)
+    const juntas = () => { if (!sk) return []; const t = T || sk.posar({}); return huesos.map((h) => ({ nombre: h.nombre, padre: h.padre, o: sk.origen(t, h.nombre), e: sk.punta(t, h.nombre) })); };
+    dibujar({});
+    return { g: raiz, dibujar, escala: [1, 1], puntos, libre: true, esqueleto: juntas, juntas: {}, partes: () => ({}), controles: () => ({}) };
+  }
+  window.Libre = { crear, BASE };
+})();

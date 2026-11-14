@@ -594,3 +594,24 @@ Como el Face Puppet de Cartoon Animator: en vez de poner claves a mano, se actú
   - así un giro o un frenazo se ven encadenados en vez de moverse de una pieza;
   - funciona igual en Escenas, porque está en `Personajes.accionPose`.
 
+## Marioneta libre: huesos sobre cualquier dibujo o PNG (14 nov 2026)
+Como los huesos de Moho, para todo lo que no es el muñeco humano: animales, objetos, criaturas, un barco que se dobla o una bandera.
+- **Crear:** «+ Nuevo», elige **«Marioneta libre: dibujo o PNG con huesos»** y ponle nombre. Empieza con un gusano de ejemplo de tres huesos, para ver cómo funciona; bórralo o rehazlo a tu gusto.
+- **Huesos** (Diseño → «Marioneta libre»):
+  - **«＋ Dibujar un hueso»** y arrastra en el lienzo, de la articulación a la punta;
+  - si empiezas cerca de la punta de otro hueso, el nuevo queda como su **hijo**: arranca pegado a ella y gira con él;
+  - las **puntas** se arrastran para recolocar los huesos (los hijos pegados a una punta la siguen);
+  - en la lista: renombrar, cambiar el padre y ✕ borrar (sus hijos pasan a su padre). Esc deja de dibujar huesos.
+- **Capas** (la primera queda detrás):
+  - **«＋ Capa dibujada»** abre el taller con el resto de capas y los huesos de calco; ✎ la vuelve a editar;
+  - **«＋ Imagen PNG»** trae un dibujo hecho fuera;
+  - en cada capa eliges **«Se dobla con todos los huesos»** (cada punto se reparte entre los huesos cercanos y se curva en las articulaciones) o **«Pegada a …»** (rígida, como un ojo o un sombrero). Las imágenes van rígidas, a su hueso o al más cercano;
+  - ↑ ↓ cambian el orden; ✕ borra.
+- **Animar** (Animación → Posar → Huesos):
+  - un deslizador por hueso, o **arrastrar la punta de un hueso** en el lienzo para girarlo;
+  - además sirven Elástico, Girar (al pasar de 90° se refleja como una tarjeta) y Despegar del suelo;
+  - claves, curvas, seguimiento y acciones funcionan igual que con el muñeco.
+- **En Escenas y Montaje** se usa como cualquier personaje del reparto, y se renderiza igual.
+- **Datos:** `tipo: "libre"`, `libre: { huesos: [{ nombre, padre, o, e }], capas: [{ id, nombre, svg | imagen, hueso? }] }`; en la pose, `huesos: { nombre: grados }`.
+- **Motor:** `comun/libre.js` (`Libre.crear`, misma interfaz que `Titere25D.crear`) sobre `comun/rig2d.js` (copia del de lab-huesos). `Personajes.crear` elige el motor según el tipo.
+

@@ -1,0 +1,73 @@
+{
+  "tipo": "libre",
+  "libre": {
+    "huesos": [
+      {
+        "nombre": "cola",
+        "padre": null,
+        "o": [
+          -160,
+          -40
+        ],
+        "e": [
+          -55,
+          -40
+        ]
+      },
+      {
+        "nombre": "medio",
+        "padre": "cola",
+        "o": [
+          -55,
+          -40
+        ],
+        "e": [
+          50,
+          -40
+        ]
+      },
+      {
+        "nombre": "cabeza",
+        "padre": "medio",
+        "o": [
+          50,
+          -40
+        ],
+        "e": [
+          160,
+          -65
+        ]
+      }
+    ],
+    "capas": [
+      {
+        "id": "cuerpo",
+        "nombre": "Cuerpo",
+        "svg": "<path d=\"M-185 -40 C -185 -75 -160 -85 -120 -82 C -60 -78 0 -82 60 -88 C 120 -94 185 -100 185 -58 C 185 -20 130 -10 60 -10 C 0 -10 -60 -6 -120 -2 C -160 0 -185 -10 -185 -40 Z\" fill=\"#7fb069\"/><path d=\"M-150 -30 C -100 -26 0 -28 100 -36\" fill=\"none\" stroke=\"#5c8a4a\" stroke-width=\"6\" stroke-linecap=\"round\"/>"
+      },
+      {
+        "id": "ojo",
+        "nombre": "Ojo",
+        "hueso": "cabeza",
+        "svg": "<path d=\"M140 -70 C 140 -62 134 -56 126 -56 C 118 -56 112 -62 112 -70 C 112 -78 118 -84 126 -84 C 134 -84 140 -78 140 -70 Z\" fill=\"#fff\"/><path d=\"M133 -70 C 133 -66 130 -63 127 -63 C 124 -63 121 -66 121 -70 C 121 -74 124 -77 127 -77 C 130 -77 133 -74 133 -70 Z\" fill=\"#14171e\"/>"
+      }
+    ]
+  },
+  "acciones": [],
+  "opciones": {
+    "proporciones": "normal",
+    "pelo": "corto",
+    "barba": false,
+    "vestido": false,
+    "moderno": false
+  },
+  "colores": {
+    "auto": {}
+  },
+  "id": "gusano-prueba",
+  "nombre": "Gusano (ejemplo de marioneta libre)",
+  "notas": "",
+  "piezas": [],
+  "variantes": {},
+  "controles": []
+}

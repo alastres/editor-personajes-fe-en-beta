@@ -114,7 +114,8 @@
   async function nuevo(base, nombre) {
     if (!nombre) return;
     let id = slug(nombre); while (lista.find((x) => x.id === id)) id = id.replace(/-\d+$/, "") + "-" + Math.floor(Math.random() * 90 + 10);
-    const x = base ? JSON.parse(JSON.stringify(j)) : { opciones: { proporciones: "normal", pelo: "corto", barba: false }, colores: { piel: "#c98a5e", pelo: "#3a2a2a", ropa: "#6a7aa8", cinto: "#d8a860", auto: { piel: true, pelo: true, ropa: true, cinto: true } } };
+    const tipo = !base && $("#tipo-nuevo")?.value;
+    const x = base ? JSON.parse(JSON.stringify(j)) : tipo === "libre" ? { tipo: "libre", libre: window.EPL.EJEMPLO(), acciones: [], opciones: {}, colores: {} } : { opciones: { proporciones: "normal", pelo: "corto", barba: false }, colores: { piel: "#c98a5e", pelo: "#3a2a2a", ropa: "#6a7aa8", cinto: "#d8a860", auto: { piel: true, pelo: true, ropa: true, cinto: true } } };
     x.id = id; x.nombre = nombre; delete x.origen;
     await fetch(`/api/personajes/${id}`, { method: "PUT", body: JSON.stringify(x) }); await cargarLista(); await abrir(id); aviso("Creado " + nombre);
   }
@@ -170,7 +171,7 @@
     m = P.crear(principal, j, { id: "ed-" + actual });
     vistas = VISTAS.map((a, i) => { const g = el("g", { transform: `translate(${160 + i * 320} 0) scale(0.95)` }, tira); el("ellipse", { cx: 0, cy: 4, rx: 120, ry: 14, fill: "#0004" }, g);
       const tx = el("text", { x: 160 + i * 320, y: 92, "text-anchor": "middle", fill: "#d6cfe8", "font-size": 54, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif" }, tira); tx.textContent = ["Frente", "3/4", "Perfil", "3/4 atrás", "Espaldas"][i]; return { a, m: P.crear(g, j, { id: `ed-v${i}-${actual}` }) }; });
-    pintarVistas(); pintarLista(); encuadrar(); window.EPA?.reconstruir();
+    pintarVistas(); pintarLista(); encuadrar(); window.EPA?.reconstruir(); window.EPL?.reconstruir();
   }
   // encuadre: mide al personaje quieto con la cámara elegida y ajusta el lienzo (deja aire arriba para saltos y brazos)
   function encuadrar() {

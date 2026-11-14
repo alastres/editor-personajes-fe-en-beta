@@ -311,3 +311,13 @@ button.vivo.activo { background: var(--acento2); color: #fff; border-color: var(
 .vivo-cuenta.grabando { font-size: 13px; font-weight: 600; background: #be3f1ccc; }
 body.en-vivo #lienzo { cursor: crosshair; }
 .escenario { position: relative; }
+
+/* ---- marioneta libre (editor-libre.js) */
+body.es-libre .diseno-solo:not(.libre-tambien), body.es-libre details.bloque.humano, body.es-libre #tira { display: none !important; }
+body:not(.es-libre) .libre-solo, body:not(.es-libre) details.libre-bloque { display: none !important; }
+.lb-lista li { display: flex; gap: 6px; align-items: center; }
+.lb-lista li input[type=text] { flex: 1; min-width: 0; }
+.lb-lista li select { max-width: 48%; }
+.lb-lista li.activo { box-shadow: inset 3px 0 0 var(--acento); }
+#lb-hueso-nuevo.activo { background: var(--acento2); border-color: var(--acento2); color: #fff; }
+.lb-esqueleto { pointer-events: all; }

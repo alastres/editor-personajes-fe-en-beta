@@ -22,6 +22,8 @@
 !/comun/montaje.js
 !/comun/atrezo.js
 !/comun/andares.js
+!/comun/rig2d.js
+!/comun/libre.js
 !/comun/vendor/
 
 # generados o temporales

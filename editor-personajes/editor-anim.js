@@ -34,11 +34,14 @@
   function deslizador(cont, [k, et, mn, mx, st, fmt]) {
     const inp = h("input", { type: "range", min: mn, max: mx, step: st }), out = h("output");
     inp.addEventListener("input", () => { editar((p) => { p[k] = Number(inp.value); }, "posar-" + k); });
-    entradas[k] = { inp, out, fmt }; cont.append(h("div", { class: "deslizador" }, h("label", {}, et), inp, out)); }
+    entradas[entradas[k] ? k + "@" + Object.keys(entradas).length : k] = { inp, out, fmt, k }; cont.append(h("div", { class: "deslizador" }, h("label", {}, et), inp, out)); }
   function chips(cont, id, opciones, alElegir) { const d = h("div", { class: "seg pequeno", id }); cont.append(d); entradas[id] = { seg: d, opciones, alElegir }; }
   function construir() {
     if (construido) return; construido = true; const c = $("#posar");
-    const bloque = (t) => { const d = h("details", { class: "bloque", open: "" }, h("summary", {}, t)); c.append(d); return d; };
+    const bloque = (t, cls = "humano") => { const d = h("details", { class: "bloque " + cls, open: "" }, h("summary", {}, t)); c.append(d); return d; };
+    // marioneta libre: sus huesos (editor-libre.js) y lo del cuerpo que también le sirve
+    const lb = bloque("Huesos", "libre-bloque"); lb.append(h("div", { id: "lb-posar" }));
+    for (const d of CUERPO.filter((x) => ["estira", "torso", "altura"].includes(x[0]))) deslizador(lb, d);
     const cu = bloque("Cuerpo"); CUERPO.forEach((d) => deslizador(cu, d));
     for (const [L, nom] of [["Der", "Brazo derecho"], ["Izq", "Brazo izquierdo"]]) { const b = bloque(nom);
       BRAZO(L).forEach((d) => deslizador(b, d));
@@ -103,7 +106,7 @@
       const lo = a.locomocion || {}; E.seg("#a-loco", Object.fromEntries(Object.entries(LOCO).map(([k, v]) => [k, v.n])), !lo.amp ? "quieto" : lo.correr ? "correr" : "andar", (k) => E.cambio((x) => { x.acciones.find((y) => y.id === a.id).locomocion = Object.assign({}, LOCO[k].v); })); }
     // valores de Posar
     const p = poseActual(), i = claveEn(a, tiempo);
-    for (const k in entradas) { const en = entradas[k]; if (en.inp && k !== "_emoK") { if (document.activeElement !== en.inp) en.inp.value = p[k]; en.out.textContent = en.fmt(p[k]); } }
+    for (const k0 in entradas) { const en = entradas[k0], k = en.k || k0; if (en.inp && k !== "_emoK") { if (document.activeElement !== en.inp) en.inp.value = p[k]; en.out.textContent = en.fmt(p[k]); } }
     const emo = Object.entries(p.cara || {}).sort((x, y) => y[1] - x[1])[0]; entradas._emoK.inp.value = emo ? emo[1] : 0; entradas._emoK.out.textContent = Math.round((emo ? emo[1] : 0) * 100) + "%";
     for (const L of ["Izq", "Der"]) { const m = Object.entries(p["m" + L] || {}).sort((x, y) => y[1] - x[1])[0]?.[0] || "relajada";
       segEn("pm" + L, m); segEn("pp" + L, p["p" + L] || "auto"); }
@@ -257,7 +260,7 @@
     const lo = a?.locomocion || {}, base = { giro }, pv = E.prueba.variantes;
     const pp = P.conControles(poseActual(), j().controles, ctrl); if (vivo?.grabando) { vivoMuestra(tReal); if (vivo) Object.assign(pp, vivoPose()); } const e = P.pose(pp, base);
     if (lo.amp) Object.assign(e, { amp: lo.amp, correr: lo.correr || 0, fase: tiempo * (lo.cad || (lo.correr ? 1.45 : 0.95)) });
-    m.dibujar(Object.assign(e, { variantes: pv, parpadeo: Math.max(0.1, Math.min(1, Math.abs((tReal % 3.4) - 3.3) / 0.08)) }));
+    m.dibujar(Object.assign(e, { variantes: pv, parpadeo: Math.max(0.1, Math.min(1, Math.abs((tReal % 3.4) - 3.3) / 0.08)) })); if (m.libre) window.EPL?.fotograma(m);
     pintarAsas();
     // papel cebolla: la clave anterior y la siguiente, en transparente (solo parado)
     const ver = !play && a && a.claves.length > 1 && E.prueba.cebolla !== false;
@@ -274,7 +277,7 @@
   v3.nrm = (a) => v3.mul(a, 1 / (Math.hypot(...a) || 1));
   // la IK de manos está en comun/personajes.js (la usan también las escenas para «agarrar»)
   const medidas = () => P.medidas(j()), manoFK = (p, L, giro) => P.manoFK(j(), p, L, giro), ik = (p, L, giro, objetivo) => P.ikMano(j(), p, L, giro, objetivo);
-  function pintarAsas() { gAsas.replaceChildren(); const m = E.m; if (!activo || play || !m || !j()) return; const P2 = m.puntos;
+  function pintarAsas() { gAsas.replaceChildren(); const m = E.m; if (!activo || play || !m || !j() || m.libre) return; const P2 = m.puntos;
     const asa = (id, q, color, titulo) => { if (!q) return; const c = document.createElementNS(NSs, "circle"); c.setAttribute("cx", q[0]); c.setAttribute("cy", q[1]); c.setAttribute("r", 22); c.setAttribute("fill", color); c.setAttribute("fill-opacity", "0.35"); c.setAttribute("stroke", color); c.setAttribute("stroke-width", 3); c.setAttribute("data-rig", id); c.style.cursor = "grab";
       const t = document.createElementNS(NSs, "title"); t.textContent = titulo; c.append(t); gAsas.append(c); };
     asa("manoDer", P2.manoDer, "#ff7a5a", "Mano derecha: arrástrala (el brazo la sigue)"); asa("manoIzq", P2.manoIzq, "#7ab8ff", "Mano izquierda: arrástrala (el brazo la sigue)");
@@ -297,7 +300,7 @@
     else if (r.id === "pecho") editar((x) => { x.torso = Math.max(-90, Math.min(90, r.pose.torso + dx * 0.4)); x.inclina = Math.max(-0.3, Math.min(0.5, r.pose.inclina + dy / 300)); }, "rig-pecho"); });
   const soltarRig = () => { rig = null; }; lienzoR.addEventListener("pointerup", soltarRig); lienzoR.addEventListener("pointercancel", soltarRig);
 
-  window.EPA = { activo: () => activo, dibujar, reconstruir, pintar };
+  window.EPA = { activo: () => activo, dibujar, reconstruir, pintar, editar, poseActual };
   $("#t-cebolla").checked = E.prueba.cebolla !== false;
   // tintes del papel cebolla (anterior en rojo, siguiente en verde, como en Moho)
   const defs = document.querySelector("#lienzo defs");

@@ -105,7 +105,7 @@ function laminasDe(escenas) { const L = {};
 function exportar(id) {
   const esc = leerJSON(path.join(DIRS.escenas, id + ".json")), [W, H] = esc.formato === "16:9" ? [1920, 1080] : [1080, 1920], dir = path.join(RAIZ, "escena-" + id), A = path.join(dir, "assets");
   for (const d of [dir, A, path.join(A, "vendor"), path.join(A, "audio"), path.join(dir, "compositions"), path.join(dir, "out")]) fs.mkdirSync(d, { recursive: true });
-  for (const f of ["titere25d.js", "personajes.js", "atrezo.js", "andares.js", "escena.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
+  for (const f of ["titere25d.js", "rig2d.js", "libre.js", "personajes.js", "atrezo.js", "andares.js", "escena.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
   fs.copyFileSync(path.join(COMUN, "vendor", "gsap.min.js"), path.join(A, "vendor", "gsap.min.js"));
   for (const f of ["figtree.woff2", "bricolage-grotesque.woff2", "newsreader-italic.woff2"]) fs.copyFileSync(path.join(COMUN, "vendor", f), path.join(A, "vendor", f));
   // solo los personajes que salen en la escena
@@ -127,6 +127,8 @@ function exportar(id) {
     <title>${(esc.nombre || id).replace(/</g, "")} · Fe en Beta</title>
     <script src="assets/vendor/gsap.min.js"></script>
     <script src="assets/titere25d.js"></script>
+    <script src="assets/rig2d.js"></script>
+    <script src="assets/libre.js"></script>
     <script src="assets/personajes.js"></script>
     <script src="assets/atrezo.js"></script>
     <script src="assets/andares.js"></script>
@@ -230,7 +232,7 @@ async function transcribir(archivo, guion) {
 async function exportarShort(id, r = {}) {
   const sh = leerJSON(path.join(DIRS.shorts, id + ".json")), [W, H] = sh.formato === "16:9" ? [1920, 1080] : [1080, 1920], dir = path.join(RAIZ, "short-" + id), A = path.join(dir, "assets");
   for (const d of [dir, A, path.join(A, "vendor"), path.join(A, "voz"), path.join(A, "musica"), path.join(A, "sfx"), path.join(dir, "compositions"), path.join(dir, "out")]) fs.mkdirSync(d, { recursive: true });
-  for (const f of ["titere25d.js", "personajes.js", "atrezo.js", "andares.js", "escena.js", "montaje.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
+  for (const f of ["titere25d.js", "rig2d.js", "libre.js", "personajes.js", "atrezo.js", "andares.js", "escena.js", "montaje.js"]) fs.copyFileSync(path.join(COMUN, f), path.join(A, f));
   for (const f of ["gsap.min.js", "figtree.woff2", "bricolage-grotesque.woff2", "newsreader-italic.woff2"]) fs.copyFileSync(path.join(COMUN, "vendor", f), path.join(A, "vendor", f));
   const ESC = {}, usados = {}, acc = {}, comunes = regenerarAcciones();
   for (const c of sh.clips || []) { const f = path.join(DIRS.escenas, c.escena + ".json"); if (!fs.existsSync(f) || ESC[c.escena]) continue; const esc = ESC[c.escena] = leerJSON(f);
@@ -268,6 +270,8 @@ async function exportarShort(id, r = {}) {
     <title>${(sh.nombre || id).replace(/</g, "")} · Fe en Beta</title>
     <script src="assets/vendor/gsap.min.js"></script>
     <script src="assets/titere25d.js"></script>
+    <script src="assets/rig2d.js"></script>
+    <script src="assets/libre.js"></script>
     <script src="assets/personajes.js"></script>
     <script src="assets/atrezo.js"></script>
     <script src="assets/andares.js"></script>

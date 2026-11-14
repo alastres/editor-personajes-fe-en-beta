@@ -29,6 +29,7 @@
       <ul id="lista"></ul>
       <form id="form-nuevo" class="form-nuevo" hidden>
         <input id="nombre-nuevo" type="text" maxlength="40" />
+        <select id="tipo-nuevo" title="Qué clase de personaje"><option value="">Persona (muñeco con cuerpo)</option><option value="libre">Marioneta libre: dibujo o PNG con huesos</option></select>
         <div><button type="submit" class="primario">Crear</button><button type="button" id="b-cancelar-nuevo">Cancelar</button></div>
       </form>
       <div class="pie">
@@ -99,11 +100,23 @@
 
     <!-- propiedades -->
     <aside class="panel" id="panel">
-      <section class="diseno-solo">
+      <section class="diseno-solo libre-tambien">
         <h3>Ficha</h3>
         <div class="campo"><label>Nombre</label><input id="nombre" type="text" /></div>
         <div class="campo"><label>Se guarda como</label><code id="archivo">—</code></div>
         <div class="campo"><label>Notas</label><textarea id="notas" rows="2" placeholder="Quién es, en qué vídeos sale…"></textarea></div>
+      </section>
+      <section class="diseno-solo libre-solo libre-tambien">
+        <h3>Marioneta libre <span class="tenue">(huesos sobre cualquier dibujo)</span></h3>
+        <p class="ayuda">Como en Moho: dibuja los <b>huesos</b> arrastrando en el lienzo (de la articulación a la punta; si empiezas en la punta de otro, queda como su hijo) y mueve sus puntas para colocarlos. Luego añade <b>capas</b>: dibujadas en el taller o imágenes PNG. Una capa se dobla con todos los huesos o va pegada a uno.</p>
+        <h4>Huesos</h4>
+        <ul id="lb-huesos" class="piezas lb-lista"></ul>
+        <div class="fila-botones"><button id="lb-hueso-nuevo" class="primario">＋ Dibujar un hueso</button></div>
+        <h4>Capas <span class="tenue">(la primera queda detrás)</span></h4>
+        <p class="tenue" id="lb-vacio">Aún no hay capas: dibuja una o trae un PNG.</p>
+        <ul id="lb-capas" class="piezas lb-lista"></ul>
+        <div class="fila-botones dos"><button id="lb-capa-dibujo">＋ Capa dibujada</button><button id="lb-capa-png">＋ Imagen PNG</button></div>
+        <input type="file" id="lb-png" accept="image/png,image/webp,image/jpeg" hidden />
       </section>
       <section class="diseno-solo">
         <h3>Cuerpo</h3>
@@ -250,6 +263,8 @@
   <div id="aviso" class="aviso"></div>
 
   <script src="/comun/titere25d.js"></script>
+  <script src="/comun/rig2d.js"></script>
+  <script src="/comun/libre.js"></script>
   <script src="/comun/personajes.js"></script>
   <script src="/acciones/todas.js"></script>
   <script src="biblioteca.js"></script>
@@ -257,6 +272,7 @@
   <script src="editor.js"></script>
   <script src="curvas.js"></script>
   <script src="editor-anim.js"></script>
+  <script src="editor-libre.js"></script>
   <script src="herramientas.js"></script>
 </body>
 </html>

@@ -262,7 +262,12 @@ Por hacer:
 - [x] **Elástico (squash & stretch):** deslizador «Elástico» en Posar → Cuerpo (`estira`, de −0,5 a +0,6), desde los pies y conservando el volumen. Se anima con claves como cualquier otro.
 - [x] **Seguimiento (follow-through):** deslizador «Seguimiento» en la acción (`retraso`, de 0 a 1). La cabeza llega hasta 0,15 s tarde y los brazos y las manos hasta 0,25 s, también en Escenas.
   - [ ] Pendiente: el mismo retraso para las piezas con física y el pelo.
-- [ ] **Marioneta libre:** huesos sobre cualquier dibujo o PNG (animales, objetos, criaturas), con `rig2d.js` de lab-huesos.
+- [x] **Marioneta libre** (como los huesos de Moho): «+ Nuevo» → «Marioneta libre». Sirve para cualquier dibujo o PNG con su propio esqueleto: animales, objetos, criaturas.
+  - Los huesos se dibujan arrastrando en el lienzo; si empiezas en la punta de otro, queda como su hijo. Se colocan arrastrando sus puntas.
+  - Las capas se dibujan en el taller o se traen en PNG; cada una se dobla con todos los huesos o va pegada a uno.
+  - Se anima con un deslizador por hueso o arrastrando la punta, con claves, elástico y reflejo al girarse.
+  - Funciona en Escenas, Montaje y el render (`comun/libre.js` + `comun/rig2d.js`). Ejemplo: «Gusano (ejemplo de marioneta libre)».
+  - [ ] Pendiente: IK de dos huesos al arrastrar (pies que se quedan en el suelo), pesos pintados a mano y correcciones por ángulo como en el muñeco.
 - [ ] **Capas fotograma a fotograma** (como Moho): dibujar a mano efectos, humo o chispas, cuadro a cuadro, sobre la escena.
 - [ ] **Editor de gráficas** de movimiento por canal (giro, altura, cabeza…), con tangentes.
 - [ ] **Deformador libre (malla)** sobre piezas y láminas: doblar, ondear y respirar.
