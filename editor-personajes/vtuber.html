@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VTuber · Fe en Beta</title>
+  <link rel="stylesheet" href="editor.css" />
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+    body.vt { display: grid; grid-template-columns: 330px 1fr; }
+    body.vt.sin-panel { grid-template-columns: 0 1fr; }
+    body.vt.sin-panel #vt-panel { display: none; }
+    body.salida { background: transparent !important; display: block; }
+    #vt-escena { position: relative; min-width: 0; height: 100vh; }
+    #vt-lienzo { width: 100%; height: 100%; display: block; }
+    #vt-panel { height: 100vh; overflow-y: auto; padding: 12px 14px 40px; box-sizing: border-box; border-right: 1px solid #ffffff14; background: #17141f; }
+    #vt-panel h1 { font-size: 16px; margin: 4px 0 2px; display: flex; align-items: center; gap: 8px; }
+    #vt-panel h2 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .6; margin: 18px 0 6px; }
+    #vt-panel .fila { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 6px 0; }
+    #vt-panel select, #vt-panel input[type=text] { width: 100%; }
+    #vt-panel button.activo { background: var(--acento, #f0a33c); color: #1a1420; border-color: transparent; }
+    #vt-panel .botones button { padding: 4px 8px; font-size: 12px; }
+    #vt-panel .botones kbd { opacity: .6; font-size: 10px; margin-left: 3px; }
+    #vt-panel .ayuda { font-size: 12px; opacity: .72; line-height: 1.45; margin: 4px 0; }
+    #vt-panel code { font-size: 11px; word-break: break-all; background: #0006; padding: 2px 4px; border-radius: 4px; }
+    #vt-video-caja { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #0008; border-radius: 8px; overflow: hidden; display: none; }
+    #vt-video-caja.on { display: block; }
+    #vt-video, #vt-puntos { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+    #vt-estado { font-size: 12px; margin: 6px 0; min-height: 1.4em; }
+    #vt-estado.ok { color: #8fd694; } #vt-estado.mal { color: #ff8a80; }
+    .medidor { height: 6px; background: #ffffff14; border-radius: 3px; overflow: hidden; flex: 1; }
+    .medidor > i { display: block; height: 100%; width: 0; background: #8fd694; }
+    #vt-aviso { position: absolute; left: 12px; bottom: 10px; font: 12px system-ui, sans-serif; color: #fff9; background: #0007; padding: 4px 8px; border-radius: 6px; pointer-events: none; }
+    body.salida #vt-aviso, body.limpio #vt-aviso { display: none; }
+    .deslizador { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: center; font-size: 12px; }
+  </style>
+</head>
+<body class="vt">
+  <aside id="vt-panel">
+    <h1>🎥 Modo VTuber <a class="enlace-pagina" href="index.html" style="margin-left:auto;font-size:12px">← Personajes</a></h1>
+    <p class="ayuda">Tu personaje se mueve contigo: la cámara copia tu cabeza, tus ojos, tu boca y tus gestos, y el micrófono mueve la boca al hablar. Para usarlo como webcam, mira «Usarlo como webcam (OBS)» abajo.</p>
+
+    <h2>Personaje</h2>
+    <select id="vt-personaje"></select>
+    <div class="fila">
+      <label class="chk"><input type="radio" name="vt-enc" value="busto" checked /> Busto</label>
+      <label class="chk"><input type="radio" name="vt-enc" value="cuerpo" /> Cuerpo entero</label>
+    </div>
+    <div class="fila"><label style="font-size:12px">Fondo</label>
+      <select id="vt-fondo" style="width:auto;flex:1">
+        <option value="verde">Verde (para recortar)</option>
+        <option value="oscuro">Oscuro</option>
+        <option value="claro">Claro</option>
+        <option value="azul">Azul de croma</option>
+      </select>
+    </div>
+
+    <h2>Cámara</h2>
+    <div class="fila"><button id="vt-cam">📷 Encender la cámara</button><button id="vt-centrar" title="Mira de frente a la cámara y pulsa: esa postura pasa a ser «recto» (tecla C)">◎ Centrar <kbd>C</kbd></button></div>
+    <div id="vt-video-caja"><video id="vt-video" playsinline muted></video><canvas id="vt-puntos"></canvas></div>
+    <div id="vt-estado">Sin cámara: el personaje sigue al ratón sobre el escenario.</div>
+    <label class="chk"><input type="checkbox" id="vt-espejo" checked /> Como un espejo (giras a tu izquierda y él gira hacia ese lado de la pantalla)</label><br />
+    <label class="chk"><input type="checkbox" id="vt-gestos-cara" checked /> Copiar mis gestos (sonrisa, cejas, ceño)</label><br />
+    <label class="chk"><input type="checkbox" id="vt-cuerpo-sigue" checked /> El cuerpo acompaña a la cabeza</label>
+    <div class="deslizador"><label>Cuánto gira</label><input type="range" id="vt-fuerza" min="0.5" max="2" step="0.05" value="1.2" /><output>1.2</output></div>
+    <div class="deslizador"><label>Suavidad</label><input type="range" id="vt-suave" min="0" max="1" step="0.05" value="0.5" /><output>0.5</output></div>
+
+    <h2>Micrófono</h2>
+    <div class="fila"><button id="vt-mic">🎙 Encender el micrófono</button><div class="medidor"><i id="vt-nivel"></i></div></div>
+    <div class="deslizador"><label>Sensibilidad</label><input type="range" id="vt-sens" min="0.3" max="3" step="0.05" value="1" /><output>1</output></div>
+    <p class="ayuda">La boca se abre con el volumen de tu voz. Con la cámara encendida se suma a lo que hace tu mandíbula.</p>
+
+    <h2>Emociones <span style="text-transform:none;letter-spacing:0">(teclas 1–8, 0 neutra)</span></h2>
+    <div class="fila botones" id="vt-emos"></div>
+    <h2>Gestos <span style="text-transform:none;letter-spacing:0">(teclas Q W E R T Y)</span></h2>
+    <div class="fila botones" id="vt-gestos"></div>
+    <p class="ayuda">Un gesto se hace una vez y vuelve solo; pulsa otra vez para cortarlo. Los que se repiten (saludar, explicar) duran mientras no lo cortes o unos segundos.</p>
+
+    <h2>Usarlo como webcam (OBS)</h2>
+    <ol class="ayuda" style="padding-left:18px">
+      <li>Deja esta página abierta con la cámara y el micro encendidos.</li>
+      <li>En OBS: <b>Fuentes → + → Navegador</b>, con esta URL, ancho 1280 y alto 720:<br /><code id="vt-url-salida"></code> <button id="vt-copiar" style="padding:2px 8px;font-size:11px">Copiar</button><br />Sale el personaje con el <b>fondo transparente</b>, moviéndose como aquí.</li>
+      <li>Pulsa <b>Iniciar cámara virtual</b> (abajo a la derecha en OBS).</li>
+      <li>En Zoom, Meet, Discord o el navegador elige la cámara <b>«OBS Virtual Camera»</b>. Para directos, OBS emite tal cual.</li>
+    </ol>
+    <p class="ayuda">También vale «Captura de ventana» de esta página con el filtro «Clave cromática» sobre el fondo verde. Tecla <b>H</b>: esconde este panel.</p>
+  </aside>
+  <main id="vt-escena">
+    <svg id="vt-lienzo" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"><g id="vt-g"></g></svg>
+    <div id="vt-aviso">H: panel · 1–8 emociones · Q–Y gestos · C: centrar</div>
+  </main>
+  <script src="/comun/titere25d.js"></script>
+  <script src="/comun/rig2d.js"></script>
+  <script src="/comun/libre.js"></script>
+  <script src="/comun/personajes.js"></script>
+  <script src="/acciones/todas.js"></script>
+  <script src="vtuber.js"></script>
+</body>
+</html>

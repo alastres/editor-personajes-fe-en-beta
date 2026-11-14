@@ -290,4 +290,9 @@ Por hacer:
   - En los objetos son parámetros más y se animan con claves; en los personajes, «Efectos de capa» en su panel.
   - [x] Máscaras: un objeto o un personaje se ve solo dentro de la forma de otro objeto (asomar por una puerta o una ventana; una animación a mano dentro de un marco). «ocultarla» esconde el objeto que hace de máscara.
   - [ ] Pendiente: efectos en las capas de las láminas.
+- [x] **Modo VTuber** (como el seguimiento facial de Cartoon Animator): `vtuber.html` mueve al personaje con tu cara (MediaPipe en el navegador) y tu voz, con emociones (1–8) y gestos (Q–Y). `vtuber.html?salida` lo saca con el fondo transparente para la fuente de navegador de OBS → cámara virtual (Zoom, Meet, Discord, directos).
+  - [ ] Pendiente: probarlo con una webcam de verdad y afinar las escalas (en el navegador de pruebas no hay cámara: los signos se comprobaron pasando al detector el propio personaje dibujado).
+  - [ ] Pendiente: gestos propios del personaje en las teclas y manos con la cámara (seguimiento de manos de MediaPipe).
+  - [ ] Pendiente: avisar en el editor cuando la cabeza vectorial queda desfasada (`m.cabezaDesfasada`) y ofrecer rehacerla.
+- [ ] **Interfaz limpia y adaptable** (pedido el 14 nov 2026): rediseñar Personajes, Escenas y Montaje para que se entiendan de un vistazo y funcionen en cualquier pantalla.
 

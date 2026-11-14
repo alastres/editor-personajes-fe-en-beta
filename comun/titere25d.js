@@ -890,7 +890,16 @@
     const cabezaBase = () => CABF.map((fz, i) => ({ ref: i, cat: fz.cat || (fz.e === caraF ? "cara" : "cara"), viva: !!fz.pre || VIVAS.has(fz.cat) || fz.prof.ojo,
       d: escribir(fz.cmds, fz.pts), at: Object.fromEntries(["fill", "stroke", "stroke-width", "opacity", "stroke-linecap", "stroke-linejoin"].map((k) => [k, fz.e.getAttribute(k)]).filter((x) => x[1] != null)) }))
       .sort((x, y) => (CABF[x.ref].e.compareDocumentPosition(CABF[y.ref].e) & 4 ? -1 : 1));   // en el orden en que se ven
-    if (op.vector?.cabeza?.activo) { const doc = new DOMParser();
+    // la cabeza vectorial señala cada forma por su número (data-ref): si después se cambia el pelo, la barba o las proporciones, las
+    // formas se crean en otro orden y los números ya no son las mismas piezas (la piel acabaría en una oreja). Se comprueba por el color
+    // original de cada forma: si casi ninguna coincide, se deja la cabeza automática (y m.cabezaDesfasada lo avisa en el editor).
+    let cabezaDesfasada = false;
+    if (op.vector?.cabeza?.activo) { const doc = new DOMParser(); let iguales = 0, total = 0;
+      for (const capa of op.vector.cabeza.capas || []) { const sd = doc.parseFromString(`<svg xmlns="${NS}">${capa.svg || ""}</svg>`, "image/svg+xml");
+        for (const pe of sd.querySelectorAll("path[data-ref]")) { const fz = CABF[+pe.getAttribute("data-ref")]; total++;
+          if (fz && (pe.getAttribute("fill") || "none") === (fz.e.getAttribute("fill") || "none") && (pe.getAttribute("stroke") || "") === (fz.e.getAttribute("stroke") || "")) iguales++; } }
+      cabezaDesfasada = total > 4 && iguales / total < 0.5; if (cabezaDesfasada) console.warn("Cabeza vectorial desfasada (se cambió el pelo, la barba o las proporciones): se usa la automática", op.id, iguales + "/" + total); }
+    if (op.vector?.cabeza?.activo && !cabezaDesfasada) { const doc = new DOMParser();
       for (const capa of op.vector.cabeza.capas || []) { const refs = new Set(capa.refs || []), vistos = new Set(), prof0 = CABF[(capa.refs || [])[0]]?.prof || CARA;
         const svgDoc = doc.parseFromString(`<svg xmlns="${NS}">${capa.svg || ""}</svg>`, "image/svg+xml");
         // una forma con varios trozos (M … M …) puede volver del taller partida en varias con el mismo data-ref: se vuelven a juntar
@@ -911,7 +920,7 @@
     const fz_visible = (i) => { let e = CABF[i]?.e; if (!e) return false; if (e.getAttribute("visibility") === "hidden") return false;
       const idCara = clipCara.parentNode?.id, deCara = (v) => !!idCara && v.includes("#" + idCara);   // recortadas a la cara (ojos, rubor): sí
       for (; e && e !== raiz; e = e.parentNode) { const cp = e.getAttribute?.("clip-path"); if (e.getAttribute?.("display") === "none" || (cp && !deCara(cp))) return false; } return true; };
-    return { g: raiz, dibujar, escala: [KBX, KBY], puntos, juntas: JUNTAS, partes, cabezaBase, formasCabeza, controles: () => Object.assign({}, CTRL), medirCorreccion, medirCorreccionCabeza };
+    return { g: raiz, dibujar, escala: [KBX, KBY], puntos, juntas: JUNTAS, partes, cabezaBase, formasCabeza, cabezaDesfasada, controles: () => Object.assign({}, CTRL), medirCorreccion, medirCorreccionCabeza };
   }
 
   // ---------------------------------------------------------------- encuadres

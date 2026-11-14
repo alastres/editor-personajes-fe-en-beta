@@ -682,3 +682,28 @@ Como los efectos de capa de Moho, en **Escenas**:
   - Con **«ocultarla»** el objeto que hace de máscara no se ve, solo cuenta su forma (por ejemplo, una animación a mano con un círculo blanco).
   - La máscara sigue al objeto aunque se mueva o se anime. Datos: `mascara: "id del objeto"`, `mascaraOculta: true`.
 
+## Modo VTuber: tu personaje como webcam (14 nov 2026)
+Enlace **«VTuber →»** arriba en Personajes (`vtuber.html`). El personaje se mueve contigo en directo, como en Cartoon Animator con su seguimiento facial.
+- **Cámara** («📷 Encender la cámara»): el detector de caras de MediaPipe, en el navegador y sin instalar nada (la primera vez descarga unos 4 MB). Copia:
+  - el giro de la cabeza, mirar arriba o abajo y ladear;
+  - el parpadeo, la mandíbula y hacia dónde miran los ojos;
+  - con «Copiar mis gestos»: sonrisa → alegre, cejas arriba → sorpresa, ceño → enfado, comisuras abajo → triste.
+  - **◎ Centrar** (tecla C): mira de frente y púlsalo; esa postura pasa a ser «recto».
+  - «Como un espejo» (por defecto): giras a tu izquierda y él gira hacia ese lado de la pantalla.
+  - «Cuánto gira» exagera o suaviza el giro; «Suavidad» quita temblores a costa de un poco de retraso.
+  - «El cuerpo acompaña a la cabeza»: el torso gira e inclina un poco detrás de la cabeza.
+- **Micrófono:** la boca se abre con el volumen de tu voz («Sensibilidad»); con la cámara, se suma a la mandíbula.
+- **Emociones** con las teclas 1–8 (0 neutra) y **gestos** con Q W E R T Y: saludar, explicar, manos arriba, mano al pecho, ofrecer, tender la mano. Un gesto solo mueve los brazos y vuelve solo; se corta pulsándolo otra vez.
+- Sin cámara, la cabeza sigue al ratón sobre el escenario; si no hay ratón, deriva tranquila. Siempre respira y parpadea.
+- Encuadre: busto o cuerpo entero. Fondo: verde o azul para recortar, oscuro o claro. Tecla **H**: esconde el panel.
+- **Marioneta libre:** la voz la estira (habla «con el cuerpo») y la cabeza mueve su hueso «cabeza» si lo tiene.
+
+**Usarlo como webcam con OBS**
+1. Deja `vtuber.html` abierta con la cámara y el micro encendidos.
+2. En OBS: Fuentes → + → **Navegador**, URL `http://localhost:3170/vtuber.html?salida`, 1280 × 720. Sale solo el personaje, con el **fondo transparente**.
+3. **Iniciar cámara virtual** en OBS y, en Zoom, Meet o Discord, elegir la cámara «OBS Virtual Camera».
+
+La página de control manda cada fotograma (unas 30 veces por segundo) a `POST /api/vtuber` y el servidor lo reparte por `GET /api/vtuber/eventos` (SSE) a la salida. Así la salida no necesita la cámara: la fuente de navegador de OBS no suele tener permiso para usarla. Alternativa: captura de ventana de `vtuber.html` con «Clave cromática» sobre el fondo verde.
+
+- Arreglado de paso: si a un personaje con cabeza vectorial se le cambia después el pelo, la barba o las proporciones, la cara salía sin piel. La cabeza guardada señala las formas por número y ese orden cambia. Ahora el motor lo detecta comparando colores y usa la cabeza automática (`m.cabezaDesfasada`). Hay que volver a exportar la cabeza en el taller para recuperarla. Le pasaba a «Pedro (vectorial)» tras pasarlo a chibi con pelo corto.
+

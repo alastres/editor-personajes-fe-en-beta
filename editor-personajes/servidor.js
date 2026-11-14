@@ -15,6 +15,7 @@
 //   GET  /api/imagenes                                   imágenes para fondos (carpetas fondos, imagenes, img, assets)
 //   GET  /api/audios                                     audios disponibles para las escenas (wav/mp3 bajo shorts-flow)
 //   GET  /video/<id>.mp4                                 el último render de una escena
+//   POST /api/vtuber · GET /api/vtuber/eventos (SSE)     modo VTuber: fotogramas de vtuber.html a su salida para OBS (vtuber.html?salida)
 // Shorts (montaje: una voz + varias escenas):
 //   GET/PUT /api/shorts[/:id] · POST …/papelera           como las escenas
 //   POST /api/transcribir  { archivo, guion }            palabras con tiempos (VoiceStudio; si no está abierto, estimadas desde el guion) + envolvente
@@ -341,10 +342,14 @@ function audios() { const out = []; const mirar = (d, prof) => { if (prof > 4) r
       if (e.isDirectory()) mirar(f, prof + 1); else if (/\.(wav|mp3)$/i.test(e.name) && /voz|musica|audio|sfx/i.test(f) && !/[\\/](short|escena)-[^\\/]+[\\/]/.test(f)) out.push(path.relative(RAIZ, f).replace(/\\/g, "/")); } };
   mirar(RAIZ, 0); return out.slice(0, 800); }
 
+let vtUltimo = null; const vtClientes = new Set();
 http.createServer(async (req, res) => {
   const url = decodeURIComponent(req.url.split("?")[0]);
   try {
     if (url === "/api/eventos") { res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive" }); res.write(": hola\n\n"); clientes.add(res); req.on("close", () => clientes.delete(res)); return; }
+    // MODO VTUBER: la página de control (vtuber.html) manda cada fotograma y la salida para OBS (vtuber.html?salida) lo recibe al momento
+    if (url === "/api/vtuber" && req.method === "POST") { vtUltimo = (await cuerpo(req)).replace(/\n/g, " "); for (const c of vtClientes) c.write("data: " + vtUltimo + "\n\n"); res.writeHead(204); return res.end(); }
+    if (url === "/api/vtuber/eventos") { res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive" }); res.write(": hola\n\n"); if (vtUltimo) res.write("data: " + vtUltimo + "\n\n"); vtClientes.add(res); req.on("close", () => vtClientes.delete(res)); return; }
     if (url === "/api/audios") return enviarJSON(res, audios());
     if (url === "/api/laminas" && req.method === "GET") return enviarJSON(res, fs.readdirSync(DIR_LAM).filter((n) => fs.existsSync(path.join(DIR_LAM, n, "lamina.json"))).map((n) => { const j = leerJSON(path.join(DIR_LAM, n, "lamina.json")); return { nombre: n, capas: j.capas, origen: j.origen || "" }; }));
     { const ml = url.match(/^\/api\/laminas\/([a-z0-9][a-z0-9-]{0,60})(?:\/([a-z0-9][a-z0-9-]{0,40}))?$/);
