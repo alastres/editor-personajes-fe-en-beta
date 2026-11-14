@@ -388,9 +388,32 @@
     for (const [grupo, [nombre, huesos]] of Object.entries(CAPAS_VEC)) { if (grupo === "torso") continue; const g = partes[grupo]; if (!g) continue; const dib = copia(g);
       capas.push({ id: grupo, nombre, grupo, huesos, dibujo: dib, svg: Taller.aSVG(dib) }); }
     const juntas = JSON.parse(JSON.stringify(m.juntas)); svg.remove(); return { activo: true, juntas, capas }; }
+  // ---- CABEZA VECTORIAL (fase 2): las formas de la cabeza de frente, por capas (cara, pelo, barba, nariz, orejas), cada una con su
+  // profundidad para girar; ojos, cejas y boca siguen automáticos
+  const CAPAS_CAB = [["peloDetras", "Pelo de detrás (bajo la cara)"], ["cara", "Cara y piel"], ["orejas", "Orejas"], ["pelo", "Pelo"], ["barba", "Barba"], ["nariz", "Nariz"]];
+  function exportarCabeza() { const NSv = "http://www.w3.org/2000/svg", svg = document.createElementNS(NSv, "svg"); svg.style.cssText = "position:absolute;left:-9999px;width:10px;height:10px"; document.body.append(svg);
+    const jj = JSON.parse(JSON.stringify(j)); if (jj.vector) delete jj.vector.cabeza; jj.piezas = []; const m = P.crear(svg, jj, { id: "exportar-cab" }); m.dibujar(Object.assign(P.pose(P.completa({}), { giro: 0 }), { parpadeo: 1 }));
+    const base = m.cabezaBase(); svg.remove(); const capas = [], ref0 = base.find((f) => f.cat === "cara")?.ref ?? 0;
+    for (const f of base) if (f.cat === "pelo" && f.ref < ref0) f.cat = "peloDetras";
+    for (const [cat, nombre] of CAPAS_CAB) { const fs = base.filter((f) => !f.viva && f.cat === cat); if (!fs.length) continue;
+      const txt = fs.map((f) => `<path d="${f.d}" data-ref="${f.ref}" ${Object.entries(f.at).map(([k, v]) => `${k}="${v}"`).join(" ")}/>`).join("");
+      let dib; try { dib = Taller.deSVG(txt); } catch { dib = { formas: [] }; }
+      capas.push({ id: "cab-" + cat, nombre, refs: fs.map((f) => f.ref), dibujo: dib, svg: Taller.aSVG(dib) }); }
+    return { activo: true, capas, vivas: base.filter((f) => f.viva).map((f) => `<path d="${f.d}" ${Object.entries(f.at).map(([k, v]) => `${k}="${v}"`).join(" ")}/>`).join("") }; }
+  function editarCapaCab(id) { const v = j.vector.cabeza, c = v.capas.find((x) => x.id === id); if (!c) return;
+    Taller.abrir({ titulo: `Cabeza vectorial · ${c.nombre} (de frente: al girar, cada forma se desliza con su profundidad)`, textoGuardar: "Guardar", colores: P.colores(j), dibujos: { frente: c.dibujo || { formas: [] } }, vistas: null, vista: "frente", encuadre: [-150, -170, 150, 170],
+      // debajo, las capas que en el muñeco quedan detrás; encima (muy tenues), las que quedan delante, ojos, cejas y boca incluidos
+      referencia: (g) => { const NSv = "http://www.w3.org/2000/svg", r = document.createElementNS(NSv, "g"); r.setAttribute("opacity", "0.45"); r.setAttribute("pointer-events", "none"); const i0 = v.capas.findIndex((x) => x.id === id); r.innerHTML = v.capas.filter((x, i) => i < i0).map((x) => x.svg).join(""); g.append(r); },
+      referenciaEncima: (g) => { const NSv = "http://www.w3.org/2000/svg", r = document.createElementNS(NSv, "g"); r.setAttribute("opacity", "0.25"); const i0 = v.capas.findIndex((x) => x.id === id); r.innerHTML = v.capas.filter((x, i) => i > i0).map((x) => x.svg).join("") + (v.vivas || ""); g.append(r); },
+      alGuardar: (out) => { const r = out.frente; if (!r) return; cambio((x) => { const q = x.vector.cabeza.capas.find((y) => y.id === id); q.dibujo = r.dibujo; q.svg = Taller.aSVG(r.dibujo).replace(/\{(\w+)\}/g, (m0, k) => P.colores(x)[k] || "#888888"); }); aviso(`«${c.nombre}» guardada`); } }); }
+  $("#vec-cabeza").addEventListener("click", () => { if (j.vector?.cabeza && !confirm("Se vuelve a copiar la cabeza del muñeco y se pierden los retoques. ¿Seguir?")) return;
+    const cab = exportarCabeza(); cambio((x) => { x.vector = Object.assign({ activo: false, juntas: null, capas: [] }, x.vector, { cabeza: cab }); }); aviso("Cabeza convertida en vectores: edita cada capa con ✎"); pintarVector(); });
+  $("#vec-cabeza-activo").addEventListener("click", () => { if (!j.vector?.cabeza) return; cambio((x) => { x.vector.cabeza.activo = !x.vector.cabeza.activo; }); pintarVector(); });
   function pintarVector() { const v = j?.vector, ul = $("#vec-capas"); if (!ul) return; ul.replaceChildren();
-    $("#vec-convertir").textContent = v ? "Volver a copiar del muñeco" : "Convertir el cuerpo en vectores";
-    $("#vec-activo").hidden = !v; $("#vec-activo").textContent = v?.activo ? "Usar el muñeco automático" : "Usar los vectores";
+    $("#vec-cabeza").textContent = v?.cabeza ? "Volver a copiar la cabeza" : "Convertir la cabeza en vectores"; $("#vec-cabeza-activo").hidden = !v?.cabeza; $("#vec-cabeza-activo").textContent = v?.cabeza?.activo ? "Usar la cabeza automática" : "Usar la cabeza vectorial";
+    for (const c of v?.cabeza?.capas || []) ul.append(h("li", {}, h("span", {}, "●"), h("span", {}, c.nombre), h("span", { class: "hueso" }, `${c.dibujo?.formas?.length || 0} formas`), h("button", { onclick: () => editarCapaCab(c.id) }, "✎ Editar")));
+    const conCuerpo = !!v?.capas?.length; $("#vec-convertir").textContent = conCuerpo ? "Volver a copiar el cuerpo" : "Convertir el cuerpo en vectores";
+    $("#vec-activo").hidden = !conCuerpo; $("#vec-activo").textContent = v?.activo ? "Usar el muñeco automático" : "Usar los vectores";
     $("#vec-estado").textContent = !v ? "El cuerpo (torso, brazos y piernas) se dibuja solo. Conviértelo en dibujos vectoriales para editar sus formas: seguirán a los huesos (brazos y piernas se doblan, el torso se estrecha al girar). La cabeza sigue automática."
       : v.activo ? "El cuerpo es vectorial: edita cada parte con ✎. Ojo: si cambias la ropa o las proporciones arriba, no se actualiza solo (usa «Volver a copiar del muñeco», que borra tus retoques)." : "Los vectores están guardados pero ahora se usa el muñeco automático.";
     for (const c of v?.capas || []) ul.append(h("li", {}, h("span", {}, "◆"), h("span", {}, c.nombre), h("span", { class: "hueso" }, `${c.dibujo?.formas?.length || 0} formas`), h("button", { onclick: () => editarCapaVec(c.id) }, "✎ Editar"))); }
@@ -400,8 +423,8 @@
       referencia: (g) => { const NSv = "http://www.w3.org/2000/svg", r = document.createElementNS(NSv, "g"); r.setAttribute("opacity", "0.3"); r.setAttribute("pointer-events", "none"); r.innerHTML = v.capas.filter((x) => x.id !== id && (x.vista == null || x.vista === 0) && (c.vista == null || c.vista === 0)).map((x) => x.svg).join(""); g.append(r);
         for (const [k, q] of Object.entries(v.juntas)) { const cc = document.createElementNS(NSv, "circle"); for (const [a, b] of Object.entries({ cx: q[0], cy: q[1], r: 5, fill: "#f0a33a" })) cc.setAttribute(a, b); const t = document.createElementNS(NSv, "title"); t.textContent = k; cc.append(t); g.append(cc); } },
       alGuardar: (out) => { const r = out.frente; if (!r) return; cambio((x) => { const q = x.vector.capas.find((y) => y.id === id); q.dibujo = r.dibujo; q.svg = Taller.aSVG(r.dibujo).replace(/\{(\w+)\}/g, (m0, k) => P.colores(x)[k] || "#888888"); }); aviso(`«${c.nombre}» guardada`); } }); }
-  $("#vec-convertir").addEventListener("click", () => { if (j.vector && !confirm("Se vuelve a copiar el cuerpo del muñeco y se pierden los retoques hechos a mano. ¿Seguir?")) return;
-    const v = exportarCuerpo(); cambio((x) => { x.vector = v; }); aviso("Cuerpo convertido en vectores: edita cada parte con ✎"); pintarVector(); });
+  $("#vec-convertir").addEventListener("click", () => { if (j.vector?.capas?.length && !confirm("Se vuelve a copiar el cuerpo del muñeco y se pierden los retoques hechos a mano. ¿Seguir?")) return;
+    const v = exportarCuerpo(); cambio((x) => { x.vector = Object.assign(v, x.vector?.cabeza ? { cabeza: x.vector.cabeza } : {}); }); aviso("Cuerpo convertido en vectores: edita cada parte con ✎"); pintarVector(); });
   $("#vec-activo").addEventListener("click", () => { if (!j.vector) return; cambio((x) => { x.vector.activo = !x.vector.activo; }); pintarVector(); });
   // REDIBUJAR UNA PARTE DEL MUÑECO: crea una pieza en el hueso de esa parte que oculta la original y abre el taller para dibujarla
   const PARTES = { cabeza: ["Cabeza entera", "cabeza"], pelo: ["Pelo", "cabeza"], melena: ["Melena", "cabeza"], barba: ["Barba", "cabeza"], ojos: ["Ojos", "cabeza"], cejas: ["Cejas", "cabeza"],

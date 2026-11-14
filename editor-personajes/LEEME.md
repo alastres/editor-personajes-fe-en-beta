@@ -515,3 +515,11 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
 - **Datos** en el personaje: `vector: { activo, juntas, capas: [{ id, nombre, grupo, huesos, vista?, juntas?, dibujo, svg }] }`.
 - El plan completo (cabeza, Smart Bones, expresiones) está en el ROADMAP.
 
+## Marioneta vectorial, fase 2: la cabeza (14 nov 2026)
+- En la misma sección, **«Convertir la cabeza en vectores»** copia la cabeza de frente en capas: **pelo de detrás** (bajo la cara), **cara y piel**, **orejas**, **pelo**, **barba** y **nariz**. Cada una se edita con **✎**. En el taller se ven debajo las capas que quedan detrás y, encima y muy tenues, las que quedan delante, con ojos, cejas y boca.
+- **Se dibuja solo de frente.** Al girar, cada punto se desliza sobre la cabeza con la profundidad de la forma de la que viene: la forma guarda `data-ref` (su número en el muñeco). Una forma nueva toma la profundidad de la primera de su capa; una forma borrada desaparece.
+- **Ojos, cejas y boca siguen automáticos:** son los que parpadean, hablan y hacen las expresiones.
+- **«Usar la cabeza automática» / «Usar la cabeza vectorial»** cambia entre las dos sin perder nada. **«Volver a copiar la cabeza»** rehace la copia y pierde los retoques.
+- **Datos:** `vector.cabeza: { activo, capas: [{ id, nombre, refs, dibujo, svg }], vivas }`. La cabeza puede ser vectorial con el cuerpo automático, y al revés.
+- **Motor** (`comun/titere25d.js`): `cabezaBase()` devuelve las formas de frente con su categoría. Al crear el muñeco, las formas de `vector.cabeza` sustituyen a las de código antes del primer giro.
+

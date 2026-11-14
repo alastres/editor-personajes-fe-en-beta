@@ -828,9 +828,27 @@
       return { cmds, pts }; }
     function escribirV(cmds, pts) { let s = "", p = 0; for (const [c, m] of cmds) { s += c; for (let j = 0; j < m; j++, p++) s += (j ? " " : "") + pts[p][0].toFixed(1) + " " + pts[p][1].toFixed(1); s += " "; } return s; }
 
+    // CABEZA VECTORIAL (op.vector.cabeza): cada forma de la cabeza es un dibujo DE FRENTE con su profundidad (prof): al girar, sus puntos se
+    // deslizan sobre la esfera de la cabeza (dibujarCabeza). Al editarla en el taller se conserva la profundidad de cada forma (data-ref = su
+    // número); las formas nuevas toman la de su capa. Ojos, cejas y boca siguen automáticos (son los que hacen las expresiones).
+    const VIVAS = new Set(["ojos", "cejas", "boca"]);
+    const cabezaBase = () => CABF.map((fz, i) => ({ ref: i, cat: fz.cat || (fz.e === caraF ? "cara" : "cara"), viva: !!fz.pre || VIVAS.has(fz.cat) || fz.prof.ojo,
+      d: escribir(fz.cmds, fz.pts), at: Object.fromEntries(["fill", "stroke", "stroke-width", "opacity", "stroke-linecap", "stroke-linejoin"].map((k) => [k, fz.e.getAttribute(k)]).filter((x) => x[1] != null)) }));
+    if (op.vector?.cabeza?.activo) { const doc = new DOMParser();
+      for (const capa of op.vector.cabeza.capas || []) { const refs = new Set(capa.refs || []), vistos = new Set(), prof0 = CABF[(capa.refs || [])[0]]?.prof || CARA;
+        const svgDoc = doc.parseFromString(`<svg xmlns="${NS}">${capa.svg || ""}</svg>`, "image/svg+xml");
+        // una forma con varios trozos (M … M …) puede volver del taller partida en varias con el mismo data-ref: se vuelven a juntar
+        const juntas_ = new Map(), sueltas = [];
+        for (const pe of svgDoc.querySelectorAll("path")) { const r = pe.getAttribute("data-ref"); if (r == null) { sueltas.push(pe); continue; }
+          if (juntas_.has(r)) { const q = juntas_.get(r); q.setAttribute("d", q.getAttribute("d") + " " + (pe.getAttribute("d") || "")); } else juntas_.set(r, pe); }
+        for (const pe of [...juntas_.values(), ...sueltas]) { const dd = pe.getAttribute("d") || "", r = pe.getAttribute("data-ref"), i = r != null ? +r : NaN, at = {};
+          for (const k of ["fill", "stroke", "stroke-width", "opacity", "stroke-linecap", "stroke-linejoin"]) if (pe.getAttribute(k) != null) at[k] = pe.getAttribute(k);
+          if (Number.isFinite(i) && CABF[i] && refs.has(i)) { const fz = CABF[i]; Object.assign(fz, parsear(dd)); for (const k in at) fz.e.setAttribute(k, at[k]); vistos.add(i); }
+          else CF(dd, prof0, at, (CABF[(capa.refs || [])[0]]?.e.parentNode) || gC); }
+        for (const i of refs) if (!vistos.has(i) && CABF[i]) { CABF[i].e.setAttribute("display", "none"); CABF[i].borrada = true; } } }
     // partes del cuerpo y juntas: para convertir el muñeco en marioneta vectorial desde el editor
     const partes = () => ({ torso: gT, brazoIzq: brazos.find((b) => b.sg > 0).g, brazoDer: brazos.find((b) => b.sg < 0).g, piernaIzq: piernas.find((b) => b.sg > 0).g, piernaDer: piernas.find((b) => b.sg < 0).g });
-    return { g: raiz, dibujar, escala: [KBX, KBY], puntos, juntas: JUNTAS, partes };
+    return { g: raiz, dibujar, escala: [KBX, KBY], puntos, juntas: JUNTAS, partes, cabezaBase };
   }
 
   // ---------------------------------------------------------------- encuadres

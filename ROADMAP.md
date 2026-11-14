@@ -228,7 +228,7 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
   
   Quedan como dibujos editables (✎ en el taller) atados a las juntas del esqueleto: brazos y piernas se doblan con pesos por cercanía y se estiran con el escorzo; el torso gira ±45° sobre un cilindro y cambia de vista. La cabeza y las piezas propias siguen como siempre. Prueba: «Pedro (vectorial)».
 - [x] Fase 1, retoques: el torso se copia en ocho vistas (cada 45°; cada una gira como mucho ±22,5°) y ya no asoma el cinturón en 3/4. Las correcciones de manga van en la fase 3.
-- [ ] **Fase 2: la cabeza en capas vectoriales** (piel, pelo detrás/delante, barba, nariz, orejas) que giran con su profundidad sobre un solo dibujo; ojos, cejas y boca siguen automáticos.
+- [x] **Fase 2: la cabeza en capas vectoriales.** «Convertir la cabeza en vectores» copia la cabeza de frente en seis capas: pelo de detrás, cara y piel, orejas, pelo, barba y nariz. Cada forma recuerda de qué forma del muñeco viene (`data-ref`) y gira con su profundidad sobre un solo dibujo. Las formas nuevas toman la profundidad de su capa. Ojos, cejas y boca siguen automáticos (son los de las expresiones). Probado con la hoja de giros de «Pedro (vectorial)»: sin retocar, coincide con el automático (0,1 px).
 - [ ] **Fase 3: correcciones por ángulo (Smart Bones) en el editor:** elegir un hueso y un ángulo, corregir la forma a mano y que se aplique poco a poco.
 - [ ] **Fase 4: expresiones** como correcciones del mismo dibujo, con deslizadores.
 

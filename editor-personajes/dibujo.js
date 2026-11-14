@@ -57,7 +57,7 @@
     const uno = (f, extra) => { if (f.tipo === "texto") { const q = f.puntos[0]; return `<text x="${f2(q.x)}" y="${f2(q.y)}" font-size="${f2(f.tam || 48)}" text-anchor="middle" dominant-baseline="central" font-family="Inter, Figtree, Segoe UI, sans-serif" font-weight="${f.peso || 800}" fill="${R(f.relleno || "{tinta}")}"${op(f)}${extra}>${escT(f.texto || "")}</text>`; }
       if (f.puntos.length < 2) return "";
       const st = f.trazo && f.grosor ? ` stroke="${R(f.trazo)}" stroke-width="${f2(f.grosor)}" stroke-linecap="round" stroke-linejoin="round"` : ed && !f.cerrada ? ` stroke="#888" stroke-width="2"` : "";
-      return `<path d="${d(f)}" fill="${f.cerrada ? relleno(f, R, defs) : "none"}"${st}${op(f)}${extra}/>`; };
+      return `<path d="${d(f)}" fill="${f.cerrada ? relleno(f, R, defs) : "none"}"${st}${op(f)}${f.ref != null ? ` data-ref="${escT(f.ref)}"` : ""}${extra}/>`; };
     const conEspejo = (f, extra) => uno(f, extra) + (f.simetrica && f.tipo !== "texto" ? `<g transform="scale(-1 1)"${ed ? ' pointer-events="none"' : ""}>${uno(f, "")}</g>` : "");
     F.forEach((f, i) => { if (f.oculta) return; const ex = ed ? ` data-i="${i}" class="forma${ed.sel(i) ? " sel" : ""}"` : "";
       if (f.agujero) { if (ed && f.puntos.length > 1) out.push(`<path d="${d(f)}" fill="#ffffff" fill-opacity="0.05" stroke="#f0a33a" stroke-width="${f2(1.5 * ed.k)}" stroke-dasharray="${f2(5 * ed.k)} ${f2(4 * ed.k)}"${ex}/>`); return; }
@@ -80,7 +80,7 @@
     const mul = (a, b) => [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1], a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3], a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
     const ap = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
     function forma(n, m, estilo) { const at = (k) => n.getAttribute(k) ?? estilo[k]; const op = parseFloat(at("opacity") ?? 1) * parseFloat(at("fill-opacity") ?? 1);
-      const base = { relleno: at("fill") ?? "#000000", trazo: at("stroke") && at("stroke") !== "none" ? at("stroke") : null, grosor: at("stroke") && at("stroke") !== "none" ? parseFloat(at("stroke-width") || 1) * Math.hypot(m[0], m[1]) : 0, opacidad: op < 1 ? op : undefined };
+      const base = { ref: n.getAttribute("data-ref") ?? undefined, relleno: at("fill") ?? "#000000", trazo: at("stroke") && at("stroke") !== "none" ? at("stroke") : null, grosor: at("stroke") && at("stroke") !== "none" ? parseFloat(at("stroke-width") || 1) * Math.hypot(m[0], m[1]) : 0, opacidad: op < 1 ? op : undefined };
       const T = (p) => { const [x, y] = ap(m, p.x, p.y), [ix, iy] = ap(m, p.ix, p.iy), [ox, oy] = ap(m, p.ox, p.oy); return { x, y, ix, iy, ox, oy, esquina: p.esquina }; };
       const tag = n.tagName.toLowerCase(); let subs = [];
       if (tag === "circle" || tag === "ellipse") { const cx = +at("cx") || 0, cy = +at("cy") || 0, rx = +(at("r") ?? at("rx")) || 0, ry = +(at("r") ?? at("ry")) || 0; subs = [{ puntos: elipse(cx, cy, rx, ry), cerrada: true }]; }
@@ -145,7 +145,7 @@
         <li>Puntos: doble clic = esquina ⇄ curva · doble clic en el trazo = añadir punto · <kbd>Alt</kbd> + clic = quitar punto · <kbd>Alt</kbd> al mover un tirador = romper la curva</li></ul></div>
       <div class="taller-cuerpo">
         <div class="taller-herr" id="tl-herr"></div>
-        <div class="taller-lienzo"><svg id="tl-svg"><g id="tl-calco"></g><g id="tl-ref"></g><g id="tl-ejes"></g><g id="tl-formas"></g><g id="tl-asas"></g><path id="tl-trazo" fill="none" stroke="#f0a33a" stroke-width="2" stroke-dasharray="4 3"/></svg>
+        <div class="taller-lienzo"><svg id="tl-svg"><g id="tl-calco"></g><g id="tl-ref"></g><g id="tl-ejes"></g><g id="tl-formas"></g><g id="tl-ref2" pointer-events="none"></g><g id="tl-asas"></g><path id="tl-trazo" fill="none" stroke="#f0a33a" stroke-width="2" stroke-dasharray="4 3"/></svg>
           <div class="tl-zoom"><button id="tl-zm">−</button><button id="tl-z0">Encajar</button><button id="tl-zp">+</button><label class="chk"><input type="checkbox" id="tl-verref" checked> Ver el personaje</label></div></div>
         <div class="taller-panel">
           <h4>Relleno</h4><div class="paleta" id="tl-relleno"></div>
@@ -184,7 +184,7 @@
     for (const [k, t, tecla, ic] of HERR) $("#tl-herr", raiz).append(h("button", { "data-h": k, title: `${t} (${tecla})`, onclick: () => ponerHerr(k) }, h("span", { class: "ic" }, ic), h("span", { class: "tx" }, t.split(" (")[0])));
     $("#tl-cancelar", raiz).onclick = () => cerrar(); $("#tl-guardar", raiz).onclick = guardar;
     $("#tl-zm", raiz).onclick = () => zoom(1.25); $("#tl-zp", raiz).onclick = () => zoom(0.8); $("#tl-z0", raiz).onclick = encajar;
-    $("#tl-verref", raiz).onchange = (ev) => { $("#tl-ref", raiz).style.display = ev.target.checked ? "" : "none"; };
+    $("#tl-verref", raiz).onchange = (ev) => { $("#tl-ref", raiz).style.display = $("#tl-ref2", raiz).style.display = ev.target.checked ? "" : "none"; };
     $("#tl-grosor", raiz).oninput = (ev) => { const v = +ev.target.value; estilo.grosor = v; if (sel !== null) editarForma((f) => { f.grosor = v; if (v && !f.trazo) f.trazo = estilo.trazo || "{tinta}"; }, "grosor"); pintarPanel(); };
     $("#tl-opac", raiz).oninput = (ev) => { if (sel !== null) editarForma((f) => { f.opacidad = +ev.target.value; }, "opac"); };
     $("#tl-cerrada", raiz).onchange = (ev) => { if (sel !== null) editarForma((f) => { f.cerrada = ev.target.checked; if (f.cerrada && (!f.relleno || f.relleno === "none")) f.relleno = estilo.relleno; }); };
@@ -425,7 +425,7 @@
   document.addEventListener("keyup", (ev) => { if (ev.code === "Space") espacio = false; });
 
   // ---- abrir / guardar
-  function ponerVista(v) { cfg.vista = v; seg(); $("#tl-ref", raiz).replaceChildren(); if (cfg.referencia) cfg.referencia($("#tl-ref", raiz), v);
+  function ponerVista(v) { cfg.vista = v; seg(); $("#tl-ref", raiz).replaceChildren(); $("#tl-ref2", raiz).replaceChildren(); if (cfg.referencia) cfg.referencia($("#tl-ref", raiz), v); if (cfg.referenciaEncima) cfg.referenciaEncima($("#tl-ref2", raiz), v);
     const ej = $("#tl-ejes", raiz); ej.replaceChildren(); el("line", { x1: -2000, y1: 0, x2: 2000, y2: 0, stroke: "#ffffff", "stroke-opacity": 0.12 }, ej); el("line", { x1: 0, y1: -2000, x2: 0, y2: 2000, stroke: "#ffffff", "stroke-opacity": 0.12 }, ej);
     el("circle", { cx: 0, cy: 0, r: 4, fill: "#ff6a4a" }, ej); pintarRejilla(); }
   function seg() { const c = $("#tl-vista", raiz); c.replaceChildren(); if (!cfg.vistas) return;
