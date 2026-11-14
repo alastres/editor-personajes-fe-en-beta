@@ -13,7 +13,7 @@
     ["agacha", "Agacharse (sentarse, arrodillarse)", 0, 1.6, 0.01, pc], ["altura", "Despegar del suelo", 0, 260, 1, (v) => Math.round(v)], ["tumbado", "Tumbarse", 0, 1, 0.01, pc],
     ["pieDerFrente", "Pie derecho: adelante / atrás", -160, 160, 1, (v) => Math.round(v)], ["pieDerLado", "Pie derecho: abrir", -30, 120, 1, (v) => Math.round(v)], ["pieDerAlto", "Pie derecho: levantar", 0, 220, 1, (v) => Math.round(v)],
     ["pieIzqFrente", "Pie izquierdo: adelante / atrás", -160, 160, 1, (v) => Math.round(v)], ["pieIzqLado", "Pie izquierdo: abrir", -30, 120, 1, (v) => Math.round(v)], ["pieIzqAlto", "Pie izquierdo: levantar", 0, 220, 1, (v) => Math.round(v)]];
-  const BRAZO = (L) => [["b" + L + "K", "Cuánto manda la pose", 0, 1, 0.01, pc], ["b" + L + "Lado", "Abrir hacia fuera", -0.5, 2.4, 0.01, n2], ["b" + L + "Frente", "Hacia delante / atrás", -1, 1.6, 0.01, n2],
+  const BRAZO = (L) => [["b" + L + "K", "Cuánto se aplica esta pose del brazo", 0, 1, 0.01, pc], ["b" + L + "Lado", "Abrir hacia fuera", -0.5, 2.4, 0.01, n2], ["b" + L + "Frente", "Hacia delante / atrás", -1, 1.6, 0.01, n2],
     ["b" + L + "Codo", "Doblar el codo", 0, 2.6, 0.01, n2], ["b" + L + "Hacia", "El codo dobla hacia dentro / fuera", -1, 1, 0.01, n2]];
 
   let libre = false, activo = false, acc = null, tiempo = 0, play = false, tAnt = null, claveSel = null, poseLibre = P.completa({}), ctrl = {}, construido = false, fantasmas = [];

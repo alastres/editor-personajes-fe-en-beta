@@ -196,6 +196,6 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
   - tamaño, posición y altura del horizonte;
   - usar o no cada capa, cuánto se mueve con la cámara y si va delante;
   - ✎ Editar cada capa en el taller (con las demás de calco) y añadir capas.
-- [ ] Quitar la jerga y las referencias a archivos de la ayuda («smart bones», `LEEME.md`, `montar-musica.py`…).
+- [x] Ayuda sin jerga ni archivos: controles explicados con palabras de animador, la música sin `montar-musica.py`, la ayuda remite a la visita guiada (? / F1) y el código «para programadores» va plegado.
 - [x] Piezas repetidas (copias en el mismo hueso): se numeran («Rodillera 2») y avisan al pasar el ratón.
 - [x] Cada parte de la marioneta redibujable: «Redibujar una parte del muñeco» (cabeza entera, pelo, melena, barba, ojos, cejas, nariz, boca, orejas, torso y túnica, cinturón, brazos y piernas enteros que se doblan, manos). Crea la pieza en su hueso, oculta la original y abre el taller.
