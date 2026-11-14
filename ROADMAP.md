@@ -274,7 +274,10 @@ Por hacer:
   - Se ajustan los cuadros por segundo, cuándo empieza y cuántas veces se repite.
   - Se coloca, se escala y se anima con claves como cualquier objeto.
   - Arreglado de paso: los botones con `disabled: null` salían siempre desactivados.
-- [ ] **Editor de gráficas** de movimiento por canal (giro, altura, cabeza…), con tangentes.
+- [x] **Editor de gráficas** (como el de Moho): en Animación, «📈 Gráficas» enseña la curva real de un canal a lo largo de la acción.
+  - Los canales son cualquier número de la pose, también `cara.alegre` o `huesos.cola`; primero salen los que cambian.
+  - Cada clave es un punto que se arrastra arriba o abajo para cambiar su valor; un clic en la gráfica mueve el cabezal.
+  - [ ] Pendiente: tangentes propias por clave dentro de la gráfica (hoy la forma entre claves se elige con «Curva» o «Propia…»), y ver dos canales a la vez.
 - [ ] **Deformador libre (malla)** sobre piezas y láminas: doblar, ondear y respirar.
 - [ ] **Efectos de capa** en Escenas: sombra, desenfoque, resplandor y máscara por objeto o capa.
 

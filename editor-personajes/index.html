@@ -68,9 +68,14 @@
           <button id="t-pegar" title="Pegar la pose copiada en el cabezal (crea una clave si no la hay)">Pegar</button>
           <label class="chk" title="Cómo va de esta clave a la siguiente">Curva <select id="t-curva"><option value="suave">Suave</option><option value="lineal">Lineal</option><option value="mantener">Mantener</option><option value="acelera">Acelerar</option><option value="frena">Frenar</option><option value="rebote">Rebote</option><option value="propia">Propia…</option></select><button id="t-curva-ed" title="Editar la curva propia" class="mini">✎</button></label>
           <label class="chk"><input type="checkbox" id="t-cebolla" checked /> Papel cebolla</label>
+          <button id="t-graficas" title="Ver y retocar cómo cambia cada ajuste en el tiempo (como el editor de gráficas de Moho)">📈 Gráficas</button>
           <span id="t-ayuda" class="tenue"></span>
         </div>
         <div class="pista" id="pista"><div class="regla" id="regla"></div><div class="claves" id="claves"></div><div class="cabezal" id="cabezal"></div></div>
+        <div id="graficas" class="graficas" hidden>
+          <div class="g-ctl"><label>Canal <select id="g-canal"></select></label><span class="tenue" id="g-info">Arrastra un punto arriba o abajo para cambiar el valor de esa clave; la curva entre claves se elige en «Curva».</span></div>
+          <svg id="g-svg" viewBox="0 0 1000 220" preserveAspectRatio="none"></svg>
+        </div>
       </div>
       <div class="prueba">
         <div class="fila diseno-solo">

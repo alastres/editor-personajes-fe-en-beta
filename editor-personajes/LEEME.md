@@ -628,3 +628,13 @@ Como las capas fotograma a fotograma de Moho, para lo que se dibuja mejor a mano
   - **Veces** (0 = se repite sin parar; 1 = una vez y desaparece).
 - **Datos:** un objeto `tipo: "cuadros"` con `params: { fps, desde, veces, cuadros: [svg], dibujos: [dibujo del taller] }` (`comun/atrezo.js`).
 
+## Editor de gráficas (14 nov 2026)
+Como el editor de gráficas de Moho: para ver y afinar cómo cambia un ajuste con el tiempo.
+- En **Animación**, con una acción elegida, pulsa **«📈 Gráficas»** (bajo la línea de tiempo):
+  - **Canal:** cualquier número de la pose, como `torso`, `cabeza`, `agacha`, `estira` o `bDerCodo`, y también los de dentro, como `cara.alegre` o `huesos.cola`. Los que cambian entre claves salen primero, marcados con ●;
+  - la línea naranja es el movimiento de verdad, con sus curvas (suave, lineal, rebote, propia…) y el seguimiento; la roja es el cabezal;
+  - **arrastra un punto** (una clave) arriba o abajo para cambiar su valor en esa clave;
+  - un **clic** en la gráfica lleva el cabezal a ese instante;
+  - la forma entre dos claves se cambia con **«Curva»** en la barra, o con «Propia…» para una curva a medida.
+- Todo entra en el deshacer (Ctrl+Z).
+

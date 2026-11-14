@@ -170,7 +170,40 @@
       regla.append(h("span", { class: mayor ? "mayor" : "", style: `left:${(t / D) * 100}%` }, mayor ? String(Math.round(t)) : "")); } }
     const cl = $("#claves"); cl.replaceChildren(); if (a) a.claves.forEach((k, i) => { const d = h("div", { class: "clave" + (Math.abs(k.t - tiempo) < 0.02 ? " activa" : ""), style: `left:${(k.t / D) * 100}%`, title: fmtT(k.t), "data-i": i }); cl.append(d); });
     $("#cabezal").style.left = (Math.min(tiempo, D) / D) * 100 + "%";
+    pintarGraficas();
   }
+  // ---- EDITOR DE GRÁFICAS (como el de Moho): cómo cambia un ajuste a lo largo de la acción. Cada clave es un punto que se arrastra
+  // arriba o abajo para cambiar su valor; entre claves se ve la curva de verdad (suave, lineal, rebote, la propia…). Canales: los
+  // números de la pose (giro, cabeza, brazos…) y los de dentro (cara.alegre, huesos.cola…).
+  let canal = null, gArr = null;
+  const valorDe = (p, c) => { const [a, b] = c.split("."); const v = b ? p?.[a]?.[b] : p?.[a]; return typeof v === "number" ? v : b ? 0 : P.POSE0[a] ?? 0; };
+  function canales(a) { const s = new Map(); for (const k of a.claves) for (const [x, v] of Object.entries(P.completa(k.pose))) {
+      if (typeof v === "number") s.set(x, (s.get(x) || new Set()).add(+v.toFixed(3))); else if (v && typeof v === "object") for (const [y, w] of Object.entries(v)) if (typeof w === "number") s.set(x + "." + y, (s.get(x + "." + y) || new Set()).add(+w.toFixed(3))); }
+    // primero los que cambian entre claves
+    return [...s.entries()].sort((m, n) => (n[1].size > 1) - (m[1].size > 1) || m[0].localeCompare(n[0])).map(([k, v]) => [k, v.size > 1]); }
+  function pintarGraficas() { const caja = $("#graficas"); if (!caja || caja.hidden) return; const a = accion(), sv = $("#g-svg"); sv.replaceChildren(); if (!a || !a.claves.length) return;
+    const cs = canales(a), sel = $("#g-canal"); if (!canal || !cs.some((c) => c[0] === canal)) canal = cs.find((c) => c[1])?.[0] || cs[0]?.[0];
+    const firma = cs.map((c) => c.join(":")).join("|"); if (sel.dataset.f !== firma) { sel.dataset.f = firma; sel.replaceChildren(...cs.map(([k, cambia]) => h("option", { value: k }, (cambia ? "● " : "  ") + k))); } sel.value = canal;
+    const D = durac(a), N = 160, W = 1000, H = 220, pad = 18, ys = [];
+    for (let i = 0; i <= N; i++) ys.push(valorDe(P.accionPose(a, (i / N) * D), canal));
+    const kv = a.claves.map((k) => valorDe(P.completa(k.pose), canal)); let lo = Math.min(...ys, ...kv), hi = Math.max(...ys, ...kv); if (hi - lo < 1e-3) { lo -= 1; hi += 1; } const m = (hi - lo) * 0.12; lo -= m; hi += m;
+    const X = (t) => (t / D) * W, Y = (v) => pad + (1 - (v - lo) / (hi - lo)) * (H - 2 * pad), mk = (t, at) => { const e = document.createElementNS("http://www.w3.org/2000/svg", t); for (const k in at) e.setAttribute(k, at[k]); sv.append(e); return e; };
+    if (lo < 0 && hi > 0) mk("line", { x1: 0, x2: W, y1: Y(0), y2: Y(0), class: "g-cero" });
+    for (let s = 0; s <= D + 1e-6; s += 1) mk("line", { x1: X(s), x2: X(s), y1: 0, y2: H, class: "g-seg" });
+    mk("polyline", { points: ys.map((v, i) => `${((i / N) * W).toFixed(1)},${Y(v).toFixed(1)}`).join(" "), class: "g-curva" });
+    mk("line", { x1: X(tiempo), x2: X(tiempo), y1: 0, y2: H, class: "g-cabezal" });
+    a.claves.forEach((k, i) => { const c = mk("circle", { cx: X(k.t), cy: Y(kv[i]), r: 9, class: "g-clave" + (Math.abs(k.t - tiempo) < 0.02 ? " activa" : ""), "data-i": i }); c.append(Object.assign(document.createElementNS("http://www.w3.org/2000/svg", "title"), { textContent: `${fmtT(k.t)} · ${canal} = ${kv[i].toFixed(2)}` })); });
+    sv.dataset.lo = lo; sv.dataset.hi = hi; }
+  $("#t-graficas").addEventListener("click", () => { const c = $("#graficas"); c.hidden = !c.hidden; $("#t-graficas").classList.toggle("activo", !c.hidden); pintarLinea(); });
+  $("#g-canal").addEventListener("change", (ev) => { canal = ev.target.value; pintarGraficas(); });
+  const gsv = $("#g-svg");
+  gsv.addEventListener("pointerdown", (ev) => { const c = ev.target.closest(".g-clave"), a = accion(); if (!a) return; const r = gsv.getBoundingClientRect();
+    if (!c) { tiempo = +Math.max(0, Math.min(durac(a), ((ev.clientX - r.left) / r.width) * durac(a))).toFixed(2); play = false; pintar(); return; }
+    const i = +c.dataset.i; tiempo = a.claves[i].t; play = false; gArr = { i, y0: ev.clientY, v0: valorDe(P.completa(a.claves[i].pose), canal), esc: (+gsv.dataset.hi - +gsv.dataset.lo) / (r.height * (1 - 36 / 220)) };
+    try { gsv.setPointerCapture(ev.pointerId); } catch {} pintar(); });
+  gsv.addEventListener("pointermove", (ev) => { if (!gArr) return; const a = accion(), v = +(gArr.v0 - (ev.clientY - gArr.y0) * gArr.esc).toFixed(3), [k1, k2] = canal.split("."), i = gArr.i;
+    E.cambio((x) => { const ax = x.acciones.find((y) => y.id === a.id), p = P.completa(ax.claves[i].pose); if (k2) p[k1] = Object.assign({}, p[k1], { [k2]: v }); else p[k1] = v; ax.claves[i].pose = limpia(p); }, "g-" + canal + i); });
+  const gSoltar = () => { gArr = null; }; gsv.addEventListener("pointerup", gSoltar); gsv.addEventListener("pointercancel", gSoltar);
   let arr = null;
   pista.addEventListener("pointerdown", (ev) => { const a = accion(); if (!a) return; try { pista.setPointerCapture(ev.pointerId); } catch {} play = false;
     const cl = ev.target.closest(".clave"), r = pista.getBoundingClientRect(), t = Math.max(0, Math.min(durac(a), ((ev.clientX - r.left) / r.width) * durac(a)));
