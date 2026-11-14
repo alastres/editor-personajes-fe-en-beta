@@ -405,7 +405,13 @@
       if (tf) A.e.setAttribute("transform", tf.trim()); if (op != null) A.e.setAttribute("opacity", op.toFixed(3)); }
     function pintarPlacas(c, tr) { if (!LAM) return; const z = c.zoom || 1, X0 = esc.fondo.centro?.x ?? 0, Y0 = esc.fondo.centro?.y ?? -400;
       const sc = Math.max(ANCHO / LAM.ancho, ALTO / LAM.alto) * (esc.fondo.escala ?? 1.15), W = LAM.ancho * sc, H = LAM.alto * sc;
-      for (const { c: k, g, anims } of placas) { for (const A of anims) animar(A, tPlacas); const par = k.par ?? 0, kz = Math.pow(z, -par), sL = k.p != null ? sDe(k.p) : k.delante ? sDe(-0.3) : par >= 0.3 ? 0 : sDe(0.3), oy = -dAlto * (1 - sL);
+      for (const PL of placas) { const { c: k, g } = PL;
+        // DEFORMADOR en la capa (doblar, ondear, respirar, como en el atrezo; también con claves en k.claves): mientras se deforma,
+        // la capa se redibuja cada fotograma y sus movimientos propios (data-anim) se pausan
+        const qd = k.claves ? claves(k.claves, tPlacas, ["doblar", "ondear", "respirar"]) || {} : {}, od = { doblar: qd.doblar ?? k.doblar ?? 0, ondear: qd.ondear ?? k.ondear ?? 0, respirar: qd.respirar ?? k.respirar ?? 0 };
+        if (window.Atrezo?.deforma?.(od)) { g.innerHTML = Atrezo.deformarCapa(LAM.capas[k.id] || "", od, tPlacas); PL.deformada = true; }
+        else { if (PL.deformada) { g.innerHTML = LAM.capas[k.id] || ""; PL.deformada = false; PL.anims = [...g.querySelectorAll("[data-anim]")].map((e) => { try { return { e, ks: JSON.parse(e.getAttribute("data-anim")) }; } catch { return null; } }).filter(Boolean); }
+          for (const A of PL.anims) animar(A, tPlacas); } const par = k.par ?? 0, kz = Math.pow(z, -par), sL = k.p != null ? sDe(k.p) : k.delante ? sDe(-0.3) : par >= 0.3 ? 0 : sDe(0.3), oy = -dAlto * (1 - sL);
         // opacidad de la capa en el tiempo (fundir dos versiones: el mar cerrado → abierto): k.claves = [{ t, op }]
         if (k.claves) { const q = claves(k.claves, tPlacas, ["op"]); g.setAttribute("opacity", (q?.op ?? 1).toFixed(3)); }
         g.setAttribute("transform", `${tr} translate(0 ${f1(oy)}) translate(${f1(c.x)} ${f1(c.y)}) scale(${kz.toFixed(4)}) translate(${f1(-c.x)} ${f1(-c.y)}) translate(${f1((c.x - X0) * par)} ${f1((c.y - Y0) * par)}) translate(${f1(X0 - W / 2)} ${f1(Y0 - H / 2)}) scale(${sc.toFixed(4)})`); } }

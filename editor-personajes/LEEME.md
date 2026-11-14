@@ -658,6 +658,12 @@ Como el deformador de malla de Moho y Cartoon Animator, en todos los objetos del
   - la primera vez, cada figura (círculo, rectángulo, trazo con arcos…) se convierte en puntos, con sus giros ya aplicados, y se guarda;
   - en cada fotograma solo se mueven los puntos, unos 0,3 ms por objeto;
   - los objetos sin deformar salen exactamente igual que antes.
+- **En las láminas** (Escenas → Fondo → Lámina dibujada → Capas), cada capa usada tiene su **«Deformar»** con los mismos tres ajustes:
+  - doblar parte del **borde de abajo del dibujo de esa capa**: los árboles de una capa «delante» se mecen con el viento;
+  - ondear le pasa una onda, para agua, humo o un toldo;
+  - respirar la hace latir suave.
+  - Mientras una capa se deforma se redibuja cada fotograma (4–5 ms) y sus movimientos propios (nubes que derivan, ramas…) se pausan.
+  - Datos: `fondo.capas[i].doblar / ondear / respirar`. También pueden ir en `capas[i].claves` (`[{ t, doblar }]`), como la opacidad.
 
 ## Efectos de capa (14 nov 2026)
 Como los efectos de capa de Moho, en **Escenas**:

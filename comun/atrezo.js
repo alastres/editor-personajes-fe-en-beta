@@ -246,25 +246,27 @@
   function geometria(svg) { if (GEO.has(svg)) return GEO.get(svg); if (GEO.size > 200) GEO.clear();
     if (!medidor) { medidor = document.createElementNS(NSs, "svg"); medidor.setAttribute("style", "position:absolute;left:-99999px;top:0;width:10px;height:10px;visibility:hidden"); document.body.appendChild(medidor); }
     const raiz = document.createElementNS(NSs, "g"); raiz.innerHTML = svg; medidor.appendChild(raiz);
-    const items = [], base = raiz.getCTM().inverse(); let minY = 0;
+    const items = [], base = raiz.getCTM().inverse(); let minY = 0, maxY = -1e9, minX = 1e9, maxX = -1e9;
     for (const e of [...raiz.querySelectorAll("path, circle, ellipse, rect, line, polyline, polygon")]) { if (e.closest("defs, clipPath, mask")) continue;
       let L = 0; try { L = e.getTotalLength(); } catch { continue; } if (!(L > 0)) continue;
       const M = base.multiply(e.getCTM()), n = Math.max(12, Math.min(160, Math.round(L / 6))), paso = L / n, subs = []; let cur = null, ant = null;
       for (let i = 0; i <= n; i++) { const p = e.getPointAtLength(Math.min(L, i * paso)), q = [M.a * p.x + M.c * p.y + M.e, M.b * p.x + M.d * p.y + M.f];
-        if (!cur || (ant && Math.hypot(q[0] - ant[0], q[1] - ant[1]) > paso * 3 + 2)) { cur = []; subs.push(cur); } cur.push(q); ant = q; minY = Math.min(minY, q[1]); }
+        if (!cur || (ant && Math.hypot(q[0] - ant[0], q[1] - ant[1]) > paso * 3 + 2)) { cur = []; subs.push(cur); } cur.push(q); ant = q; minY = Math.min(minY, q[1]); maxY = Math.max(maxY, q[1]); minX = Math.min(minX, q[0]); maxX = Math.max(maxX, q[0]); }
       const fill = getComputedStyle(e).fill, cerrada = e.tagName !== "line" && e.tagName !== "polyline" && fill !== "none";
       const pe = document.createElementNS(NSs, "path"); for (const a of [...e.attributes]) if (!["d", "cx", "cy", "r", "rx", "ry", "x", "y", "width", "height", "x1", "y1", "x2", "y2", "points", "transform"].includes(a.name)) pe.setAttribute(a.name, a.value);
       e.replaceWith(pe); items.push({ pe, subs, cerrada }); }
     for (const g of raiz.querySelectorAll("g[transform]")) if (!g.querySelector("text")) g.removeAttribute("transform");   // ya va en los puntos
-    raiz.remove(); const r = { raiz, items, H: Math.max(60, -minY) }; GEO.set(svg, r); return r; }
-  function deformar(svg, o, t) { const d = o.doblar || 0, on = o.ondear || 0, re = o.respirar || 0; if (Math.abs(d) < 0.005 && on < 0.005 && re < 0.005) return svg;
-    const G = geometria(svg), H = G.H, s = 1 + 0.035 * re * Math.sin(t * 2.2), sx = 1 + (s - 1) * 0.6;
-    const mover = ([x, y]) => { const u = Math.max(0, Math.min(1.2, -y / H)); let X = x * sx, Y = y * s;
+    raiz.remove(); const r = { raiz, items, H: Math.max(60, -minY), caja: [minX, minY, maxX, maxY] }; GEO.set(svg, r); return r; }
+  // caja: false = la base es el suelo (y = 0, objetos del atrezo); true = la base es el borde de abajo del dibujo (capas de lámina)
+  function deformar(svg, o, t, caja = false) { const d = o.doblar || 0, on = o.ondear || 0, re = o.respirar || 0; if (Math.abs(d) < 0.005 && on < 0.005 && re < 0.005) return svg;
+    const G = geometria(svg), [bx0, by0, bx1, by1] = G.caja, y0 = caja ? by1 : 0, x0 = caja ? (bx0 + bx1) / 2 : 0, H = caja ? Math.max(60, by1 - by0) : G.H, s = 1 + 0.035 * re * Math.sin(t * 2.2), sx = 1 + (s - 1) * 0.6;
+    const mover = ([x0_, y0_]) => { const x = x0_ - x0, y = y0_ - y0, u = Math.max(0, Math.min(1.2, -y / H)); let X = x * sx, Y = y * s;
       X += d * H * 0.45 * u * u; Y += Math.abs(d) * H * 0.08 * u * u * u;
-      X += on * H * 0.06 * u * Math.sin(2 * Math.PI * (u * 1.2 - t * 0.6)); return [X, Y]; };
+      X += on * H * 0.06 * u * Math.sin(2 * Math.PI * (u * 1.2 - t * 0.6)); return [X + x0, Y + y0]; };
     for (const it of G.items) it.pe.setAttribute("d", it.subs.map((sub) => "M" + sub.map(mover).map((q) => q[0].toFixed(1) + " " + q[1].toFixed(1)).join(" L") + (it.cerrada ? " Z" : "")).join(" "));
     return G.raiz.innerHTML; }
   window.Atrezo = { dibujar: (ob, t) => { const A = ATREZO[ob.tipo]; if (!A) return `<text fill="#f66" font-size="40" y="-20">falta «${ob.tipo}»</text>`; const o = Object.assign({}, ob.params || {}, { frio: ob.frio }); return deformar(A.dibujar(o, t || 0), o, t || 0); },
     deforma: (p) => !!(p && (Math.abs(p.doblar || 0) > 0.005 || (p.ondear || 0) > 0.005 || (p.respirar || 0) > 0.005)),
+    deformarCapa: (svg, o, t) => deformar(svg, o, t, true),   // capas de lámina: desde el borde de abajo del dibujo
     lista: () => Object.entries(ATREZO).map(([k, v]) => [k, v.nombre]) };
 })();

@@ -284,7 +284,8 @@ Por hacer:
 - [x] **Deformador** (como el de malla de Moho y Cartoon Animator): todo objeto del atrezo, incluida la animación a mano, tiene «Doblar», «Ondear» y «Respirar».
   - Doblar curva el objeto desde la base, como un árbol con viento o una caña con peso; Ondear le pasa una onda que sube; Respirar lo hace latir suave.
   - Se animan con claves (casilla «Animar con claves»). Cuesta 0,3 ms por objeto y fotograma.
-  - [ ] Pendiente: lo mismo para las capas de las láminas y para las piezas del personaje, y una rejilla de puntos arrastrables (deformación libre a mano).
+  - [x] También en las capas de las láminas: «Deformar» en cada capa usada, con doblar desde el borde de abajo del dibujo, ondear y respirar. Cuesta unos 4–5 ms por capa y fotograma; mientras se deforma, sus movimientos propios se pausan.
+  - [ ] Pendiente: piezas del personaje y una rejilla de puntos arrastrables (deformación libre a mano).
 - [x] **Efectos de capa** (como los de Moho): sombra, desenfoque, resplandor (con el color de la luz de la escena) y opacidad.
   - En los objetos son parámetros más y se animan con claves; en los personajes, «Efectos de capa» en su panel.
   - [ ] Pendiente: máscaras (recortar una capa con la forma de otra) y efectos en las capas de las láminas.

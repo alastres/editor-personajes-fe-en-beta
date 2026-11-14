@@ -183,11 +183,12 @@
   function laminaPorDefecto(nombre) { const n = nombre && window.LAMINAS?.[nombre] ? nombre : Object.keys(window.LAMINAS || {}).find((k) => /formas/.test(k)) || Object.keys(window.LAMINAS || {})[0];
     const L = window.LAMINAS?.[n]; const ids = L ? Object.keys(L.capas) : [];
     return { tipo: "lamina", lamina: n, escala: 1.2, centro: { x: 0, y: -420 }, horizonte: 640, capas: ids.map((id, i) => ({ id, par: CAPAS_PAR[id] ?? (i === 0 ? 0.45 : i === ids.length - 1 && ids.length > 2 ? -0.25 : 0), delante: (id === "delante" || id === "arco") || undefined })) }; }
+  const lmAbiertos = new Set();   // qué «Deformar» de capa están abiertos (sobreviven al repintar)
   function pintarLamina() { const f = esc.fondo || {}, es = f.tipo === "lamina"; $("#lamina-det").hidden = !es; $("#f-mas").hidden = es; if (!es) return;
     const sel = $("#lm-nombre"); if (document.activeElement !== sel) { sel.replaceChildren(...Object.keys(window.LAMINAS || {}).map((n) => h("option", { value: n }, n))); sel.value = f.lamina || ""; }
     deslizar("lm-escala", f.escala ?? 1.15, (v) => Math.round(v * 100) + "%"); deslizar("lm-cx", f.centro?.x ?? 0, (v) => Math.round(v)); deslizar("lm-cy", f.centro?.y ?? -400, (v) => Math.round(v));
     deslizar("lm-hz", f.horizonte ?? 640, (v) => Math.round(v) + " px");
-    const L = window.LAMINAS?.[f.lamina], ul = $("#lm-capas"); ul.replaceChildren(); if (!L) { ul.append(h("li", { class: "vacio" }, "Esta lámina no está cargada")); return; }
+    const L = window.LAMINAS?.[f.lamina], ul = $("#lm-capas"); if (ul.contains(document.activeElement) && document.activeElement.type === "range") return; ul.replaceChildren(); if (!L) { ul.append(h("li", { class: "vacio" }, "Esta lámina no está cargada")); return; }
     for (const id of Object.keys(L.capas)) { const c = (f.capas || []).find((x) => x.id === id), usada = !!c;
       const ch = h("input", { type: "checkbox", title: "Usar esta capa en la escena" }); ch.checked = usada;
       ch.addEventListener("change", () => cambiaFondo((v) => { v.capas = v.capas || []; if (ch.checked) { const orden = Object.keys(L.capas); v.capas.push({ id, par: CAPAS_PAR[id] ?? 0 }); v.capas.sort((a, b) => orden.indexOf(a.id) - orden.indexOf(b.id)); } else v.capas = v.capas.filter((x) => x.id !== id); }));
@@ -195,7 +196,14 @@
       const out = h("output", {}, (c?.par ?? 0).toFixed(2)); par.addEventListener("input", () => { out.textContent = (+par.value).toFixed(2); cambiaFondo((v) => { const k = v.capas.find((x) => x.id === id); if (k) k.par = +par.value; }, "lmpar" + id); });
       const del = h("label", { class: "chk", title: "Se dibuja delante de los personajes (ramas, marcos, primer término)" }, h("input", { type: "checkbox" }), " delante"); del.firstChild.checked = !!c?.delante; del.firstChild.disabled = !usada;
       del.firstChild.addEventListener("change", (ev) => cambiaFondo((v) => { const k = v.capas.find((x) => x.id === id); if (k) { if (ev.target.checked) k.delante = true; else delete k.delante; } }));
-      ul.append(h("li", { class: "fila-capa" }, ch, h("span", {}, id), h("span", { class: "tenue" }, "Cuánto se mueve con la cámara"), par, out, del, h("button", { title: "Redibujar esta capa en el taller", onclick: () => editarCapaLamina(f.lamina, id) }, "✎ Editar"))); } }
+      // deformador de la capa (como el de los objetos): doblar, ondear y respirar
+      const dfm = h("details", { class: "sub-bloque lm-deformar", ...(lmAbiertos.has(id) ? { open: "" } : {}), ontoggle: () => { dfm.open ? lmAbiertos.add(id) : lmAbiertos.delete(id); } }, h("summary", {}, "Deformar" + (c && (c.doblar || c.ondear || c.respirar) ? " ●" : "")));
+      for (const [k, et, mn] of [["doblar", "Doblar (viento)", -1], ["ondear", "Ondear (agua, humo, bandera)", 0], ["respirar", "Respirar (late suave)", 0]]) {
+        const i = h("input", { type: "range", min: mn, max: 1, step: 0.01, value: c?.[k] || 0, ...(usada ? {} : { disabled: "" }) }), o = h("output", {}, String(c?.[k] || 0));
+        i.addEventListener("input", () => { o.textContent = i.value; cambiaFondo((v) => { const q = v.capas.find((x) => x.id === id); if (!q) return; if (Math.abs(+i.value) > 0.004) q[k] = +i.value; else delete q[k]; }, "lmdef" + id + k); });
+        dfm.append(h("div", { class: "deslizador" }, h("label", {}, et), i, o)); }
+      dfm.append(h("p", { class: "ayuda" }, "Se dobla desde el borde de abajo del dibujo. Mientras se deforma, los movimientos propios de la capa (nubes, ramas…) se pausan."));
+      ul.append(h("li", { class: "fila-capa" }, ch, h("span", {}, id), h("span", { class: "tenue" }, "Cuánto se mueve con la cámara"), par, out, del, h("button", { title: "Redibujar esta capa en el taller", onclick: () => editarCapaLamina(f.lamina, id) }, "✎ Editar"), dfm)); } }
   async function recargarLamina(n) { const L = await (await fetch("/api/laminas/" + n)).json(); window.LAMINAS = Object.assign({}, window.LAMINAS, { [n]: { ancho: L.ancho, alto: L.alto, capas: L.capas } }); return L; }
   async function editarCapaLamina(n, id) { if (!window.Taller) return aviso("El taller de dibujo no está cargado"); estado("Abriendo la capa en el taller…");
     const L = await recargarLamina(n), otras = Object.entries(L.capas).filter(([k]) => k !== id), NS = "http://www.w3.org/2000/svg";
