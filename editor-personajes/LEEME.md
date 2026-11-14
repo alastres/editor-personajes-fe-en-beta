@@ -439,3 +439,26 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
   - en cada clave de `recorrido`: `giroModo`, `giroDur`, `giroSentido`, `giroCurva`, `giroCabeza`, `giroPies`, `giroPasitos`, `giroFijo` y `andar`.
   
   El motor (`comun/escena.js`) las lee con `comun/andares.js`. Ejemplo: la escena «Ejemplo: giros y andares».
+
+## Taller de dibujo completo (14 nov 2026)
+- **Barra de arriba:**
+  - nombre de la pieza (se guarda con ese nombre);
+  - **Deshacer / Rehacer**;
+  - **⌨ Atajos**: la lista de teclas (V, B, L, P, E, R, C, I, T, X; Ctrl + Z / Y / D; flechas para mover; Espacio + arrastrar para mover la vista).
+- **Goma (X):** con una forma elegida, el trazo la borra. Se guarda como una forma «Goma» encima, que se puede ocultar o borrar para recuperar lo borrado. El grosor se elige en el panel.
+- **Relleno:**
+  - liso, degradado o degradado redondo, con color final y dirección;
+  - colores escritos en hexadecimal (casilla `#rrggbb` + Intro) en el relleno, el contorno y el degradado.
+- **Girar la selección** con un deslizador (cualquier ángulo; al soltar vuelve a 0 y el giro se queda).
+- **Lista de formas:**
+  - doble clic en el nombre para cambiarlo;
+  - 🔒 para bloquearla y que no se toque en el lienzo;
+  - los textos, agujeros y gomas se nombran solos.
+- **Suavizado del pincel y del lazo** (más alto = trazo más limpio y con menos puntos).
+- **Combinar** (Mayús + clic para elegir dos o más formas cerradas):
+  - **Unir**;
+  - **Restar** (a la de más abajo le quita las demás);
+  - **Intersección**.
+  
+  El resultado son curvas nuevas editables, y los huecos salen como agujeros.
+

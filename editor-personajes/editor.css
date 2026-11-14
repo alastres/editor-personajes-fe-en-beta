@@ -207,7 +207,7 @@ body.con-taller { overflow: hidden; }
 .paleta .sw.otro { background: var(--panel2); color: var(--texto); cursor: pointer; }
 .paleta .sw.otro input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .capas { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 3px; max-height: 210px; overflow: auto; }
-.capas li { display: grid; grid-template-columns: 20px 18px 1fr; gap: 8px; align-items: center; padding: 5px 8px; border-radius: 8px; background: var(--fondo); border: 1px solid transparent; cursor: pointer; font-size: 12px; }
+.capas li { display: grid; grid-template-columns: 20px 18px 1fr; grid-auto-flow: column; grid-auto-columns: auto; gap: 8px; align-items: center; padding: 5px 8px; border-radius: 8px; background: var(--fondo); border: 1px solid transparent; cursor: pointer; font-size: 12px; }
 .capas li.activo { border-color: var(--acento); background: #2a2440; }
 .capas li .mini { width: 16px; height: 16px; border-radius: 4px; border: 2px solid #4a4466; }
 .capas li .ojo { background: none; border: none; padding: 0; color: var(--texto); }
@@ -270,3 +270,12 @@ button.mini { padding: 2px 7px; margin-left: 4px; }
   .acciones { flex-wrap: wrap; justify-content: flex-end; }
   .acciones .estado { display: none; }
 }
+
+/* taller: nombre, atajos y botones nuevos */
+.taller-barra #tl-nombre { width: 170px; }
+.tl-atajos { position: absolute; z-index: 5; right: 16px; top: 58px; max-width: 560px; background: var(--panel); border: 1px solid var(--borde); border-radius: 12px; padding: 10px 14px; box-shadow: 0 10px 30px #000a; font-size: 13px; }
+.tl-atajos ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.8; }
+.tl-atajos kbd { background: #ffffff14; border: 1px solid #ffffff2a; border-radius: 4px; padding: 0 5px; font-size: 12px; }
+.taller { position: fixed; }
+.taller .capas li { grid-template-columns: 20px 22px 18px 1fr; }
+.paleta .hex { width: 78px; font-size: 12px; padding: 3px 6px; font-family: monospace; }

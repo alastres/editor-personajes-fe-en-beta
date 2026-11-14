@@ -177,17 +177,17 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [ ] Pruebas: 16 casos de Demo piezas marcan «CAMBIÓ» (revisar si la referencia está vieja).
 - [x] «Posición X», profundidad y ángulo se actualizan al reproducir.
 - [x] Tras mandar una escena a la papelera ya no se abre otra real: queda el escenario vacío.
-- [ ] Taller de dibujo:
-  - botones de deshacer y rehacer;
-  - atajos visibles;
-  - nombrar el dibujo al guardar;
+- [x] Taller de dibujo:
+  - deshacer y rehacer con botones, y atajos de teclado a la vista (⌨ Atajos);
+  - nombre de la pieza al guardar;
   - goma;
-  - degradados;
+  - degradados lineal y redondo;
   - campo de color hexadecimal;
-  - girar libremente;
-  - renombrar, bloquear u ocultar formas;
+  - giro libre;
+  - nombrar y bloquear formas;
   - suavizado del pincel;
-  - unión, resta e intersección reales.
+  - unir, restar e intersección de verdad;
+  - duplicar con Ctrl + D y mover con las flechas.
 - [ ] Rótulos: tamaño, posición, estilo y duración en el panel.
 - [ ] Copiar y pegar claves; tiempo exacto también para los bloques de acción.
 - [ ] Láminas elegibles desde la interfaz (hoy, solo con JSON y scripts).

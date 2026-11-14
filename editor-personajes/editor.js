@@ -359,13 +359,14 @@
   function abrirTaller(pz) {
     const hueso = pz ? pz.hueso : "cabeza", dibujos = {}, svgs = {};
     if (pz) for (const [v, [cs, cd]] of Object.entries(CAMPO)) { if (pz[cd]) dibujos[v] = pz[cd]; else if (pz[cs]) svgs[v] = pz[cs]; }
-    Taller.abrir({ titulo: pz ? `Editar «${pz.nombre}» · ${HUESOS[hueso]}` : "Dibujar pieza nueva · Cabeza (cambia el hueso después en la pieza)", vistas: /^(mano|brazo|antebrazo)/.test(hueso) ? null : VISTAS_DIB, vista: "frente",
+    Taller.abrir({ nombre: pz ? pz.nombre || "" : "Dibujo " + (j.piezas.length + 1), titulo: pz ? `Editar · ${HUESOS[hueso]}` : "Dibujar pieza nueva · Cabeza (cambia el hueso después en la pieza)", vistas: /^(mano|brazo|antebrazo)/.test(hueso) ? null : VISTAS_DIB, vista: "frente",
       dibujos, svgs, colores: P.colores(j), referencia: referencia(hueso),
-      alGuardar: (out) => {
-        const campos = {}; for (const [v, o] of Object.entries(out)) { const [cs, cd] = CAMPO[v]; if (o.dibujo.formas.length) { campos[cs] = o.svg; campos[cd] = o.dibujo; } else if (v !== "frente") { campos[cs] = undefined; campos[cd] = undefined; } }
+      alGuardar: (out, info = {}) => { if (info.nombre) campos0.nombre = info.nombre;
+        const campos = Object.assign({}, campos0); for (const [v, o] of Object.entries(out)) { const [cs, cd] = CAMPO[v]; if (o.dibujo.formas.length) { campos[cs] = o.svg; campos[cd] = o.dibujo; } else if (v !== "frente") { campos[cs] = undefined; campos[cd] = undefined; } }
         if (!campos.svg && !pz) return aviso("La pieza está vacía: no se guarda");
         if (pz) { cambio((x) => { const q = x.piezas.find((y) => y.id === pz.id); for (const k in campos) { if (campos[k] === undefined) delete q[k]; else q[k] = campos[k]; } }); aviso("Dibujo guardado"); }
         else anadirPieza(Object.assign({ nombre: "Dibujo " + (j.piezas.length + 1), hueso: "cabeza", modo: "silueta", capa: "delante", vista: "siempre" }, campos)); } });
+    var campos0 = {};
   }
   $("#b-dibujar").addEventListener("click", () => abrirTaller(null));
   $("#pz-editar").addEventListener("click", () => { const pz = pieza(); if (pz) abrirTaller(pz); });
