@@ -1,6 +1,6 @@
 {
   "nombre": "¿Y si…? evidencia · 9 · El problema casi nunca es la falta de pr",
-  "duracion": 4.04,
+  "duracion": 4.74,
   "textos": [],
   "audios": [],
   "origen": "montaje:ysi2-evidencia",
@@ -10,6 +10,7 @@
     "tipo": "lamina",
     "lamina": "interior-formas",
     "escala": 1.45,
+    "horizonte": 680,
     "centro": {
       "x": 0,
       "y": -759
@@ -17,7 +18,7 @@
     "capas": [
       {
         "id": "sala",
-        "par": 0.1
+        "par": 0
       },
       {
         "id": "arco",
@@ -41,49 +42,31 @@
       "alto": 775
     },
     {
-      "t": 2.3289999999999997,
+      "t": 3.269,
       "x": 0,
-      "y": -330,
+      "y": -290,
       "zoom": 1.484,
       "tilt": 0.33999999999999997,
       "roll": 0,
       "alto": 775
     },
     {
-      "t": 2.3299999999999996,
-      "x": 0,
-      "y": -410,
-      "zoom": 2.5,
-      "tilt": 0.18,
-      "roll": 3,
-      "alto": 450
-    },
-    {
-      "t": 3.269,
-      "x": 0,
-      "y": -410,
-      "zoom": 2.6500000000000004,
-      "tilt": 0.18,
-      "roll": 6,
-      "alto": 450
-    },
-    {
       "t": 3.27,
       "x": 0,
       "y": -392.3529411764706,
       "zoom": 3.4,
-      "tilt": -0.14,
+      "tilt": -0.11200000000000002,
       "roll": -6,
-      "alto": 190
+      "alto": 242
     },
     {
-      "t": 4.04,
+      "t": 4.74,
       "x": 0,
       "y": -392.3529411764706,
       "zoom": 3.604,
-      "tilt": -0.14,
+      "tilt": -0.11200000000000002,
       "roll": -8,
-      "alto": 190
+      "alto": 242
     }
   ],
   "actores": [
@@ -103,7 +86,7 @@
         {
           "t": 0,
           "accion": "enfado",
-          "dur": 4.04,
+          "dur": 4.74,
           "capa": "cara"
         }
       ],

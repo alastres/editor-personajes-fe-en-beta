@@ -281,7 +281,7 @@
   // la escena menos el punto de la escena desde el que se ve; habla = id del actor cuya boca la sigue (o "auto": el primer actor)
   let contadorDof = 0;
   function crear(svg, esc, PJ, op = {}) { formato(op.formato || esc.formato);
-    const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), lamAtras = el("g", {}, raiz), mundo = el("g", {}, raiz), lamDelante = el("g", {}, raiz), gDelante = el("g", {}, raiz), gAmb = el("g", { "pointer-events": "none" }, raiz), gTextos = el("g", {}, raiz);
+    const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), lamAtras = el("g", {}, raiz), mundo = el("g", {}, raiz), lamDelante = el("g", {}, raiz), gDelante = el("g", {}, raiz), gRej = el("g", { "pointer-events": "none" }, raiz), gAmb = el("g", { "pointer-events": "none" }, raiz), gTextos = el("g", {}, raiz);
     let fondoKey = null;
     const actores = (esc.actores || []).map((a) => { const j = PJ[a.personaje]; const g = el("g", { "data-actor": a.id }, mundo);
       if (!j) { const tx = el("text", { fill: "#f66", "font-size": 40 }, g); tx.textContent = "falta el personaje «" + a.personaje + "»"; return { a, g, m: null, j: null }; }
@@ -322,7 +322,9 @@
       const c = camara(t), z = c.zoom || 1;
       const k = JSON.stringify(esc.fondo || {}) + Math.round(c.x / 4); if (k !== fondoKey) { fondoKey = k; pintarFondo(fondo, esc.fondo, c.x); }
       const tr = `translate(${ANCHO / 2} ${ALTO / 2})${c.roll ? ` rotate(${c.roll.toFixed(2)})` : ""} scale(${z}) translate(${f1(-c.x)} ${f1(-c.y)})`;
-      CAM = { x: c.x, alto: c.alto ?? esc.camaraAlto ?? 450 };
+      const LH = lamHorizonte(); let alto = c.alto ?? esc.camaraAlto ?? 450; dAlto = 0;
+      if (LH != null) { dAlto = Math.max(-220, Math.min(300, (alto - 450) * 0.6)); alto = -LH + dAlto; }
+      CAM = { x: c.x, alto };
       // el fondo (cielo, montes, suelo) se coloca con el horizonte a la altura de la cámara; en un interior, la pared del fondo está cerca
       const hz = horizonte((esc.fondo?.tipo || "noche") === "interior" ? Z_P * 1.15 : 18000);
       fondo.setAttribute("transform", tr + ` translate(0 ${f1(hz)})`); mundo.setAttribute("transform", tr);
@@ -331,7 +333,7 @@
       if (dof > 0.3) { dofStd.setAttribute("stdDeviation", (dof / z).toFixed(2)); fondo.setAttribute("filter", `url(#${dofId})`); lamAtras.setAttribute("filter", `url(#${dofId})`); } else { fondo.removeAttribute("filter"); lamAtras.removeAttribute("filter"); }
       tPlacas = t; pintarPlacas(c, tr);
       if ((esc.fondo?.tipo || "noche") !== "color") vivo(fondo, gDelante, esc.fondo, t, c.x, z);
-      Titere25D.camara({ tilt: c.tilt ?? 0.18 });
+      Titere25D.camara({ tilt: LH != null ? Math.max(0.1, Math.min(0.48, 0.18 * CAM.alto / 450)) + ((c.tilt ?? 0.18) - 0.18) * 0.35 : (c.tilt ?? 0.18) });   // con lámina, el ángulo de los títeres sale de la altura de la cámara
       const orden = [];
       const conFisica = actores.some((A) => A.j && (A.j.piezas || []).some((pz) => pz.fisica && pz.fisica.activa !== false));
       // física de las piezas: si el tiempo salta (vídeo renderizado por trozos, cabezal movido), se simula el segundo anterior para llegar
@@ -341,6 +343,12 @@
       for (const A of actores) { if (!A.m) continue; const q = actor(A, t); orden.push({ g: A.g, p: q.p || 0 }); }
       for (const O of objetos) orden.push({ g: O.g, p: O.ob.alFondo ? 99 + objeto(O, t) : objeto(O, t) + (O.ob.detras ? 0.0005 : -0.0005) });   // alFondo: decorado de escena entera, detrás de todos
       orden.sort((x, y) => y.p - x.p).forEach((o) => mundo.appendChild(o.g));
+      // REJILLA DE PROFUNDIDAD (editor: botón # de la planta, o esc.rejilla): líneas del suelo en p = −0,5 … 4 y el horizonte de la cámara
+      gRej.replaceChildren(); if (esc.rejilla || window.REJILLA_PROF) { gRej.setAttribute("transform", tr);
+        for (const p of [-0.5, -0.25, 0, 0.25, 0.5, 1, 2, 4]) { const y = proy(0, p).y; el("line", { x1: c.x - 4000, x2: c.x + 4000, y1: y, y2: y, stroke: p === 0 ? "#ff5a8a" : "#5af0ff", "stroke-width": 3 / z, opacity: 0.8 }, gRej);
+          const tx = el("text", { x: c.x - ANCHO / 2 / z + 12 / z, y: y - 6 / z, fill: "#5af0ff", "font-size": 26 / z, "font-family": "monospace" }, gRej); tx.textContent = "p " + p; }
+        el("line", { x1: c.x - 4000, x2: c.x + 4000, y1: -CAM.alto, y2: -CAM.alto, stroke: "#ffd54a", "stroke-width": 4 / z, "stroke-dasharray": `${20 / z} ${12 / z}` }, gRej);
+        const th = el("text", { x: c.x - ANCHO / 2 / z + 12 / z, y: -CAM.alto - 8 / z, fill: "#ffd54a", "font-size": 26 / z, "font-family": "monospace" }, gRej); th.textContent = "horizonte"; }
       pintarAmbiente(gAmb, esc, t);
       pintarTextos(t);
     }
@@ -352,12 +360,19 @@
     if (LAM) for (const c of esc.fondo.capas || LAM.capasDef || Object.keys(LAM.capas).map((id, i, a) => ({ id, par: [0.85, 0.3, -0.3][i] ?? 0, delante: i === a.length - 1 && a.length > 2 })))
       { const g = el("g", { "data-capa": c.id }, c.delante ? lamDelante : lamAtras); g.innerHTML = LAM.capas[c.id] || ""; placas.push({ c, g }); }
     let tPlacas = 0;
+    // HORIZONTE DE LA LÁMINA: fondo.horizonte = altura del horizonte pintado (px de la referencia de 1376 de alto). Si está, la cámara toma
+    // la altura que lo hace coincidir con el del espacio 2,5D: los personajes encogen y suben con la profundidad igual que el dibujo.
+    // La capa del suelo debe ir con par 0. Los picados y contrapicados (clave «alto») suben o bajan la cámara un poco y cada capa se desplaza
+    // según su profundidad (capa.p; por defecto: par ≥ 0,3 = horizonte, delante = −0,3, el resto = 0,3), así que fondo y personajes se mueven juntos.
+    const lamSc = () => Math.max(ANCHO / LAM.ancho, ALTO / LAM.alto) * (esc.fondo.escala ?? 1.15);
+    const lamHorizonte = () => (LAM && esc.fondo.horizonte != null) ? (esc.fondo.centro?.y ?? -400) - LAM.alto * lamSc() / 2 + esc.fondo.horizonte * (LAM.alto / 1376) * lamSc() : null;
+    let dAlto = 0;
     function pintarPlacas(c, tr) { if (!LAM) return; const z = c.zoom || 1, X0 = esc.fondo.centro?.x ?? 0, Y0 = esc.fondo.centro?.y ?? -400;
       const sc = Math.max(ANCHO / LAM.ancho, ALTO / LAM.alto) * (esc.fondo.escala ?? 1.15), W = LAM.ancho * sc, H = LAM.alto * sc;
-      for (const { c: k, g } of placas) { const par = k.par ?? 0, kz = Math.pow(z, -par);
+      for (const { c: k, g } of placas) { const par = k.par ?? 0, kz = Math.pow(z, -par), sL = k.p != null ? sDe(k.p) : k.delante ? sDe(-0.3) : par >= 0.3 ? 0 : sDe(0.3), oy = -dAlto * (1 - sL);
         // opacidad de la capa en el tiempo (fundir dos versiones: el mar cerrado → abierto): k.claves = [{ t, op }]
         if (k.claves) { const q = claves(k.claves, tPlacas, ["op"]); g.setAttribute("opacity", (q?.op ?? 1).toFixed(3)); }
-        g.setAttribute("transform", `${tr} translate(${f1(c.x)} ${f1(c.y)}) scale(${kz.toFixed(4)}) translate(${f1(-c.x)} ${f1(-c.y)}) translate(${f1((c.x - X0) * par)} ${f1((c.y - Y0) * par)}) translate(${f1(X0 - W / 2)} ${f1(Y0 - H / 2)}) scale(${sc.toFixed(4)})`); } }
+        g.setAttribute("transform", `${tr} translate(0 ${f1(oy)}) translate(${f1(c.x)} ${f1(c.y)}) scale(${kz.toFixed(4)}) translate(${f1(-c.x)} ${f1(-c.y)}) translate(${f1((c.x - X0) * par)} ${f1((c.y - Y0) * par)}) translate(${f1(X0 - W / 2)} ${f1(Y0 - H / 2)}) scale(${sc.toFixed(4)})`); } }
     let tAnterior = -1;
     const dofId = "esc-dof-" + (++contadorDof), defsD = (svg.ownerSVGElement || svg).querySelector("defs") || el("defs", {}, svg.ownerSVGElement || svg);
     const dofF = el("filter", { id: dofId, x: "-5%", y: "-5%", width: "110%", height: "110%", filterUnits: "objectBoundingBox" }, defsD), dofStd = el("feGaussianBlur", { stdDeviation: 0 }, dofF);

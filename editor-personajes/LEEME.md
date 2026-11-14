@@ -370,3 +370,14 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
   - Las capas pueden llevar `claves: [{ t, op }]` para fundirse o destellar.
   - Para colocarlas, en `dirigir.js` se usa `LAM(lámina, escala, xr, yr, capas, xw, yw)`: pone el punto (xr, yr) de la referencia en el punto (xw, yw) del mundo, con sc = 1080/1536 × escala. Con p = 0, los pies están en y = 0, y con p > 0 suben −450·(1 − s).
   - Deja margen: el borde de abajo debe quedar por debajo de cam.y + 960/zoom en los planos generales.
+- **Perspectiva de las láminas** (14 nov 2026; antes el horizonte del motor y el pintado no coincidían, con desfases de 150 a 370 px):
+  - `fondo.horizonte` = altura del horizonte pintado (px de la referencia de 1376). El motor calcula la altura de la cámara para que el horizonte del espacio 2,5D caiga ahí, y así los personajes encogen y suben con la profundidad igual que el dibujo.
+  - La capa del suelo va con `par: 0`.
+  - `LAM(lámina, escala, xr, yr, capas, hz, pa, xw)` ancla el suelo (xr, yr) a la profundidad `pa` y deja la altura de cámara de la escena en `A_`, que usan `MED` y `CARA` para encuadrar.
+  - Picados y contrapicados (clave `alto`): con lámina, suben o bajan la cámara un poco (±200 aprox.) y cada capa se desplaza según su profundidad (`capa.p`; por defecto, las lejanas al horizonte, el suelo a 0,3 y lo de delante a −0,3).
+  - El ángulo de los títeres sale de la altura de la cámara.
+  - **Rejilla de profundidad:** botón **#** en la caja de la planta, o `esc.rejilla: true`. Pinta las líneas del suelo en p = −0,5 … 4 y el horizonte (línea amarilla discontinua). En ysi2, `REJILLA=1 node ysi2-evidencia/dirigir.js` la pone en todas las escenas para revisar el render.
+- **Ritmo** (14 nov 2026; con 46 planos en 63 s el usuario dijo que «no da tiempo a procesar las animaciones»):
+  - `planos()` quita los planos de menos de 1,5 s, y el último debe durar al menos 1,2 s.
+  - `PAUSAS` en `dirigir.js` mete silencios en la voz tras las líneas clave: corta el WAV con ffmpeg, desplaza las palabras y la envolvente, y parte de `sh.vozBase`.
+  - Resultado: 34 planos de 2,1 s de media y 71 s de short.

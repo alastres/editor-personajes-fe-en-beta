@@ -1,10 +1,10 @@
 {
   "nombre": "¿Y si…? evidencia · 11 · «Bienaventurados los que no vieron, y cr",
-  "duracion": 2.96,
+  "duracion": 3.86,
   "textos": [
     {
       "t": 0.05,
-      "dur": 2.91,
+      "dur": 3.81,
       "texto": "Bienaventurados los que no vieron, y creyeron",
       "estilo": "cita",
       "ref": "JUAN 20:29 · RVR1960"
@@ -18,6 +18,7 @@
     "tipo": "lamina",
     "lamina": "interior-formas",
     "escala": 1.45,
+    "horizonte": 680,
     "centro": {
       "x": 0,
       "y": -759
@@ -25,7 +26,7 @@
     "capas": [
       {
         "id": "sala",
-        "par": 0.1
+        "par": 0
       },
       {
         "id": "arco",
@@ -44,35 +45,35 @@
     {
       "t": 0,
       "x": -60,
-      "y": -332.23,
-      "zoom": 1.25,
+      "y": -343.2185225894481,
+      "zoom": 1.280532340872811,
       "tilt": 0.468,
       "roll": 0,
       "alto": 1035
     },
     {
-      "t": 1.479,
+      "t": 1.499,
       "x": -60,
-      "y": -332.23,
-      "zoom": 1.3250000000000002,
+      "y": -343.2185225894481,
+      "zoom": 1.3573642813251798,
       "tilt": 0.468,
       "roll": 0,
       "alto": 1035
     },
     {
-      "t": 1.48,
+      "t": 1.5,
       "x": -60,
-      "y": -273.9130434782609,
-      "zoom": 2.3,
+      "y": -274.53504717424954,
+      "zoom": 2.3561795072059724,
       "tilt": -0.168,
       "roll": 0,
       "alto": 138
     },
     {
-      "t": 2.96,
+      "t": 3.86,
       "x": -60,
-      "y": -273.9130434782609,
-      "zoom": 2.4379999999999997,
+      "y": -274.53504717424954,
+      "zoom": 2.497550277638331,
       "tilt": -0.168,
       "roll": 0,
       "alto": 138
@@ -95,19 +96,19 @@
         {
           "t": 0.35,
           "accion": "arrodillarse",
-          "dur": 2.96,
+          "dur": 3.86,
           "mezcla": 0.5
         },
         {
           "t": 0.75,
           "accion": "ofrecer",
-          "dur": 2.96,
+          "dur": 3.86,
           "capa": "brazos"
         },
         {
           "t": 0.3,
           "accion": "conmovido",
-          "dur": 2.96,
+          "dur": 3.86,
           "capa": "cara"
         }
       ],

@@ -1,6 +1,6 @@
 {
   "nombre": "¿Y si…? evidencia · 3 · Israel vio cómo el mar se abría delante ",
-  "duracion": 3.24,
+  "duracion": 4.13,
   "textos": [],
   "audios": [],
   "origen": "montaje:ysi2-evidencia",
@@ -10,6 +10,7 @@
     "tipo": "lamina",
     "lamina": "mar-formas",
     "escala": 1.6,
+    "horizonte": 700,
     "centro": {
       "x": 0,
       "y": -1039
@@ -21,36 +22,36 @@
       },
       {
         "id": "cerrado",
-        "par": 0.1,
+        "par": 0,
         "claves": [
           {
             "t": 0,
             "op": 1
           },
           {
-            "t": 1.82,
+            "t": 1.81,
             "op": 1
           },
           {
-            "t": 2.92,
+            "t": 2.91,
             "op": 0
           }
         ]
       },
       {
         "id": "medio",
-        "par": 0.1,
+        "par": 0,
         "claves": [
           {
             "t": 0,
             "op": 0
           },
           {
-            "t": 1.72,
+            "t": 1.71,
             "op": 0
           },
           {
-            "t": 2.92,
+            "t": 2.91,
             "op": 1
           }
         ]
@@ -64,13 +65,13 @@
   "camaraFija": false,
   "efectos": [
     {
-      "t": 1.6700000000000002,
+      "t": 1.6600000000000001,
       "tipo": "sacudida",
       "dur": 1.4,
       "fuerza": 0.9
     },
     {
-      "t": 1.82,
+      "t": 1.81,
       "tipo": "destello",
       "dur": 0.6,
       "fuerza": 0.45
@@ -80,56 +81,38 @@
     {
       "t": 0,
       "x": 0,
-      "y": -470,
+      "y": -500,
       "zoom": 1,
       "tilt": 0.18,
       "roll": 0,
       "alto": 450
     },
     {
-      "t": 1.969,
+      "t": 2.709,
       "x": 0,
-      "y": -470,
+      "y": -530,
       "zoom": 1.06,
       "tilt": 0.18,
       "roll": 0,
       "alto": 450
     },
     {
-      "t": 1.97,
-      "x": 20,
-      "y": -244.70588235294116,
-      "zoom": 1.7,
-      "tilt": -0.196,
-      "roll": 0,
-      "alto": 90
-    },
-    {
-      "t": 2.919,
-      "x": 20,
-      "y": -244.70588235294116,
-      "zoom": 1.802,
-      "tilt": -0.196,
-      "roll": 0,
-      "alto": 90
-    },
-    {
-      "t": 2.92,
+      "t": 2.71,
       "x": 0,
-      "y": -640,
-      "zoom": 0.86,
-      "tilt": 0.436,
+      "y": -660,
+      "zoom": 0.88,
+      "tilt": 0.372,
       "roll": 0,
-      "alto": 970
+      "alto": 840
     },
     {
-      "t": 3.24,
+      "t": 4.13,
       "x": 0,
-      "y": -680,
-      "zoom": 0.9116000000000001,
-      "tilt": 0.436,
+      "y": -710,
+      "zoom": 0.9328000000000001,
+      "tilt": 0.372,
       "roll": 0,
-      "alto": 970
+      "alto": 840
     }
   ],
   "actores": [
@@ -147,7 +130,7 @@
       ],
       "bloques": [
         {
-          "t": 1.82,
+          "t": 1.81,
           "accion": "asombro",
           "dur": 4,
           "capa": "cara"
@@ -168,13 +151,13 @@
       ],
       "bloques": [
         {
-          "t": 1.9200000000000002,
+          "t": 1.9100000000000001,
           "accion": "manos-arriba",
           "dur": 3,
           "capa": "brazos"
         },
         {
-          "t": 1.82,
+          "t": 1.81,
           "accion": "asombro",
           "dur": 4,
           "capa": "cara"
@@ -195,7 +178,7 @@
       ],
       "bloques": [
         {
-          "t": 2.02,
+          "t": 2.0100000000000002,
           "accion": "asombro",
           "dur": 4,
           "capa": "cara"

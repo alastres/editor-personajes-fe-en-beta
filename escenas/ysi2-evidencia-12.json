@@ -1,6 +1,6 @@
 {
   "nombre": "¿Y si…? evidencia · 12 · Tú ya tienes más de lo que crees: la cre",
-  "duracion": 5.17,
+  "duracion": 5.77,
   "textos": [],
   "audios": [],
   "origen": "montaje:ysi2-evidencia",
@@ -10,6 +10,7 @@
     "tipo": "lamina",
     "lamina": "jardin1-formas",
     "escala": 1.45,
+    "horizonte": 640,
     "centro": {
       "x": 0,
       "y": -759
@@ -21,7 +22,7 @@
       },
       {
         "id": "medio",
-        "par": 0.1
+        "par": 0
       },
       {
         "id": "delante",
@@ -55,7 +56,7 @@
     {
       "t": 3.71,
       "x": 0,
-      "y": -600,
+      "y": -650,
       "zoom": 1,
       "tilt": 0.18,
       "curva": "frena"
@@ -63,15 +64,15 @@
     {
       "t": 4.62,
       "x": 420,
-      "y": -560,
+      "y": -640,
       "zoom": 1.6,
       "tilt": 0.05,
       "curva": "frena"
     },
     {
-      "t": 5.17,
+      "t": 5.77,
       "x": 420,
-      "y": -570,
+      "y": -650,
       "zoom": 1.75
     }
   ],

@@ -156,3 +156,4 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [ ] Unión booleana real de formas en el taller (hoy se agrupan).
 - [ ] Texto convertido en curvas.
 - [x] *(14 nov 2026)* Fondos de láminas dibujadas con formas básicas (`comun/formas.py`) para todas las escenas de la prueba ysi2-evidencia; capas con claves de opacidad (fundidos, relámpagos).
+- [x] *(14 nov 2026)* Perspectiva de láminas: horizonte pintado = horizonte de la cámara, capas que se mueven con los picados y contrapicados, rejilla de profundidad en el editor; regla de duración mínima de plano y pausas en la voz.

@@ -97,6 +97,7 @@
     if (plArr.tipo === "a") cambio((xx) => tocarClave(xx.actores.find((y) => y.id === plArr.id).recorrido, ["x", "p", "giro"], { x, p }), "plA" + plArr.id + tiempo.toFixed(2), false);
     else cambio((xx) => { const o = xx.objetos.find((y) => y.id === plArr.id); o.x = x; o.p = p; }, "plO" + plArr.id, false); });
   $("#planta").addEventListener("pointerup", () => { plArr = null; });
+  $("#b-rejilla").addEventListener("click", () => { window.REJILLA_PROF = !window.REJILLA_PROF; $("#b-rejilla").classList.toggle("activo", !!window.REJILLA_PROF); dibujar(); });
   $("#b-planta").addEventListener("click", () => { const c = $("#planta-caja"); c.classList.toggle("plegada"); $("#b-planta").textContent = c.classList.contains("plegada") ? "+" : "–"; pintarPlanta(); });
   function bucle(ahora) { const t = ahora / 1000;
     if (play && esc) { if (tAnt !== null) tiempo += t - tAnt; tAnt = t; if (tiempo >= D()) { tiempo = D(); parar(); } dibujar(); moverCabezal(); }
