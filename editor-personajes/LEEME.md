@@ -616,6 +616,10 @@ Como los huesos de Moho, para todo lo que no es el muñeco humano: animales, obj
   - un deslizador por hueso, o **arrastrar la punta de un hueso** en el lienzo para girarlo;
   - además sirven Elástico, Girar (al pasar de 90° se refleja como una tarjeta) y Despegar del suelo;
   - claves, curvas, seguimiento y acciones funcionan igual que con el muñeco.
+- **IK y pies clavados:**
+  - con **«Arrastrar con IK»** (en Posar, marcado de serie), al arrastrar la punta de un hueso que tiene padre se doblan los dos para llegar al ratón, como un brazo o una pata. El codo se dobla hacia el lado que menos cambia la pose;
+  - en Diseño, **📌** junto a un hueso con padre lo **clava**: su punta se queda donde está en reposo (un pie en el suelo) y él y su padre se doblan solos;
+  - **«Mover el cuerpo ↔ / ↕»** (en Posar) desplaza la marioneta entera. Con las patas clavadas, al bajar el cuerpo se agacha y al moverlo de lado se inclina sin despegar los pies.
 - **En Escenas y Montaje** se usa como cualquier personaje del reparto, y se renderiza igual.
 - **Datos:** `tipo: "libre"`, `libre: { huesos: [{ nombre, padre, o, e }], capas: [{ id, nombre, svg | imagen, hueso? }] }`; en la pose, `huesos: { nombre: grados }`.
 - **Motor:** `comun/libre.js` (`Libre.crear`, misma interfaz que `Titere25D.crear`) sobre `comun/rig2d.js` (copia del de lab-huesos). `Personajes.crear` elige el motor según el tipo.

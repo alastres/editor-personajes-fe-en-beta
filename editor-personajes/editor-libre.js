@@ -20,7 +20,9 @@
       nom.addEventListener("change", () => renombrar(b.nombre, nom.value.trim()));
       const pad = h("select", { title: "Hueso padre (al girar el padre, este le sigue)" }, h("option", { value: "" }, "— sin padre —"), ...l.huesos.filter((x) => x.nombre !== b.nombre && !desciende(x.nombre, b.nombre)).map((x) => h("option", { value: x.nombre }, x.nombre)));
       pad.value = b.padre || ""; pad.addEventListener("change", () => E.cambio((x) => { const q = x.libre.huesos.find((y) => y.nombre === b.nombre); q.padre = pad.value || null; ordenar(x.libre); }));
-      return h("li", { class: b.nombre === sel ? "activo" : "", onclick: (ev) => { if (ev.target.closest("input,select,button")) return; sel = b.nombre; pintar(); fotograma(E.m); } }, h("span", {}, "╱"), nom, pad,
+      const clav = (l.clavados || []).includes(b.nombre), pin = h("button", { class: "lb-pin" + (clav ? " activo" : ""), title: b.padre ? (clav ? "Clavado: su punta se queda en el suelo. Pulsa para soltarlo" : "Clavar: su punta se queda quieta (un pie en el suelo) y él y su padre se doblan solos") : "Solo se clava un hueso con padre (la pata de una pierna)", ...(b.padre ? {} : { disabled: "" }),
+        onclick: () => E.cambio((x) => { const c = new Set(x.libre.clavados || []); c.has(b.nombre) ? c.delete(b.nombre) : c.add(b.nombre); x.libre.clavados = [...c]; if (!x.libre.clavados.length) delete x.libre.clavados; }) }, "📌");
+      return h("li", { class: b.nombre === sel ? "activo" : "", onclick: (ev) => { if (ev.target.closest("input,select,button")) return; sel = b.nombre; pintar(); fotograma(E.m); } }, h("span", {}, "╱"), nom, pad, pin,
         h("button", { title: "Borrar el hueso (sus hijos pasan a su padre)", onclick: () => borrarHueso(b.nombre) }, "✕")); }));
     uc.replaceChildren(...l.capas.map((c, i) => { const hs = h("select", { title: "Con qué hueso se mueve" }, h("option", { value: "" }, c.imagen ? "Rígida, al hueso más cercano" : "Se dobla con todos los huesos"), ...l.huesos.map((x) => h("option", { value: x.nombre }, "Pegada a «" + x.nombre + "»")));
       hs.value = c.hueso || ""; hs.addEventListener("change", () => E.cambio((x) => { const q = x.libre.capas[i]; if (hs.value) q.hueso = hs.value; else delete q.hueso; }));
@@ -39,7 +41,7 @@
     E.cambio((x) => { for (const q of x.libre.huesos) { if (q.nombre === a) q.nombre = b; if (q.padre === a) q.padre = b; } for (const c of x.libre.capas) if (c.hueso === a) c.hueso = b;
       for (const ac of x.acciones || []) for (const k of ac.claves || []) if (k.pose?.huesos && a in k.pose.huesos) { k.pose.huesos[b] = k.pose.huesos[a]; delete k.pose.huesos[a]; } }); if (sel === a) sel = b; }
   function borrarHueso(n) { E.cambio((x) => { const b = x.libre.huesos.find((y) => y.nombre === n); for (const q of x.libre.huesos) if (q.padre === n) q.padre = b?.padre || null;
-      x.libre.huesos = x.libre.huesos.filter((y) => y.nombre !== n); for (const c of x.libre.capas) if (c.hueso === n) delete c.hueso; }); }
+      x.libre.huesos = x.libre.huesos.filter((y) => y.nombre !== n); for (const c of x.libre.capas) if (c.hueso === n) delete c.hueso; if (x.libre.clavados) x.libre.clavados = x.libre.clavados.filter((y) => y !== n); }); }
   function mover(i, d) { const k = i + d; if (k < 0 || k >= L().capas.length) return; E.cambio((x) => { const c = x.libre.capas; [c[i], c[k]] = [c[k], c[i]]; }); }
 
   // ---- capas: dibujar en el taller (con el resto y el esqueleto de calco) o traer un PNG
@@ -69,14 +71,16 @@
   const local = (ev) => { const g = E.m?.g?.lastChild; if (!g) return [0, 0]; const pt = $("#lienzo").createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const q = pt.matrixTransform(g.getScreenCTM().inverse()); return [q.x, q.y]; };
   const lienzo = $("#lienzo");
   lienzo.addEventListener("pointerdown", (ev) => { if (!esLibre()) return; const anim = document.body.classList.contains("modo-anim"), t = ev.target.closest("[data-hueso]"), p = local(ev);
-    if (!anim && modo === "hueso") { ev.preventDefault(); ev.stopPropagation(); arr = { tipo: "nuevo", o: p, e: p }; lienzo.setPointerCapture(ev.pointerId); return; }
-    if (!t) return; ev.preventDefault(); ev.stopPropagation(); sel = t.dataset.hueso; lienzo.setPointerCapture(ev.pointerId);
+    if (!anim && modo === "hueso") { ev.preventDefault(); ev.stopPropagation(); arr = { tipo: "nuevo", o: p, e: p }; try { lienzo.setPointerCapture(ev.pointerId); } catch {} return; }
+    if (!t) return; ev.preventDefault(); ev.stopPropagation(); sel = t.dataset.hueso; try { lienzo.setPointerCapture(ev.pointerId); } catch {}
     arr = anim ? { tipo: "girar", n: sel } : { tipo: "punto", n: sel, punto: t.dataset.punto || "e", p0: p }; pintar(); fotograma(E.m); }, true);
   lienzo.addEventListener("pointermove", (ev) => { if (!arr) return; const p = local(ev);
     if (arr.tipo === "nuevo") { arr.e = p; fotograma(E.m); const g = capaE; if (g) sv("line", { x1: arr.o[0], y1: arr.o[1], x2: p[0], y2: p[1], stroke: "#ffd27a", "stroke-width": 5, "stroke-dasharray": "8 5" }, g); return; }
     if (arr.tipo === "punto") { E.cambio((x) => { const b = x.libre.huesos.find((y) => y.nombre === arr.n); if (!b) return; const viejo = b[arr.punto].slice(); b[arr.punto] = [+p[0].toFixed(1), +p[1].toFixed(1)];
         // la punta arrastra el arranque de los hijos que estaban pegados a ella
         if (arr.punto === "e") for (const q of x.libre.huesos) if (q.padre === b.nombre && Math.hypot(q.o[0] - viejo[0], q.o[1] - viejo[1]) < 2) q.o = b.e.slice(); }, "lb-punto-" + arr.n); return; }
+    if (arr.tipo === "girar" && ikActivo() && E.m.ikGrados) { const n = arr.n, hs0 = (window.EPA.poseActual?.() || {}).huesos || {}, r = E.m.ikGrados(hs0, n, p);
+      if (r) { window.EPA.editar((q) => { q.huesos = Object.assign({}, q.huesos, r); }, "lb-ik-" + n); return; } }
     if (arr.tipo === "girar") { const b = E.m.esqueleto().find((y) => y.nombre === arr.n); if (!b) return;
       const ahora = Math.atan2(b.e[1] - b.o[1], b.e[0] - b.o[0]), quiere = Math.atan2(p[1] - b.o[1], p[0] - b.o[0]); let d = ((quiere - ahora) * 180) / Math.PI; while (d > 180) d -= 360; while (d < -180) d += 360;
       if (Math.abs(d) < 0.2) return; const n = arr.n; window.EPA.editar((q) => { const hs = Object.assign({}, q.huesos); hs[n] = +(((hs[n] || 0) + d)).toFixed(1); q.huesos = hs; }, "lb-girar-" + n); } });
@@ -92,10 +96,16 @@
 
   // ---- animación: un deslizador por hueso (en Posar)
   function pintarPosar() { const c = $("#lb-posar"); if (!c) return; if (!esLibre()) { c.replaceChildren(); return; } const pose = window.EPA.poseActual?.() || {}, hs = pose.huesos || {};
-    const firma = L().huesos.map((b) => b.nombre).join("|"); if (c.dataset.firma !== firma) { c.dataset.firma = firma; c.replaceChildren(...L().huesos.map((b) => { const inp = h("input", { type: "range", min: -180, max: 180, step: 1, "data-lb": b.nombre }), out = h("output");
-        inp.addEventListener("input", () => { out.textContent = inp.value + "°"; window.EPA.editar((q) => { q.huesos = Object.assign({}, q.huesos, { [b.nombre]: +inp.value }); }, "lb-hueso-" + b.nombre); });
-        return h("div", { class: "deslizador" }, h("label", {}, "Girar «" + b.nombre + "»"), inp, out); }), h("p", { class: "ayuda" }, "También puedes arrastrar la punta de un hueso en el lienzo.")); }
-    for (const i of c.querySelectorAll("[data-lb]")) { if (document.activeElement === i) continue; const v = Math.round(hs[i.dataset.lb] || 0); i.value = v; i.nextElementSibling.textContent = v + "°"; } }
+    const firma = L().huesos.map((b) => b.nombre).join("|"); if (c.dataset.firma !== firma) { c.dataset.firma = firma;
+      const desl = (k, et, mn, mx, u) => { const inp = h("input", { type: "range", min: mn, max: mx, step: 1, "data-lb": k }), out = h("output");
+        inp.addEventListener("input", () => { out.textContent = inp.value + u; window.EPA.editar((q) => { q.huesos = Object.assign({}, q.huesos, { [k]: +inp.value }); }, "lb-hueso-" + k); });
+        return h("div", { class: "deslizador" }, h("label", {}, et), inp, out); };
+      c.replaceChildren(h("label", { class: "chk", title: "Al arrastrar la punta de un hueso con padre, se doblan los dos para llegar al ratón (como un brazo o una pata). Sin marcar, solo gira ese hueso" }, h("input", { type: "checkbox", id: "lb-ik", checked: "" }), " Arrastrar con IK (dobla también al padre)"),
+        desl("__x", "Mover el cuerpo ↔", -400, 400, ""), desl("__y", "Mover el cuerpo ↕", -400, 200, ""),
+        ...L().huesos.map((b) => desl(b.nombre, "Girar «" + b.nombre + "»" + ((L().clavados || []).includes(b.nombre) ? " 📌" : ""), -180, 180, "°")),
+        h("p", { class: "ayuda" }, "También puedes arrastrar la punta de un hueso en el lienzo. Los huesos con 📌 (clavados en Diseño) dejan su punta en el suelo aunque muevas el cuerpo.")); }
+    for (const i of c.querySelectorAll("[data-lb]")) { if (document.activeElement === i) continue; const v = Math.round(hs[i.dataset.lb] || 0); i.value = v; i.nextElementSibling.textContent = v + (i.dataset.lb.startsWith("__") ? "" : "°"); } }
+  const ikActivo = () => document.querySelector("#lb-ik")?.checked !== false;
 
   $("#lb-hueso-nuevo")?.addEventListener("click", () => { modo = modo === "hueso" ? null : "hueso"; pintar(); });
   $("#lb-capa-dibujo")?.addEventListener("click", () => editarCapa(null));

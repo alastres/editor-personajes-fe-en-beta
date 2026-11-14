@@ -334,3 +334,6 @@ body:not(.es-libre) .libre-solo, body:not(.es-libre) details.libre-bloque { disp
 #g-svg .g-clave { fill: #13111f; stroke: var(--acento); stroke-width: 3; vector-effect: non-scaling-stroke; cursor: ns-resize; }
 #g-svg .g-clave.activa { fill: var(--acento); }
 #t-graficas.activo { background: var(--panel2); color: var(--acento); box-shadow: 0 0 0 1px #4a4466; }
+
+.lb-pin { padding: 4px 6px; opacity: .45; }
+.lb-pin.activo { opacity: 1; background: var(--acento); border-color: var(--acento); }

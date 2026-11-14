@@ -267,7 +267,9 @@ Por hacer:
   - Las capas se dibujan en el taller o se traen en PNG; cada una se dobla con todos los huesos o va pegada a uno.
   - Se anima con un deslizador por hueso o arrastrando la punta, con claves, elástico y reflejo al girarse.
   - Funciona en Escenas, Montaje y el render (`comun/libre.js` + `comun/rig2d.js`). Ejemplo: «Gusano (ejemplo de marioneta libre)».
-  - [ ] Pendiente: IK de dos huesos al arrastrar (pies que se quedan en el suelo), pesos pintados a mano y correcciones por ángulo como en el muñeco.
+  - [x] Arrastrar la punta de un hueso con padre dobla los dos (IK de dos huesos; casilla «Arrastrar con IK»).
+  - [x] Con **📌 Clavar** un hueso deja su punta quieta en el suelo (pies pegajosos); «Mover el cuerpo ↔ ↕» desplaza todo lo demás.
+  - [ ] Pendiente: pesos pintados a mano y correcciones por ángulo como en el muñeco.
 - [x] **Animación a mano, cuadro a cuadro** (como las capas fotograma a fotograma de Moho): en Escenas → Atrezo, «Animación a mano (cuadro a cuadro)».
   - Una tira de cuadros que se dibujan en el taller con papel cebolla: el anterior en rojizo y el siguiente en verdoso.
   - «＋ Cuadro» copia el elegido para retocarlo; se ordenan con ← →.

@@ -30,8 +30,19 @@
     const puntos = { pies: [0, 0], alto: Math.max(120, alto + 40), cabeza: [0, -alto] };
     let T = null;
 
+    // pose en radianes desde la de la escena (grados): «__x» y «__y» mueven el cuerpo entero (la raíz)
+    const poseDe = (hs = {}) => { const pose = {}; for (const [n, g] of Object.entries(hs)) if (!n.startsWith("__")) pose[n] = (g * Math.PI) / 180; pose.__raiz = [hs.__x || 0, hs.__y || 0]; return pose; };
+    // cinemática inversa de dos huesos (padre e hijo): el codo se dobla hacia el lado que se aparta menos de la pose de ahora
+    function ik2(pose, b, obj) { const h = sk?.H[b]; if (!h?.padre) return false; const a = h.padre;
+      const p1 = sk.ik2(Object.assign({}, pose), a, b, obj, 1), p2 = sk.ik2(Object.assign({}, pose), a, b, obj, -1);
+      const dif = (p) => Math.abs(Math.atan2(Math.sin(p[a] - (pose[a] || 0)), Math.cos(p[a] - (pose[a] || 0)))) + Math.abs(Math.atan2(Math.sin(p[b] - (pose[b] || 0)), Math.cos(p[b] - (pose[b] || 0))));
+      const q = dif(p1) <= dif(p2) ? p1 : p2; pose[a] = q[a]; pose[b] = q[b]; return true; }
+    const clavados = (L.clavados || []).filter((n) => sk?.H[n]?.padre);
     function dibujar(e = {}) {
-      const pose = {}; for (const [n, g] of Object.entries(e.huesos || {})) pose[n] = (g * Math.PI) / 180;
+      const pose = poseDe(e.huesos);
+      // PIES CLAVADOS (como los «pies pegajosos» de Cartoon Animator): la punta de un hueso clavado se queda donde estaba en reposo
+      // aunque el cuerpo se mueva o se agache; su padre y él se doblan solos para llegar
+      for (const n of clavados) ik2(pose, n, sk.H[n].e);
       T = sk ? sk.posar(pose) : null;
       for (const c of capas) {
         if (c.rigida) { c.g.setAttribute("transform", c.hueso && T ? sk.matriz(T, c.hueso) : ""); continue; }
@@ -46,7 +57,9 @@
     // juntas: el origen y la punta de cada hueso en la pose de ahora (para dibujar el esqueleto encima en el editor)
     const juntas = () => { if (!sk) return []; const t = T || sk.posar({}); return huesos.map((h) => ({ nombre: h.nombre, padre: h.padre, o: sk.origen(t, h.nombre), e: sk.punta(t, h.nombre) })); };
     dibujar({});
-    return { g: raiz, dibujar, escala: [1, 1], puntos, libre: true, esqueleto: juntas, juntas: {}, partes: () => ({}), controles: () => ({}) };
+    // para el editor: giros (en grados) de un hueso y su padre para que la punta llegue a `obj`, desde la pose de ahora
+    const ikGrados = (hs, b, obj) => { const pose = poseDe(hs); if (!ik2(pose, b, obj)) return null; const a = sk.H[b].padre, g = (r) => +((r * 180) / Math.PI).toFixed(1); return { [a]: g(pose[a]), [b]: g(pose[b]) }; };
+    return { g: raiz, dibujar, escala: [1, 1], puntos, libre: true, esqueleto: juntas, ikGrados, clavados, juntas: {}, partes: () => ({}), controles: () => ({}) };
   }
   window.Libre = { crear, BASE };
 })();
