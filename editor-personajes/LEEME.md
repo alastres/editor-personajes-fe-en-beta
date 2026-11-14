@@ -734,3 +734,35 @@ Una capa común para Personajes, Escenas, Montaje y VTuber: `tema.css` (aspecto)
   - **teléfono (hasta 860 px):** el lienzo ocupa la pantalla y abajo hay una barra **Lista · Lienzo · Ajustes**. La lista y los ajustes suben como hojas: al elegir un elemento de la lista, o al tocar el lienzo, se vuelve al lienzo.
 - Para dar una sección nueva a una pestaña, se añade su título a `PESTANAS` en `interfaz.js` (expresión sobre el título sin tildes). Una sección sin título va con la anterior.
 
+## Pinceles y tableta gráfica en el taller de dibujo (15 nov 2026)
+Con la herramienta **Pincel** (B), arriba del panel del taller aparecen los pinceles. Cada trazo se guarda como una **forma rellena**, no como una línea de grosor fijo: se ensancha y se estrecha con la presión, y como sigue siendo vectorial, se dobla con los huesos, se deforma y se edita con Seleccionar.
+
+| Pincel | Cómo es |
+|---|---|
+| Tinta | Muy sensible a la presión, con puntas afiladas: contornos y líneas de expresión |
+| Rotulador | Grosor casi constante y puntas redondas: líneas limpias y letras |
+| Lápiz | Fino, con grano de papel y algo transparente; inclinado, engorda |
+| Pincel seco | Bordes rotos y vetas de cerdas: pelo, barba, tela, hierba |
+| Pluma caligráfica | Punta plana, gruesa en una dirección y fina en la otra; con inclinación, la punta gira |
+| Relleno a mano | Ancho, para manchas de color, sombras y brillos |
+
+- **Ajustes de cada pincel:**
+  - tamaño (teclas **[ y ]**);
+  - sensibilidad a la presión;
+  - curva de presión: suave (poco esfuerzo) o dura;
+  - estabilizador en vivo: el trazo va un poco por detrás del lápiz y no tiembla;
+  - afinar las puntas y opacidad;
+  - «sin lápiz, la velocidad hace de presión»: con ratón o dedo, rápido = fino;
+  - «usar la inclinación del lápiz».
+- **Pinceles propios:** «Guardar como pincel propio» guarda los ajustes con un nombre (⭐), en este navegador. «Ajustes de serie» deshace los cambios. Se recuerda el último pincel usado.
+- **El color** del pincel es el de **Contorno**.
+- **Tableta gráfica:**
+  - se leen todos los puntos del lápiz (`getCoalescedEvents`), no solo los que llegan a la pantalla, así que los trazos rápidos salen sin picos;
+  - se usan la presión, la inclinación (`altitudeAngle`/`azimuthAngle`, o `tiltX`/`tiltY`) y el **otro extremo del lápiz, que borra** sobre la forma de debajo;
+  - el panel indica «lápiz detectado · presión · inclinado»;
+  - un círculo en el lienzo muestra el tamaño del pincel.
+- **Dedos:** con **dos dedos** se mueve y se acerca la vista; si había un trazo a medias, se descarta. Después de usar el lápiz, un dedo solo mueve la vista: la palma apoyada no pinta.
+- **La Goma** (X) ya no necesita elegir antes la forma: borra la que tenga debajo al empezar.
+- **Texturas:** el grano del lápiz y el pincel seco son filtros SVG (`tx-grano`, `tx-seco`) que van en los `<defs>` de la pieza. Se ven igual en Escenas y en el vídeo.
+- **Datos:** la forma lleva `pincel: "tinta" | "lapiz" | …` y, si lo tiene, `textura`. Los trazos antiguos, que son líneas con `grosor`, no cambian. El cálculo está en `pinceles.js` (`Pinceles.contorno`), que se carga antes de `dibujo.js` en Personajes y Escenas.
+

@@ -339,3 +339,10 @@ body:not(.es-libre) .libre-solo, body:not(.es-libre) details.libre-bloque { disp
 .lb-pin.activo { opacity: 1; background: var(--acento); border-color: var(--acento); }
 #g-svg .g-tanl { stroke: #c8a0ff; stroke-width: 1.5; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
 #g-svg .g-tan { fill: #c8a0ff; stroke: #13111f; stroke-width: 2; vector-effect: non-scaling-stroke; cursor: move; }
+
+/* taller: pinceles (pinceles.js) */
+.tl-pinceles { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px; }
+.tl-pz { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 12px; text-align: left; position: relative; }
+.tl-pz .ic { width: 18px; text-align: center; } .tl-pz.activo { border-color: var(--acento); background: var(--acento-t, #f0a33a22); }
+.tl-pz .x { margin-left: auto; opacity: .5; padding: 0 2px; } .tl-pz .x:hover { opacity: 1; color: #ff9b85; }
+#tl-pincel { border-bottom: 1px solid var(--borde); padding-bottom: 10px; margin-bottom: 10px; }

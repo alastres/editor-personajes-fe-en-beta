@@ -298,6 +298,12 @@ Por hacer:
   - Barra con las secciones y un menú ⋯; lista con buscador y ＋; panel en pestañas.
   - En el teléfono, el lienzo con la lista y los ajustes como hojas.
   - [ ] Pendiente: el taller de dibujo y las ventanas (curvas, correcciones) con el mismo aspecto, y la línea de tiempo de Escenas más cómoda en el teléfono.
+- [x] **Pinceles y tableta gráfica** en el taller (15 nov 2026): trazos con presión convertidos en formas vectoriales.
+  - Seis pinceles (tinta, rotulador, lápiz con grano, pincel seco, pluma caligráfica, relleno) y pinceles propios.
+  - Estabilizador en vivo, todos los puntos del lápiz, inclinación y goma en el otro extremo del lápiz.
+  - Sin palma, y con dos dedos se mueve y se acerca la vista.
+  - [ ] Pendiente: probarlo con una tableta real (Wacom, Huion, iPad con Sidecar) y afinar las curvas de presión. En el navegador de pruebas se simuló el lápiz.
+  - [ ] Pendiente: más texturas (acuarela vectorial, carboncillo) y editar el grosor de un trazo ya hecho.
 - [x] **App de escritorio** (Electron, `app-escritorio/`, versión 0.1).
   - Instalador de Windows de 93 MB.
   - Arranca el servidor por dentro, guarda los datos en Documentos/Fe en Beta Editor y la primera vez copia los ejemplos.

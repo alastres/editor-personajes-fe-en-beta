@@ -57,7 +57,8 @@
     const uno = (f, extra) => { if (f.tipo === "texto") { const q = f.puntos[0]; return `<text x="${f2(q.x)}" y="${f2(q.y)}" font-size="${f2(f.tam || 48)}" text-anchor="middle" dominant-baseline="central" font-family="Inter, Figtree, Segoe UI, sans-serif" font-weight="${f.peso || 800}" fill="${R(f.relleno || "{tinta}")}"${op(f)}${extra}>${escT(f.texto || "")}</text>`; }
       if (f.puntos.length < 2) return "";
       const st = f.trazo && f.grosor ? ` stroke="${R(f.trazo)}" stroke-width="${f2(f.grosor)}" stroke-linecap="round" stroke-linejoin="round"` : ed && !f.cerrada ? ` stroke="#888" stroke-width="2"` : "";
-      return `<path d="${d(f)}" fill="${f.cerrada ? relleno(f, R, defs) : "none"}"${st}${op(f)}${f.ref != null ? ` data-ref="${escT(f.ref)}"` : ""}${extra}/>`; };
+      let tx = ""; if (f.textura && window.Pinceles) { const fl = Pinceles.filtro(f.textura); if (fl) { if (!defs.includes(fl)) defs.push(fl); tx = ` filter="url(#tx-${f.textura})"`; } }
+      return `<path d="${d(f)}" fill="${f.cerrada ? relleno(f, R, defs) : "none"}"${st}${op(f)}${tx}${f.ref != null ? ` data-ref="${escT(f.ref)}"` : ""}${extra}/>`; };
     const conEspejo = (f, extra) => uno(f, extra) + (f.simetrica && f.tipo !== "texto" ? `<g transform="scale(-1 1)"${ed ? ' pointer-events="none"' : ""}>${uno(f, "")}</g>` : "");
     F.forEach((f, i) => { if (f.oculta) return; const ex = ed ? ` data-i="${i}" class="forma${ed.sel(i) ? " sel" : ""}"` : "";
       if (f.agujero) { if (ed && f.puntos.length > 1) out.push(`<path d="${d(f)}" fill="#ffffff" fill-opacity="0.05" stroke="#f0a33a" stroke-width="${f2(1.5 * ed.k)}" stroke-dasharray="${f2(5 * ed.k)} ${f2(4 * ed.k)}"${ex}/>`); return; }
@@ -145,13 +146,28 @@
         <li>Puntos: doble clic = esquina ⇄ curva · doble clic en el trazo = añadir punto · <kbd>Alt</kbd> + clic = quitar punto · <kbd>Alt</kbd> al mover un tirador = romper la curva</li></ul></div>
       <div class="taller-cuerpo">
         <div class="taller-herr" id="tl-herr"></div>
-        <div class="taller-lienzo"><svg id="tl-svg"><g id="tl-calco"></g><g id="tl-ref"></g><g id="tl-ejes"></g><g id="tl-formas"></g><g id="tl-ref2" pointer-events="none"></g><g id="tl-asas"></g><path id="tl-trazo" fill="none" stroke="#f0a33a" stroke-width="2" stroke-dasharray="4 3"/></svg>
+        <div class="taller-lienzo"><svg id="tl-svg"><g id="tl-calco"></g><g id="tl-ref"></g><g id="tl-ejes"></g><g id="tl-formas"></g><g id="tl-ref2" pointer-events="none"></g><g id="tl-asas"></g><path id="tl-trazo" fill="none" stroke="#f0a33a" stroke-width="2" stroke-dasharray="4 3"/><circle id="tl-cursor" r="0" fill="none" stroke="#ffffff" stroke-opacity="0.7" pointer-events="none"/></svg>
           <div class="tl-zoom"><button id="tl-zm">−</button><button id="tl-z0">Encajar</button><button id="tl-zp">+</button><label class="chk"><input type="checkbox" id="tl-verref" checked> Ver el personaje</label></div></div>
         <div class="taller-panel">
+          <div id="tl-pincel" hidden>
+            <h4>Pincel <span class="tenue" id="tl-lapiz">sin lápiz: la velocidad hace de presión</span></h4>
+            <div class="tl-pinceles" id="tl-pinceles"></div>
+            <p class="ayuda" id="tl-pz-ayuda"></p>
+            <div class="deslizador"><label>Tamaño <span class="tenue">([ y ])</span></label><input type="range" id="tl-pz-tam" min="0.5" max="80" step="0.5"><output></output></div>
+            <div class="deslizador"><label>Sensibilidad a la presión</label><input type="range" id="tl-pz-sens" min="0" max="1" step="0.05"><output></output></div>
+            <div class="deslizador"><label>Curva de presión <span class="tenue">(suave ↔ dura)</span></label><input type="range" id="tl-pz-curva" min="-1" max="1" step="0.1"><output></output></div>
+            <div class="deslizador"><label>Estabilizador <span class="tenue">(quita el temblor)</span></label><input type="range" id="tl-pz-estab" min="0" max="0.95" step="0.05"><output></output></div>
+            <div class="deslizador"><label>Afinar las puntas</label><input type="range" id="tl-pz-afinar" min="0" max="1" step="0.05"><output></output></div>
+            <div class="deslizador"><label>Opacidad del pincel</label><input type="range" id="tl-pz-opac" min="0.1" max="1" step="0.05"><output></output></div>
+            <label class="chk" title="Con el ratón o el dedo: cuanto más rápido, más fino"><input type="checkbox" id="tl-pz-simular"> Sin lápiz, la velocidad hace de presión</label>
+            <label class="chk" title="Lápiz inclinado: el lápiz y el pincel seco ensanchan; la pluma caligráfica gira la punta"><input type="checkbox" id="tl-pz-incl"> Usar la inclinación del lápiz</label>
+            <div class="fila-botones dos"><button id="tl-pz-guardar" title="Guarda estos ajustes como un pincel tuyo (en este navegador)">Guardar como pincel propio</button><button id="tl-pz-reset" title="Vuelve a los ajustes de serie de este pincel">Ajustes de serie</button></div>
+            <p class="ayuda">El color del pincel es el de <b>Contorno</b>. Cada trazo queda como una forma (se dobla con los huesos y se edita con Seleccionar). El otro extremo del lápiz borra. Con dos dedos se mueve y se acerca la vista.</p>
+          </div>
           <h4>Relleno</h4><div class="paleta" id="tl-relleno"></div>
           <div class="campo"><label>Relleno</label><div class="seg pequeno" id="tl-tipo-rell"></div></div>
           <div id="tl-deg" hidden><h4>Color final del degradado</h4><div class="paleta" id="tl-deg-c"></div><div class="deslizador"><label>Dirección del degradado</label><input type="range" id="tl-deg-ang" min="0" max="360" step="5"><output></output></div></div>
-          <h4>Contorno</h4><div class="paleta" id="tl-trazo-c"></div>
+          <h4>Contorno <span class="tenue">(y color del pincel)</span></h4><div class="paleta" id="tl-trazo-c"></div>
           <div class="deslizador"><label>Grosor del contorno o pincel</label><input type="range" id="tl-grosor" min="0" max="30" step="0.5"><output></output></div>
           <div class="deslizador"><label>Opacidad</label><input type="range" id="tl-opac" min="0.1" max="1" step="0.05"><output></output></div>
           <div class="deslizador"><label>Suavizado del pincel y del lazo</label><input type="range" id="tl-suave" min="0.5" max="8" step="0.5" value="2.2"><output>2.2</output></div>
@@ -223,6 +239,12 @@
       giroBase.idx.forEach((i, n) => D.formas[i].puntos.forEach((q, j) => { const o = giroBase.P[n][j]; for (const [x, y] of [["x", "y"], ["ix", "iy"], ["ox", "oy"]]) { const dx = o[x] - giroBase.c.x, dy = o[y] - giroBase.c.y; q[x] = giroBase.c.x + dx * co - dy * si; q[y] = giroBase.c.y + dx * si + dy * co; } })); pintarFormas(); pintarAsas(); };
     giro.addEventListener("change", () => { giroBase = null; giro.value = 0; giro.nextElementSibling.textContent = "0°"; pintar(); });
     $("#tl-union", raiz).onclick = () => combinar("union"); $("#tl-resta", raiz).onclick = () => combinar("resta"); $("#tl-inter", raiz).onclick = () => combinar("inter");
+    for (const k of ["tam", "sens", "curva", "estab", "afinar", "opac"]) $("#tl-pz-" + k, raiz).oninput = (ev) => { pz[k] = +ev.target.value; recordarPincel(); pintarPincel(); };
+    $("#tl-pz-simular", raiz).onchange = (ev) => { pz.simular = ev.target.checked; recordarPincel(); };
+    $("#tl-pz-incl", raiz).onchange = (ev) => { pz.inclinacion = ev.target.checked; recordarPincel(); };
+    $("#tl-pz-reset", raiz).onclick = () => { const base = Pinceles.PRESETS[pzId] || Pinceles.propios()[pzId]; if (base) { pz = clon(base); recordarPincel(); pintarPincel(); } };
+    $("#tl-pz-guardar", raiz).onclick = async () => { const n = window.Dialogo ? await Dialogo.pedir("Nombre del pincel", { valor: (pz.n || "Pincel") + " (mío)", aceptar: "Guardar" }) : prompt("Nombre del pincel", "Mi pincel"); if (!n) return;
+      const id = "p-" + Date.now().toString(36); Pinceles.guardarPropio(id, Object.assign(clon(pz), { n: n.trim(), ic: "⭐", propio: true })); pzId = id; recordarPincel(); pintarPincel(); };
     eventosLienzo(); document.addEventListener("keydown", teclas);
   }
   const centroSel = (idx) => { const C = idx.map((i) => caja(D.formas[i])); return { x: (Math.min(...C.map((c) => c.x0)) + Math.max(...C.map((c) => c.x1))) / 2, y: (Math.min(...C.map((c) => c.y0)) + Math.max(...C.map((c) => c.y1))) / 2 }; };
@@ -259,6 +281,28 @@
       if (L.length > 6) lazos.push(L); }
     return lazos; }
   const avisoT = (t) => { const a = $("#tl-ayuda", raiz); if (a) a.textContent = t; };
+  // ---- PINCELES (pinceles.js): el elegido y sus ajustes se recuerdan en este navegador
+  let pzId = "tinta", pz = null, penVisto = false;
+  try { const g = JSON.parse(localStorage.getItem("pincel-actual") || "null"); if (g && g.id && g.pz) { pzId = g.id; pz = g.pz; } } catch {}
+  const pincelBase = () => { pz = pz || clon((window.Pinceles && (Pinceles.todos()[pzId] || Pinceles.PRESETS.tinta)) || {}); return pz; };
+  const recordarPincel = () => { try { localStorage.setItem("pincel-actual", JSON.stringify({ id: pzId, pz })); } catch {} };
+  function pintarPincel() { if (!raiz || !window.Pinceles) return; pincelBase(); const caja = $("#tl-pincel", raiz); caja.hidden = herr !== "pincel"; if (caja.hidden) return;
+    const c = $("#tl-pinceles", raiz); c.replaceChildren();
+    for (const [id, p] of Object.entries(Pinceles.todos())) { const b = h("button", { class: "tl-pz" + (id === pzId ? " activo" : ""), title: p.ayuda || p.n, onclick: () => { pzId = id; pz = clon(p); recordarPincel(); pintarPincel(); } }, h("span", { class: "ic" }, p.ic || "•"), h("span", {}, p.n));
+      if (p.propio) b.append(h("span", { class: "x", title: "Borrar este pincel", onclick: (ev) => { ev.stopPropagation(); Pinceles.guardarPropio(id, null); if (pzId === id) { pzId = "tinta"; pz = clon(Pinceles.PRESETS.tinta); recordarPincel(); } pintarPincel(); } }, "✕"));
+      c.append(b); }
+    $("#tl-pz-ayuda", raiz).textContent = pz.ayuda || "";
+    for (const [k, fmt] of [["tam", (v) => (+v).toFixed(1)], ["sens", (v) => Math.round(v * 100) + "%"], ["curva", (v) => (v > 0 ? "+" : "") + (+v).toFixed(1)], ["estab", (v) => Math.round(v * 100) + "%"], ["afinar", (v) => Math.round(v * 100) + "%"], ["opac", (v) => Math.round(v * 100) + "%"]]) {
+      const i = $("#tl-pz-" + k, raiz); if (document.activeElement !== i) i.value = pz[k] ?? 0; i.nextElementSibling.textContent = fmt(pz[k] ?? 0); }
+    $("#tl-pz-simular", raiz).checked = !!pz.simular; $("#tl-pz-incl", raiz).checked = !!pz.inclinacion; }
+  // una muestra del lápiz (o del ratón): posición, presión, inclinación (altitud y acimut, en radianes) y tiempo
+  function muestra(e, p) { let alt = e.altitudeAngle, azi = e.azimuthAngle;
+    if (alt == null && (e.tiltX || e.tiltY)) { const tx = Math.tan((e.tiltX * Math.PI) / 180), ty = Math.tan((e.tiltY * Math.PI) / 180); alt = Math.atan(1 / Math.hypot(tx, ty)); azi = Math.atan2(ty, tx); }
+    return { x: p.x, y: p.y, p: e.pointerType === "pen" ? (e.pressure || 0.5) : pz.simular ? 0.55 : 0.85, alt: e.pointerType === "pen" ? alt : null, azi: e.pointerType === "pen" ? azi : null, t: e.timeStamp, cx: e.clientX, cy: e.clientY }; }
+  const colorPincel = () => estilo.trazo || "{tinta}";
+  function vistaPincel(M) { const P = Pinceles.contorno(M, pz); const t = $("#tl-trazo", raiz);
+    t.setAttribute("d", P.length ? "M" + P.map((q) => `${f2(q.x)} ${f2(q.y)}`).join(" L ") + " Z" : ""); t.setAttribute("fill", res(colorPincel())); t.setAttribute("fill-opacity", pz.opac ?? 1); t.setAttribute("stroke", "none"); }
+  function trazoLimpio() { const t = $("#tl-trazo", raiz); if (!t) return; t.setAttribute("d", ""); t.setAttribute("fill", "none"); t.removeAttribute("fill-opacity"); t.setAttribute("stroke", "#f0a33a"); }
   // ---- selección múltiple (Mayús + clic) y grupos: la selección incluye todo el grupo de cada forma elegida
   let multi = new Set(), iman = false, calco = null;
   function selSet() { const base = new Set(multi); if (sel !== null) base.add(sel); const grupos = new Set([...base].map((i) => D.formas[i]?.grupo).filter(Boolean));
@@ -284,8 +328,8 @@
   function nueva(f) { if (estilo.simetrica && f.simetrica === undefined) f.simetrica = true; D.formas.push(f); }
   const centro = (f) => { const xs = f.puntos.map((p) => p.x), ys = f.puntos.map((p) => p.y); return { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 }; };
   function ponerHerr(k) { herr = k; [...$("#tl-herr", raiz).children].forEach((b) => b.classList.toggle("activo", b.dataset.h === k));
-    $("#tl-ayuda", raiz).textContent = { sel: "Clic en una forma para editarla.", pincel: "Dibuja un trazo: se suaviza al soltar.", lazo: "Dibuja el contorno de una forma rellena.", pluma: "Clic = punto de esquina · arrastrar = curva · clic en el primer punto o Intro = terminar.", elipse: "Arrastra para dibujar una elipse.", rect: "Arrastra para dibujar un rectángulo redondeado.", capsula: "Arrastra para dibujar una cápsula." }[k];
-    $("#tl-svg", raiz).style.cursor = k === "sel" ? "default" : "crosshair"; if (k !== "pluma") plumaFin(); pintarAsas(); }
+    $("#tl-ayuda", raiz).textContent = { sel: "Clic en una forma para editarla.", pincel: "Dibuja: con lápiz, el grosor sigue la presión. Teclas [ y ] = tamaño.", lazo: "Dibuja el contorno de una forma rellena.", pluma: "Clic = punto de esquina · arrastrar = curva · clic en el primer punto o Intro = terminar.", elipse: "Arrastra para dibujar una elipse.", rect: "Arrastra para dibujar un rectángulo redondeado.", capsula: "Arrastra para dibujar una cápsula." }[k];
+    $("#tl-svg", raiz).style.cursor = k === "sel" ? "default" : "crosshair"; if (k !== "pluma") plumaFin(); pintarAsas(); pintarPincel(); if (k !== "pincel") $("#tl-cursor", raiz)?.setAttribute("r", 0); }
   function guardarHist() { hist.push(JSON.stringify(D)); if (hist.length > 150) hist.shift(); fut = []; }
   let ultClave = null, tClave = 0;
   function editarForma(fn, clave) { if (!(clave && clave === ultClave && Date.now() - tClave < 800)) guardarHist(); ultClave = clave; tClave = Date.now(); fn(D.formas[sel]); pintar(); }
@@ -345,12 +389,21 @@
       ul.append(h("li", { class: i === sel ? "activo" : "", onclick: () => { sel = i; ponerHerr("sel"); pintar(); } }, ojo, candado, mini, nom)); }); }
 
   // ---- ratón
-  let arr = null, espacio = false, pluma = null;
+  let arr = null, espacio = false, pluma = null; const toques = new Map();
   function plumaFin() { if (pluma && pluma.forma.puntos.length < 2) D.formas.splice(D.formas.indexOf(pluma.forma), 1); pluma = null; $("#tl-trazo", raiz) && $("#tl-trazo", raiz).setAttribute("d", ""); }
   function eventosLienzo() { const s = $("#tl-svg", raiz);
     s.addEventListener("wheel", (ev) => { ev.preventDefault(); const p = local(ev); zoom(ev.deltaY > 0 ? 1.12 : 0.89, p.x, p.y); }, { passive: false });
     s.addEventListener("pointerdown", (ev) => { try { s.setPointerCapture(ev.pointerId); } catch {} const p = local(ev);
+      if (ev.pointerType === "pen") penVisto = true;
+      // DEDOS: con dos se mueve y se acerca la vista (si había un trazo a medias, se descarta); si ya se ha usado el lápiz, un dedo solo
+      // mueve la vista (la palma o un dedo apoyados no pintan)
+      if (ev.pointerType === "touch") { toques.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+        if (toques.size === 2) { if (arr?.pinc || arr?.dibujo) trazoLimpio(); const [a, b] = [...toques.values()]; arr = { pellizco: true, d0: Math.hypot(a.x - b.x, a.y - b.y), c0: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, v: Object.assign({}, vista) }; return; }
+        if (penVisto) { arr = { pan: true, x0: ev.clientX, y0: ev.clientY, v: Object.assign({}, vista) }; return; } }
       if (espacio || ev.button === 1) { arr = { pan: true, x0: ev.clientX, y0: ev.clientY, v: Object.assign({}, vista) }; return; }
+      // el OTRO EXTREMO DEL LÁPIZ borra (como la goma de un lápiz de verdad), sobre la forma que haya debajo
+      if (ev.pointerType === "pen" && (ev.button === 5 || (ev.buttons & 32))) { const t = ev.target.closest?.(".forma"); if (t) sel = +t.dataset.i; if (sel === null) return; arr = { dibujo: [p], pres: [], goma: true }; return; }
+      if (herr === "pincel" && window.Pinceles) { pincelBase(); const m = muestra(ev, p); arr = { pinc: true, M: [m], s: { x: p.x, y: p.y }, ult: m }; vistaPincel(arr.M); return; }
       if (herr === "sel") {
         const t = ev.target, fi = sel;
         if (t.classList.contains("punto")) { const i = +t.dataset.p, f = D.formas[fi];
@@ -366,14 +419,27 @@
         estilo.relleno = o.cerrada || o.tipo === "texto" ? o.relleno : estilo.relleno; estilo.trazo = o.trazo || estilo.trazo; estilo.grosor = o.grosor ?? estilo.grosor;
         if (sel !== null && sel !== +t.dataset.i) editarForma((f) => { if (o.cerrada || o.tipo === "texto") f.relleno = o.relleno; if (o.grosor) { f.trazo = o.trazo; f.grosor = o.grosor; } }); else pintarPanel(); return; }
       if (herr === "texto") { guardarHist(); nueva({ tipo: "texto", texto: "Texto", tam: 48, puntos: [pto(p.x, p.y)], cerrada: true, relleno: estilo.relleno && estilo.relleno !== "none" ? estilo.relleno : "{tinta}", simetrica: undefined }); sel = D.formas.length - 1; ponerHerr("sel"); pintar(); setTimeout(() => { const i = $("#tl-texto", raiz); i.focus(); i.select(); }, 30); return; }
-      if (herr === "goma") { if (sel === null) { avisoT("Elige primero la forma que quieres borrar (con Seleccionar)"); return; } arr = { dibujo: [p], pres: [], goma: true }; return; }
+      if (herr === "goma") { const t = ev.target.closest?.(".forma"); if (t) sel = +t.dataset.i; if (sel === null) { avisoT("Empieza a borrar encima de una forma (o elígela antes con Seleccionar)"); return; } arr = { dibujo: [p], pres: [], goma: true }; return; }
       if (herr === "pincel" || herr === "lazo") { arr = { dibujo: [p], pres: [], lapiz: ev.pointerType === "pen" }; if (ev.pointerType === "pen") arr.pres.push(ev.pressure); return; }
       if (herr === "pluma") { if (!pluma) { guardarHist(); const f = { puntos: [], cerrada: false, relleno: estilo.relleno === "none" ? "{ropa}" : estilo.relleno, trazo: estilo.trazo || "{tinta}", grosor: estilo.grosor || 3 }; nueva(f); sel = D.formas.length - 1; pluma = { forma: f }; }
         const f = pluma.forma, P = f.puntos, k = escalaPx();
         if (P.length > 2 && Math.hypot(p.x - P[0].x, p.y - P[0].y) < 10 * k) { f.cerrada = true; f.grosor = estilo.grosor; plumaFin(); ponerHerr("sel"); pintar(); return; }
         P.push(pto(p.x, p.y)); arr = { pluma: P.length - 1, p0: p }; pintar(); return; }
       if (["elipse", "rect", "capsula"].includes(herr)) { guardarHist(); const f = { puntos: [], cerrada: true, relleno: estilo.relleno === "none" ? "{ropa}" : estilo.relleno, trazo: estilo.trazo, grosor: estilo.grosor }; nueva(f); sel = D.formas.length - 1; arr = { forma: herr, p0: p, f }; } });
-    s.addEventListener("pointermove", (ev) => { if (!arr) { if (pluma && pluma.forma.puntos.length) { const p = local(ev), P = pluma.forma.puntos, u = P[P.length - 1]; $("#tl-trazo", raiz).setAttribute("d", `M${u.x} ${u.y} L ${p.x} ${p.y}`); } return; }
+    s.addEventListener("pointermove", (ev) => {
+      if (ev.pointerType === "pen") { penVisto = true; const L = $("#tl-lapiz", raiz); if (L) L.textContent = `lápiz detectado${ev.buttons ? ` · presión ${Math.round((ev.pressure || 0) * 100)}%` : ""}${ev.tiltX || ev.tiltY ? ` · inclinado ${Math.round(Math.hypot(ev.tiltX, ev.tiltY))}°` : ""}`; }
+      if (herr === "pincel" && pz && ev.pointerType !== "touch") { const p = local(ev), c = $("#tl-cursor", raiz); c.setAttribute("cx", f2(p.x)); c.setAttribute("cy", f2(p.y)); c.setAttribute("r", f2(Math.max(pz.tam / 2, escalaPx() * 2))); c.setAttribute("stroke-width", f2(escalaPx())); }
+      if (ev.pointerType === "touch" && toques.has(ev.pointerId)) { toques.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+        if (arr?.pellizco && toques.size >= 2) { const [a, b] = [...toques.values()], dd = Math.hypot(a.x - b.x, a.y - b.y) || 1, c = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, r = s.getBoundingClientRect();
+          const k = arr.d0 / dd, v = arr.v, w = v.w * k, hh = v.h * k, fx = (arr.c0.x - r.left) / r.width, fy = (arr.c0.y - r.top) / r.height;
+          vista = { w, h: hh, x: v.x + v.w * fx - w * fx - ((c.x - arr.c0.x) / r.width) * w, y: v.y + v.h * fy - hh * fy - ((c.y - arr.c0.y) / r.height) * hh }; aplicarVista(); return; } }
+      if (arr?.pinc) { const lista = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev], a = 1 - (pz.estab || 0) * 0.9;
+        for (const e of lista.length ? lista : [ev]) { const p = local(e), m = muestra(e, p);
+          // presión simulada (ratón, dedo): rápido = fino, con un poco de inercia
+          if (e.pointerType !== "pen" && pz.simular) { const u = arr.ult, dt = Math.max(1, m.t - u.t), v = Math.hypot(m.cx - u.cx, m.cy - u.cy) / dt; m.p = u.p + (Math.max(0.2, Math.min(1, 1.1 - v * 0.45)) - u.p) * 0.3; }
+          arr.s.x += (p.x - arr.s.x) * a; arr.s.y += (p.y - arr.s.y) * a; m.x = arr.s.x; m.y = arr.s.y; arr.M.push(m); arr.ult = m; }
+        if (!arr.raf) arr.raf = requestAnimationFrame(() => { if (arr?.pinc) { arr.raf = 0; vistaPincel(arr.M); } }); return; }
+      if (!arr) { if (pluma && pluma.forma.puntos.length) { const p = local(ev), P = pluma.forma.puntos, u = P[P.length - 1]; $("#tl-trazo", raiz).setAttribute("d", `M${u.x} ${u.y} L ${p.x} ${p.y}`); } return; }
       const p = local(ev);
       if (arr.pan) { const k = vista.w / s.getBoundingClientRect().width; vista.x = arr.v.x - (ev.clientX - arr.x0) * k; vista.y = arr.v.y - (ev.clientY - arr.y0) * k; aplicarVista(); return; }
       if (arr.punto !== undefined && !arr.asa) { const f = D.formas[sel], q = f.puntos[arr.punto], dx = p.x - arr.p0.x, dy = p.y - arr.p0.y, o = arr.orig;
@@ -389,7 +455,17 @@
       if (arr.pluma !== undefined) { const q = pluma.forma.puntos[arr.pluma]; if (Math.hypot(p.x - arr.p0.x, p.y - arr.p0.y) > 3 * escalaPx()) { q.esquina = false; q.ox = p.x; q.oy = p.y; q.ix = 2 * q.x - p.x; q.iy = 2 * q.y - p.y; pintarFormas(); } return; }
       if (arr.forma) { const a = arr.p0, f = arr.f, w = Math.abs(p.x - a.x), hh = Math.abs(p.y - a.y);
         f.puntos = arr.forma === "elipse" ? elipse((a.x + p.x) / 2, (a.y + p.y) / 2, w / 2, hh / 2) : rectR(a.x, a.y, p.x, p.y, arr.forma === "capsula" ? Math.min(w, hh) / 2 : Math.min(w, hh) * 0.2); pintarFormas(); } });
-    const soltar = () => { if (!arr) return; const a = arr; arr = null;
+    const soltar = (ev) => { if (ev?.pointerType === "touch") { toques.delete(ev.pointerId); if (arr?.pellizco) { if (toques.size < 2) arr = null; return; } }
+      if (!arr) return; const a = arr; arr = null;
+      if (a.pinc) { if (a.raf) cancelAnimationFrame(a.raf);
+        // el estabilizador va por detrás: al soltar, el trazo llega hasta donde se levantó el lápiz
+        const u = a.M[a.M.length - 1], fin = ev ? local(ev) : u; for (let k = 1; k <= 4; k++) a.M.push(Object.assign({}, u, { x: u.x + (fin.x - u.x) * (k / 4), y: u.y + (fin.y - u.y) * (k / 4) }));
+        trazoLimpio(); const largo = a.M.reduce((L, q, i) => (i ? L + Math.hypot(q.x - a.M[i - 1].x, q.y - a.M[i - 1].y) : 0), 0);
+        if (largo < escalaPx() * 1.5 && a.M.length < 3) { a.M.push(Object.assign({}, u, { x: u.x + 0.3 })); }   // un toque: un punto redondo
+        const C = Pinceles.contorno(a.M, pz); if (C.length < 3) return;
+        const P = rdp(C.concat([C[0]]), Math.max(0.08, escalaPx() * 0.3, pz.tam * 0.015)).slice(0, -1); if (P.length < 3) return; guardarHist();
+        nueva({ puntos: suavizar(P, true), cerrada: true, relleno: colorPincel(), trazo: null, grosor: 0, opacidad: (pz.opac ?? 1) < 1 ? pz.opac : undefined, pincel: pzId, textura: pz.textura || undefined });
+        sel = D.formas.length - 1; pintar(); return; }
       if (a.dibujo) { $("#tl-trazo", raiz).setAttribute("d", ""); const lazo = herr === "lazo"; if (a.dibujo.length < 3) return;
         if (lazo && !a.goma) { let ar = 0; const q = a.dibujo; for (let i = 0; i < q.length; i++) { const u = q[i], v = q[(i + 1) % q.length]; ar += u.x * v.y - v.x * u.y; }
           if (Math.abs(ar) / 2 < 60) { const ay = $("#tl-ayuda", raiz); if (ay) ay.textContent = "El lazo era demasiado pequeño o recto: dibuja un contorno cerrado."; return; } }
@@ -401,6 +477,7 @@
       if (a.forma) { if (a.f.puntos.length < 2 || Math.abs(a.f.puntos[0].x - a.f.puntos[2].x) < 2 * escalaPx()) { D.formas.splice(D.formas.indexOf(a.f), 1); hist.pop(); sel = null; } ponerHerr("sel"); pintar(); return; }
       pintar(); };
     s.addEventListener("pointerup", soltar); s.addEventListener("pointercancel", soltar);
+    s.addEventListener("pointerleave", () => $("#tl-cursor", raiz)?.setAttribute("r", 0));
     // doble clic: en un punto, esquina ⇄ curva; en el trazo de la forma elegida, añadir un punto
     s.addEventListener("dblclick", (ev) => { if (herr !== "sel" || sel === null) return; const t = ev.target, f = D.formas[sel], p = local(ev);
       if (t.classList.contains("punto")) { guardarHist(); const i = +t.dataset.p, q = f.puntos[i];
@@ -421,6 +498,7 @@
     if (k.startsWith("arrow") && sel !== null) { ev.preventDefault(); const st = ev.shiftKey ? 10 : 1, dx = k === "arrowleft" ? -st : k === "arrowright" ? st : 0, dy = k === "arrowup" ? -st : k === "arrowdown" ? st : 0;
       if (!(teclas.ult && Date.now() - teclas.ult < 700)) guardarHist(); teclas.ult = Date.now(); for (const i of selSet()) desplazar(D.formas[i], dx, dy); pintar(); return; }
     if (k === "enter" || k === "escape") { if (pluma) { plumaFin(); ponerHerr("sel"); pintar(); } else if (k === "escape") { sel = null; pintar(); } return; }
+    if ((k === "[" || k === "]") && pz) { pz.tam = Math.max(0.5, Math.min(80, +(pz.tam * (k === "]" ? 1.15 : 0.87)).toFixed(1))); recordarPincel(); pintarPincel(); return; }
     const m = HERR.find(([, , tecla]) => tecla.toLowerCase() === k); if (m && !ev.ctrlKey) ponerHerr(m[0]); }
   document.addEventListener("keyup", (ev) => { if (ev.code === "Space") espacio = false; });
 
