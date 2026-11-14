@@ -217,9 +217,7 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [ ] Pendiente de la segunda auditoría:
   - «Unir» falló una vez a la primera (no reproducido);
   - lo que sale de unir toma el estilo de la forma de abajo;
-  - posar arrastrando solo funciona sobre el círculo (podría tener un radio mayor);
-  - la lámina nueva sale cortada arriba con los valores por defecto;
   - los bloques de acción comparten pista con los rombos del recorrido;
-  - la lista de audios muestra rutas largas.
+  - (hechos después: asas de pose más grandes, lámina nueva centrada, audios por nombre y proyecto)
 - [ ] Demo piezas: 16 casos de «Pruebas» cambian por los cambios hechos a ese personaje (chibi, calvo, ropa moderna). Si son a propósito, «Guardar como referencia».
 

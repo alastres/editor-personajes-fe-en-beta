@@ -158,7 +158,7 @@
   const CAPAS_PAR = { lejos: 0.45, cielo: 0.6, medio: 0, sala: 0, cerrado: 0, delante: -0.25, arco: -0.25 };
   function laminaPorDefecto(nombre) { const n = nombre && window.LAMINAS?.[nombre] ? nombre : Object.keys(window.LAMINAS || {}).find((k) => /formas/.test(k)) || Object.keys(window.LAMINAS || {})[0];
     const L = window.LAMINAS?.[n]; const ids = L ? Object.keys(L.capas) : [];
-    return { tipo: "lamina", lamina: n, escala: 1.4, centro: { x: 0, y: -600 }, horizonte: 640, capas: ids.map((id, i) => ({ id, par: CAPAS_PAR[id] ?? (i === 0 ? 0.45 : i === ids.length - 1 && ids.length > 2 ? -0.25 : 0), delante: (id === "delante" || id === "arco") || undefined })) }; }
+    return { tipo: "lamina", lamina: n, escala: 1.2, centro: { x: 0, y: -420 }, horizonte: 640, capas: ids.map((id, i) => ({ id, par: CAPAS_PAR[id] ?? (i === 0 ? 0.45 : i === ids.length - 1 && ids.length > 2 ? -0.25 : 0), delante: (id === "delante" || id === "arco") || undefined })) }; }
   function pintarLamina() { const f = esc.fondo || {}, es = f.tipo === "lamina"; $("#lamina-det").hidden = !es; $("#f-mas").hidden = es; if (!es) return;
     const sel = $("#lm-nombre"); if (document.activeElement !== sel) { sel.replaceChildren(...Object.keys(window.LAMINAS || {}).map((n) => h("option", { value: n }, n))); sel.value = f.lamina || ""; }
     deslizar("lm-escala", f.escala ?? 1.15, (v) => Math.round(v * 100) + "%"); deslizar("lm-cx", f.centro?.x ?? 0, (v) => Math.round(v)); deslizar("lm-cy", f.centro?.y ?? -400, (v) => Math.round(v));
@@ -438,7 +438,7 @@
     cambio((x) => { x.audios.push({ archivo: f, t: +tiempo.toFixed(2), dur: info.duracion ? +info.duracion.toFixed(2) : undefined, volumen: 1, habla: voz, envolvente: info.envolvente, ...(pal ? { palabras: pal } : {}) });
       if (info.duracion && x.duracion < tiempo + info.duracion) x.duracion = +(tiempo + info.duracion + 0.5).toFixed(1); });
     aviso(voz ? `Voz añadida en ${fmtT(tiempo)}: la boca de ${PJ[actor(voz).personaje]?.nombre} la sigue` : "Audio añadido en " + fmtT(tiempo)); });
-  async function cargarAudios() { const l = await (await fetch("/api/audios")).json(); $("#au-lista").replaceChildren(h("option", { value: "" }, l.length ? "— elige una voz o una música —" : "— no hay audios —"), ...l.map((f) => h("option", { value: f }, f))); }
+  async function cargarAudios() { const l = await (await fetch("/api/audios")).json(); $("#au-lista").replaceChildren(h("option", { value: "" }, l.length ? "— elige una voz o una música —" : "— no hay audios —"), ...l.map((f) => { const partes = f.split("/"), nom = partes.pop(); return h("option", { value: f, title: f }, `${nom}  ·  ${partes[0] || ""}`); })); }   // nombre del archivo y de qué proyecto viene (la ruta entera, al pasar el ratón)
 
   // ---- pistas (línea de tiempo)
   const pct = (t) => (cl(t, 0, D()) / D()) * 100 + "%";

@@ -221,7 +221,7 @@
   // la IK de manos está en comun/personajes.js (la usan también las escenas para «agarrar»)
   const medidas = () => P.medidas(j()), manoFK = (p, L, giro) => P.manoFK(j(), p, L, giro), ik = (p, L, giro, objetivo) => P.ikMano(j(), p, L, giro, objetivo);
   function pintarAsas() { gAsas.replaceChildren(); const m = E.m; if (!activo || play || !m || !j()) return; const P2 = m.puntos;
-    const asa = (id, q, color, titulo) => { if (!q) return; const c = document.createElementNS(NSs, "circle"); c.setAttribute("cx", q[0]); c.setAttribute("cy", q[1]); c.setAttribute("r", 16); c.setAttribute("fill", color); c.setAttribute("fill-opacity", "0.35"); c.setAttribute("stroke", color); c.setAttribute("stroke-width", 3); c.setAttribute("data-rig", id); c.style.cursor = "grab";
+    const asa = (id, q, color, titulo) => { if (!q) return; const c = document.createElementNS(NSs, "circle"); c.setAttribute("cx", q[0]); c.setAttribute("cy", q[1]); c.setAttribute("r", 22); c.setAttribute("fill", color); c.setAttribute("fill-opacity", "0.35"); c.setAttribute("stroke", color); c.setAttribute("stroke-width", 3); c.setAttribute("data-rig", id); c.style.cursor = "grab";
       const t = document.createElementNS(NSs, "title"); t.textContent = titulo; c.append(t); gAsas.append(c); };
     asa("manoDer", P2.manoDer, "#ff7a5a", "Mano derecha: arrástrala (el brazo la sigue)"); asa("manoIzq", P2.manoIzq, "#7ab8ff", "Mano izquierda: arrástrala (el brazo la sigue)");
     asa("cabeza", P2.cabeza && [P2.cabeza[0], P2.cabeza[1] - 10], "#f0d27a", "Cabeza: ← → gira · ↑ ↓ mira"); asa("pecho", P2.pecho, "#a8e08a", "Pecho: ← → gira el torso · ↑ ↓ se inclina");
