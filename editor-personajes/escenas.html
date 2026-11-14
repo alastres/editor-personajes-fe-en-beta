@@ -102,6 +102,7 @@
             <h4>Tramo <span class="tenue" id="k-titulo"></span></h4>
             <p class="ayuda" id="k-fuera">Pon el cabezal en una clave del recorrido (un rombo en su pista, o «Clave anterior / siguiente») para decidir cómo gira y anda hasta la siguiente.</p>
             <div class="fila-botones dos"><button id="k-ant">◀ Clave anterior</button><button id="k-sig">Clave siguiente ▶</button></div>
+            <div class="fila-botones dos"><button id="k-copiar" title="Copia la clave del cabezal (Ctrl + C)">Copiar clave</button><button id="k-pegar" title="Pega la clave copiada en el cabezal de este personaje (Ctrl + V)">Pegar clave</button></div>
             <div id="k-det">
               <div class="campo"><label>Tiempo de esta clave (s)</label><input type="number" id="k-t" step="0.05" min="0" /></div>
               <div class="campo"><label>Cuándo gira hacia la dirección de la clave siguiente</label><div class="seg pequeno" id="k-giromodo"></div></div>
@@ -119,6 +120,7 @@
             <div class="fila-anadir"><select id="a-accion"></select><button id="b-add-bloque">Añadir</button></div></div>
           <div id="bloque-det" hidden>
             <div class="campo"><label>Capa <span class="tenue">(«brazos» se suma encima: saludar mientras anda; «cara»: solo la emoción y la mirada)</span></label><div class="seg pequeno" id="b-capa"></div></div>
+            <div class="campo"><label>Empieza en (s)</label><input type="number" id="b-t" step="0.05" min="0" /></div>
             <div class="deslizador"><label>Duración de la acción elegida</label><input type="range" id="b-dur" min="0.3" max="20" step="0.1" /><output></output></div>
             <div class="deslizador"><label>Transición al entrar y salir <span class="tenue">(0 = cambio seco)</span></label><input type="range" id="b-mezcla" min="0" max="1.5" step="0.05" /><output></output></div>
             <button id="b-quitar-bloque" class="peligro">Quitar esta acción</button>
@@ -171,6 +173,17 @@
         <h3>Rótulos</h3>
         <div class="fila-anadir"><input id="tx-texto" type="text" placeholder="Texto en pantalla" /><button id="b-add-texto">Añadir</button></div>
         <ul id="textos" class="piezas"></ul>
+        <div id="texto-det" class="detalle" hidden>
+          <div class="campo"><label>Estilo</label><div class="seg pequeno" id="tx-estilo"></div></div>
+          <div class="fila-dos"><div class="campo"><label>Empieza en (s)</label><input type="number" id="tx-t" step="0.05" min="0" /></div><div class="campo"><label>Dura (s)</label><input type="number" id="tx-dur" step="0.1" min="0.3" /></div></div>
+          <div class="deslizador"><label>Tamaño de la letra</label><input type="range" id="tx-tam" min="20" max="200" step="1" /><output></output></div>
+          <div class="campo"><label>Dónde va</label><div class="seg pequeno" id="tx-pos"></div></div>
+          <div class="deslizador"><label>Altura exacta</label><input type="range" id="tx-y" min="80" max="1840" step="5" /><output></output></div>
+          <div class="campo" id="tx-color-f"><label>Color de la letra</label><div class="paleta-mini" id="tx-color"></div></div>
+          <label class="chk" id="tx-caja-f"><input type="checkbox" id="tx-caja" /> Con caja oscura detrás</label>
+          <div class="campo" id="tx-ref-f"><label>Referencia (cita bíblica)</label><input type="text" id="tx-ref" placeholder="JUAN 20:29 · RVR1960" /></div>
+          <p class="ayuda">En un título, las palabras entre *asteriscos* salen resaltadas.</p>
+        </div>
       </section>
       <section>
         <h3>Audio</h3>

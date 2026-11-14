@@ -196,7 +196,7 @@
       const acc = [...(PJ[a.personaje]?.acciones || []), ...Object.values(window.ACCIONES || {}).map((x) => Object.assign({}, x, { comun: true }))];
       $("#a-accion").replaceChildren(...(acc.length ? acc.map((x) => h("option", { value: x.id }, (x.comun ? "★ " : "") + (x.nombre || x.id))) : [h("option", { value: "" }, "— sin acciones: créalas en Personajes → Animación —")]));
       $("#b-add-bloque").disabled = !acc.length;
-      const b = selBloque !== null ? a.bloques[selBloque] : null; $("#bloque-det").hidden = !b; if (b) { deslizar("b-dur", b.dur || 2, (v) => v.toFixed(1) + " s"); deslizar("b-mezcla", b.mezcla ?? 0.3, (v) => v.toFixed(2) + " s");
+      const b = selBloque !== null ? a.bloques[selBloque] : null; $("#bloque-det").hidden = !b; if (b) { if (document.activeElement !== $("#b-t")) $("#b-t").value = b.t; deslizar("b-dur", b.dur || 2, (v) => v.toFixed(1) + " s"); deslizar("b-mezcla", b.mezcla ?? 0.3, (v) => v.toFixed(2) + " s");
         seg("#b-capa", { todo: "Todo el cuerpo", cuerpo: "Solo cuerpo", brazos: "Solo brazos", cara: "Solo cara" }, b.capa || "todo", (k) => cambio((x) => { const bb = x.actores.find((y) => y.id === a.id).bloques[selBloque]; if (k === "todo") delete bb.capa; else bb.capa = k; }, null, false)); }
       const ESTILOS = Object.fromEntries(Object.entries(window.Andares ? Andares.todos() : {}).map(([k, v]) => [k === "normal" ? "" : k, v.nombre || k]));
       seg("#a-estilo", ESTILOS, a.andar?.estilo || "", (k) => cambio((x) => { const y = x.actores.find((z) => z.id === a.id); y.andar = Object.assign({}, y.andar); if (k) y.andar.estilo = k; else delete y.andar.estilo; }, null, false));
@@ -248,9 +248,10 @@
         h("button", { class: "x", title: "Quitar", onclick: () => cambio((x) => { x.efectos.splice(i, 1); }, null, false) }, "✕"))); });
     // rótulos
     const ut = $("#textos"); ut.replaceChildren(); for (const [i, tx] of esc.textos.entries()) { const inp = h("input", { type: "text", value: tx.texto, class: "nom-ctrl" }); inp.addEventListener("change", () => cambio((x) => { x.textos[i].texto = inp.value; }, null, false));
-      ut.append(h("li", { class: i === selTexto ? "activo" : "", onclick: () => { selTexto = i; tiempo = tx.t; dibujar(); pintarPistas(); } }, h("span", {}, "T"), inp, h("span", { class: "hueso" }, fmtT(tx.t)),
+      ut.append(h("li", { class: i === selTexto ? "activo" : "", onclick: () => { selTexto = i; tiempo = tx.t; dibujar(); pintarPistas(); pintarTexto(); } }, h("span", {}, "T"), inp, h("span", { class: "hueso" }, fmtT(tx.t)),
         h("button", { class: "x", title: tx.arriba ? "Arriba (lejos de los subtítulos): pulsa para bajarlo" : "Abajo: pulsa para subirlo y que no lo tapen los subtítulos", onclick: (ev) => { ev.stopPropagation(); cambio((x) => { if (x.textos[i].arriba) delete x.textos[i].arriba; else x.textos[i].arriba = true; }, null, false); } }, tx.arriba ? "↑" : "↓"),
         h("button", { class: "x", title: "Quitar", onclick: (ev) => { ev.stopPropagation(); cambio((x) => { x.textos.splice(i, 1); }, null, false); } }, "✕"))); }
+    pintarTexto();
     // audio
     const ua = $("#audios"); ua.replaceChildren(); for (const [i, au] of esc.audios.entries()) { const vol = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: au.volumen ?? 1, title: "Volumen" });
       vol.addEventListener("input", () => cambio((x) => { x.audios[i].volumen = Number(vol.value); }, "vol" + i, false));
@@ -349,6 +350,34 @@
   $("#c-x").addEventListener("input", (ev) => editarCam({ x: Number(ev.target.value) }, "c-x")); $("#c-y").addEventListener("input", (ev) => editarCam({ y: Number(ev.target.value) }, "c-y"));
   $("#c-zoom").addEventListener("input", (ev) => editarCam({ zoom: Number(ev.target.value) }, "c-zoom"));
   $("#b-quitar-cam").addEventListener("click", () => cambio((x) => { const i = x.camara.findIndex((k) => Math.abs(k.t - tiempo) < 0.02); if (i >= 0 && x.camara.length > 1) x.camara.splice(i, 1); }, null, false));
+  // RÓTULO ELEGIDO: estilo, tiempos, tamaño, posición, color y caja
+  const COLORES_TX = ["#f7f1e5", "#f2a33a", "#ffd27a", "#ff7a5a", "#9ad0ff", "#a8e08a", "#14171e"];
+  const editaTexto = (fn, clave) => { if (selTexto === null) return; cambio((x) => { const tx = x.textos[selTexto]; if (tx) fn(tx); }, clave ? clave + selTexto : null, false); };
+  function pintarTexto() { const tx = selTexto !== null ? esc.textos[selTexto] : null; $("#texto-det").hidden = !tx; if (!tx) return;
+    seg("#tx-estilo", { "": "Rótulo", titulo: "Título grande", cita: "Cita bíblica" }, tx.estilo || "", (v) => editaTexto((t) => { if (v) t.estilo = v; else delete t.estilo; }));
+    for (const [id, v] of [["tx-t", tx.t], ["tx-dur", tx.dur || 2]]) if (document.activeElement !== $("#" + id)) $("#" + id).value = v;
+    const tamDef = tx.estilo === "titulo" ? 104 : tx.estilo === "cita" ? 66 : 52; deslizar("tx-tam", tx.tam || tamDef, (v) => Math.round(v) + " px");
+    $("#tx-y").max = Escena.ALTO - 80; const posAct = tx.y != null ? (tx.y === Math.round(Escena.ALTO / 2) ? "centro" : "libre") : tx.arriba ? "arriba" : "abajo";
+    seg("#tx-pos", { arriba: "Arriba", centro: "En el centro", abajo: "Abajo", libre: "Altura exacta" }, posAct, (v) => editaTexto((t) => { delete t.y; delete t.arriba;
+      if (v === "arriba") t.arriba = true; else if (v === "centro") t.y = Math.round(Escena.ALTO / 2); else if (v === "libre") t.y = Math.round(Escena.ALTO * 0.3); }));
+    deslizar("tx-y", tx.y ?? Math.round(Escena.ALTO * (tx.arriba ? 0.18 : 0.75)), (v) => Math.round(v) + " px");
+    const pc = $("#tx-color"); pc.replaceChildren(); for (const c of COLORES_TX) { const b = h("button", { class: "sw" + ((tx.color || "#f7f1e5") === c ? " activo" : ""), title: c, onclick: () => editaTexto((t) => { if (c === "#f7f1e5") delete t.color; else t.color = c; }) }); b.style.background = c; pc.append(b); }
+    const otro = h("input", { type: "color", value: tx.color || "#f7f1e5", title: "Otro color" }); otro.addEventListener("change", () => editaTexto((t) => { t.color = otro.value; })); pc.append(otro);
+    const normal = !tx.estilo; $("#tx-color-f").hidden = !normal; $("#tx-caja-f").hidden = !normal; $("#tx-caja").checked = tx.caja !== false;
+    $("#tx-ref-f").hidden = tx.estilo !== "cita"; if (document.activeElement !== $("#tx-ref")) $("#tx-ref").value = tx.ref || ""; }
+  $("#tx-t").addEventListener("change", (ev) => { const v = Math.max(0, +ev.target.value); editaTexto((t) => { t.t = +v.toFixed(2); }); });
+  $("#tx-dur").addEventListener("change", (ev) => { const v = Math.max(0.3, +ev.target.value); editaTexto((t) => { t.dur = +v.toFixed(2); }); });
+  $("#tx-tam").addEventListener("input", (ev) => editaTexto((t) => { t.tam = +ev.target.value; }, "txtam"));
+  $("#tx-y").addEventListener("input", (ev) => editaTexto((t) => { t.y = +ev.target.value; delete t.arriba; }, "txy"));
+  $("#tx-caja").addEventListener("change", (ev) => editaTexto((t) => { if (ev.target.checked) delete t.caja; else t.caja = false; }));
+  $("#tx-ref").addEventListener("change", (ev) => editaTexto((t) => { if (ev.target.value.trim()) t.ref = ev.target.value.trim(); else delete t.ref; }));
+  // COPIAR Y PEGAR CLAVES del recorrido (posición, dirección y cómo gira y anda en su tramo)
+  let portapapeles = null;
+  const copiarClave = () => { const k = claveRec(actor()); if (!k) return aviso("Pon el cabezal sobre una clave del recorrido para copiarla"); portapapeles = Object.assign({}, k); delete portapapeles.t; aviso("Clave copiada"); };
+  const pegarClave = () => { const a = actor(); if (!a) return aviso("Elige un personaje"); if (!portapapeles) return aviso("Primero copia una clave");
+    cambio((x) => { const r = x.actores.find((y) => y.id === a.id).recorrido, k = r.find((q) => Math.abs(q.t - tiempo) < 0.02); if (k) Object.assign(k, portapapeles); else { r.push(Object.assign({ t: +tiempo.toFixed(2) }, portapapeles)); r.sort((m, n) => m.t - n.t); } }, null, false); aviso("Clave pegada en " + fmtT(tiempo)); };
+  $("#k-copiar").addEventListener("click", copiarClave); $("#k-pegar").addEventListener("click", pegarClave);
+  $("#b-t").addEventListener("change", (ev) => { const a = actor(); if (!a || selBloque === null) return; const v = Math.max(0, +ev.target.value); cambio((x) => { x.actores.find((y) => y.id === a.id).bloques[selBloque].t = +v.toFixed(2); }, null, false); });
   $("#b-add-texto").addEventListener("click", () => { const t = $("#tx-texto").value.trim(); if (!t) { aviso("Escribe el texto del rótulo en la casilla y pulsa Añadir"); $("#tx-texto").focus(); return; } $("#tx-texto").value = ""; cambio((x) => { x.textos.push({ t: +tiempo.toFixed(2), dur: 2, texto: t }); x.textos.sort((a, b) => a.t - b.t); }, null, false); });
   // palabras con tiempos de una voz (VoiceStudio): la boca forma cada fonema; si no se puede transcribir, se queda con abrir y cerrar
   async function palabrasDe(archivo) { estado("Leyendo las palabras de la voz (labios por fonemas)…");
@@ -433,6 +462,8 @@
   // ---- teclado
   $("#b-deshacer").addEventListener("click", deshacer); $("#b-rehacer").addEventListener("click", rehacer);
   document.addEventListener("keydown", (ev) => { const el = document.activeElement, escribe = ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) && el.type !== "range";
+    if ((ev.ctrlKey || ev.metaKey) && !escribe && ev.key.toLowerCase() === "c") { ev.preventDefault(); copiarClave(); return; }
+    if ((ev.ctrlKey || ev.metaKey) && !escribe && ev.key.toLowerCase() === "v") { ev.preventDefault(); pegarClave(); return; }
     if ((ev.ctrlKey || ev.metaKey) && !escribe) { if (ev.key.toLowerCase() === "z" && !ev.shiftKey) { ev.preventDefault(); deshacer(); } else if (ev.key.toLowerCase() === "y" || (ev.key.toLowerCase() === "z" && ev.shiftKey)) { ev.preventDefault(); rehacer(); } return; }
     if (ev.code === "Space" && !escribe) { ev.preventDefault(); reproducir(); } });
 

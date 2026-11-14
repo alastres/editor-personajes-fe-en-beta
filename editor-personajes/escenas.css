@@ -73,3 +73,10 @@ button.pequeno { font-size: 12px; padding: 4px 10px; }
 /* listas con rutas largas (imagen de fondo, audios): no ensanchan el panel ni lo hacen desplazarse de lado */
 .panel select, .detalle select, #f-imagen, .fila-anadir select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .fila-anadir { min-width: 0; }
+
+/* rótulo: colores y dos campos en una fila */
+.paleta-mini { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.paleta-mini .sw { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #ffffff22; padding: 0; }
+.paleta-mini .sw.activo { border-color: var(--acento, #f0a33a); }
+.paleta-mini input[type=color] { width: 30px; height: 24px; padding: 0; border: none; background: none; }
+.fila-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

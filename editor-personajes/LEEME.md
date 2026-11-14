@@ -462,3 +462,16 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
   
   El resultado son curvas nuevas editables, y los huecos salen como agujeros.
 
+## Rótulos, claves y bloques (14 nov 2026)
+- **Rótulo elegido** (clic en la lista de Rótulos):
+  - estilo: rótulo, título grande o cita bíblica;
+  - empieza en y dura, en segundos;
+  - tamaño de la letra;
+  - dónde va: arriba, en el centro, abajo o a una altura exacta;
+  - color de la letra y caja oscura detrás (en el rótulo normal);
+  - referencia (en la cita).
+  
+  En el motor: `tam`, `y`, `x`, `color`, `caja: false` y `colorCaja`.
+- **Copiar y pegar claves** del recorrido: botones del panel Tramo, o Ctrl + C / Ctrl + V. Pega posición, dirección y cómo gira y anda en el cabezal del personaje elegido.
+- **Bloques de acción:** «Empieza en (s)» para escribir el tiempo exacto.
+

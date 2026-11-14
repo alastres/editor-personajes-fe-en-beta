@@ -517,9 +517,11 @@
             linea.forEach((w, wi) => { const a = cl((u - 0.15 - ritmo * iw++) / 0.35); const ts = el("tspan", { opacity: ((0.15 + 0.85 * a) * cl(u / 0.3) * sale).toFixed(3) }, tt); ts.textContent = (wi ? " " : "") + w; }); });
           if (tx.ref) { const r = el("text", { x: ANCHO / 2, y: f1(y0 + ls.length * tam * 1.2 + 26), "text-anchor": "middle", "font-size": 30, "font-family": FUENTE_M, "letter-spacing": "0.08em", fill: "#f3c9b6", opacity: (cl((u - 0.5) / 0.4) * sale).toFixed(3) }, gTextos); r.textContent = tx.ref; }
           continue; }
-        const w = 40 + String(tx.texto).length * 30, yR = tx.arriba ? (ALTO === 1920 ? 300 : 90) : (ALTO === 1920 ? 1400 : ALTO - 210);   // arriba: lejos de los subtítulos
-        el("rect", { x: ANCHO / 2 - w / 2, y: yR, width: w, height: 92, rx: 16, fill: "#14171e", opacity: (0.88 * k2).toFixed(2) }, gTextos);
-        const tt = el("text", { x: ANCHO / 2, y: yR + 62, "text-anchor": "middle", fill: "#f7f1e5", "font-size": 52, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif", opacity: k2.toFixed(2) }, gTextos); tt.textContent = tx.texto; }
+        // rótulo normal: tam (letra), x/y (centro del rótulo; si no, arriba o abajo), color, caja (false = sin caja), colorCaja
+        const tam = tx.tam || 52, hh = tam * 1.77, w = 40 + String(tx.texto).length * tam * 0.58, cx = tx.x ?? ANCHO / 2;
+        const yR = tx.y != null ? tx.y - hh / 2 : tx.arriba ? (ALTO === 1920 ? 300 : 90) : (ALTO === 1920 ? 1400 : ALTO - 210);   // arriba: lejos de los subtítulos
+        if (tx.caja !== false) el("rect", { x: cx - w / 2, y: yR, width: w, height: hh, rx: tam * 0.3, fill: tx.colorCaja || "#14171e", opacity: (0.88 * k2).toFixed(2) }, gTextos);
+        const tt = el("text", { x: cx, y: yR + hh * 0.67, "text-anchor": "middle", fill: tx.color || "#f7f1e5", "font-size": tam, "font-weight": 700, "font-family": "Inter, Segoe UI, sans-serif", opacity: k2.toFixed(2) }, gTextos); tt.textContent = tx.texto; }
     }
     return { dibujar, actores, objetos, camara, raiz, tapaSubtitulos };
   }

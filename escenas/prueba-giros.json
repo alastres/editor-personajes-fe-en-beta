@@ -1,5 +1,4 @@
 {
-  "nombre": "Ejemplo: giros y andares",
   "duracion": 8,
   "fondo": {
     "tipo": "dia"
@@ -64,7 +63,16 @@
       "bloques": []
     }
   ],
-  "textos": [],
+  "textos": [
+    {
+      "t": 0.2,
+      "dur": 2.5,
+      "texto": "Ejemplo de giros y andares",
+      "arriba": true
+    }
+  ],
   "audios": [],
+  "objetos": [],
+  "nombre": "Ejemplo: giros y andares",
   "id": "prueba-giros"
 }

@@ -188,8 +188,8 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
   - suavizado del pincel;
   - unir, restar e intersección de verdad;
   - duplicar con Ctrl + D y mover con las flechas.
-- [ ] Rótulos: tamaño, posición, estilo y duración en el panel.
-- [ ] Copiar y pegar claves; tiempo exacto también para los bloques de acción.
+- [x] Rótulos: estilo (rótulo, título, cita), empieza y dura con números, tamaño, arriba/centro/abajo o altura exacta, color, caja y referencia de la cita.
+- [x] Copiar y pegar claves del recorrido (botones y Ctrl + C / Ctrl + V); tiempo exacto de los bloques de acción.
 - [ ] Láminas elegibles desde la interfaz (hoy, solo con JSON y scripts).
 - [ ] Quitar la jerga y las referencias a archivos de la ayuda («smart bones», `LEEME.md`, `montar-musica.py`…).
 - [x] Piezas repetidas (copias en el mismo hueso): se numeran («Rodillera 2») y avisan al pasar el ratón.
