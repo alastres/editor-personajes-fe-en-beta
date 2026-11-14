@@ -25,7 +25,9 @@
         return { g, im, hueso: hb, rigida: true }; }
       g.innerHTML = c.svg || ""; window.Titere25D?.idsUnicos?.(g); if (!sk) return { g, mallas: [] };
       const opM = c.hueso && sk.H[c.hueso] ? { rigido: c.hueso } : { huesos: nombres };
-      const mallas = [...g.querySelectorAll("path")].map((e) => { const d = e.getAttribute("d") || ""; try { return { e, d0: d, m: Rig2D.malla(sk, d, opM) }; } catch { return null; } }).filter(Boolean);
+      // cada trazado puede ir atado a su propio hueso (data-hueso, puesto en el taller por forma): lo sigue sin doblarse
+      const opDe = (e) => { const hz = e.closest("[data-hueso]")?.getAttribute("data-hueso"); return hz && sk.H[hz] ? { rigido: hz } : opM; };
+      const mallas = [...g.querySelectorAll("path")].map((e) => { const d = e.getAttribute("d") || "", op = opDe(e); try { return { e, d0: d, op, m: Rig2D.malla(sk, d, op) }; } catch { return null; } }).filter(Boolean);
       // FORMAS CLAVE (comun/titere25d.js, morfo): con otros pesos, la malla de cada trazado se rehace sobre su forma mezclada
       const morf = c.formasClave?.length && window.Titere25D?.morfo ? Titere25D.morfo(g, c.formasClave) : null;
       return { g, mallas, morf, opM, id: c.id, firma: "" }; });
@@ -51,7 +53,7 @@
         if (c.rigida) { c.g.setAttribute("transform", c.hueso && T ? sk.matriz(T, c.hueso) : ""); continue; }
         if (c.morf) { const peso = (k) => e.formas?.[c.id + "/" + k], firma = c.morf.claves.map((k) => (+peso(k.id) || 0).toFixed(3)).join(",");
           if (firma !== c.firma) { c.firma = firma; const D = c.morf.ds(peso), porE = new Map(c.morf.base.map((b, i) => [b.e, D[i] ?? b.d]));
-            for (const M of c.mallas) { const d = porE.get(M.e) ?? M.d0; try { M.m = Rig2D.malla(sk, d, c.opM); } catch {} } } }
+            for (const M of c.mallas) { const d = porE.get(M.e) ?? M.d0; try { M.m = Rig2D.malla(sk, d, M.op); } catch {} } } }
         for (const { e: pe, m } of c.mallas) pe.setAttribute("d", m.d(T)); }
       // giro: de frente (−90…90) normal; de espaldas, reflejada. Cerca de 90° se estrecha un poco, como una tarjeta que da la vuelta
       const g = e.torso || 0, cg = Math.cos(g), sx = Math.sign(cg || 1) * Math.min(1, Math.abs(cg) * 3 + 0.12);

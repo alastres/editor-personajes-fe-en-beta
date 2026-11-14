@@ -808,3 +808,12 @@ Como animar los puntos en Moho: una pieza del muñeco o una capa de la marioneta
   - Las piezas que se doblan (`doblar`) aún no admiten formas clave.
   - Funciona en Personajes, Escenas, Montaje y en el vídeo.
 
+## Cada forma, su hueso (marioneta libre, 15 nov 2026)
+Dentro de una capa de la marioneta libre, cada forma puede **seguir a su propio hueso** sin doblarse. La capa normal se dobla con todos los huesos por cercanía.
+
+- **Cómo:** en el taller de una capa de la marioneta libre, elige una forma. En el panel, **Hueso de esta forma** tiene «— como la capa —» o 🦴 cada hueso. Vale para varias formas a la vez (Mayús + clic). En la lista de formas llevan 🦴 y el nombre del hueso.
+- **Para qué:** una mandíbula, un ojo, un ala o una cola dentro del mismo dibujo, cada uno con su hueso.
+- **Con las formas líquidas:** la boca que resta, atada al hueso de la mandíbula, gira con ella y abre la cabeza (atada al hueso de la cabeza), con el borde del corte y el fondo visible por el hueco.
+- **Con las formas clave:** también se mezclan, y la malla de cada trazado se rehace con su propio hueso.
+- **Datos:** la forma guarda `hueso: "nombre"`. En el SVG, cada trazado suyo (rellenos, contornos, máscaras y recortes) lleva `data-hueso`, y `comun/libre.js` ata ese trazado rígido al hueso.
+

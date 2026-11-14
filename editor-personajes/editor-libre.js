@@ -48,6 +48,7 @@
   function editarCapa(i) { const l = L(), c = i == null ? null : l.capas[i];
     const caja = (() => { const xs = [], ys = []; for (const b of l.huesos) { xs.push(b.o[0], b.e[0]); ys.push(b.o[1], b.e[1]); } return xs.length ? [Math.min(...xs) - 200, Math.min(...ys) - 200, Math.max(...xs) + 200, Math.max(...ys, 0) + 80] : [-300, -450, 300, 50]; })();
     Taller.abrir({ titulo: c ? `Marioneta libre · ${c.nombre}` : "Marioneta libre · capa nueva", textoGuardar: "Guardar", colores: P.colores(j()), dibujos: { frente: c?.dibujo || (c?.svg ? Taller.deSVG(c.svg) : { formas: [] }) }, vistas: null, vista: "frente", encuadre: caja,
+      huesos: l.huesos.map((b) => b.nombre),
       formasClave: (c?.formasClave || []).map((k) => ({ id: k.id, nombre: k.nombre, dibujo: k.dibujo || Taller.deSVG(k.svg || "") })),
       referencia: (g) => { const r = sv("g", { opacity: 0.35, "pointer-events": "none" }, g); r.innerHTML = l.capas.filter((x, k) => k !== i).map((x) => x.imagen ? `<image href="${x.imagen.href}" x="${x.imagen.x}" y="${x.imagen.y}" width="${x.imagen.w}" height="${x.imagen.h}"/>` : x.svg || "").join("");
         for (const b of l.huesos) { sv("line", { x1: b.o[0], y1: b.o[1], x2: b.e[0], y2: b.e[1], stroke: "#f0a33a", "stroke-width": 4 }, g); sv("circle", { cx: b.o[0], cy: b.o[1], r: 6, fill: "#f0a33a" }, g); } },

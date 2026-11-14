@@ -53,12 +53,14 @@
       : `<linearGradient id="${id}" x1="${f2(0.5 - dx)}" y1="${f2(0.5 - dy)}" x2="${f2(0.5 + dx)}" y2="${f2(0.5 + dy)}"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></linearGradient>`);
     return `url(#${id})`; }
   function svgFormas(F, R, ed) { const out = [], defs = [];
+    // f.hueso (marioneta libre): la forma sigue a ese hueso sin doblarse; cada trazado suyo (también en máscaras y recortes) lo lleva marcado
+    const hz = (f) => (f.hueso ? ` data-hueso="${escT(f.hueso)}"` : "");
     const op = (f) => (f.opacidad != null && f.opacidad < 1 ? ` opacity="${f2(f.opacidad)}"` : "");
     const uno = (f, extra) => { if (f.tipo === "texto") { const q = f.puntos[0]; return `<text x="${f2(q.x)}" y="${f2(q.y)}" font-size="${f2(f.tam || 48)}" text-anchor="middle" dominant-baseline="central" font-family="Inter, Figtree, Segoe UI, sans-serif" font-weight="${f.peso || 800}" fill="${R(f.relleno || "{tinta}")}"${op(f)}${extra}>${escT(f.texto || "")}</text>`; }
       if (f.puntos.length < 2) return "";
       const st = f.trazo && f.grosor ? ` stroke="${R(f.trazo)}" stroke-width="${f2(f.grosor)}" stroke-linecap="round" stroke-linejoin="round"` : ed && !f.cerrada ? ` stroke="#888" stroke-width="2"` : "";
       let tx = ""; if (f.textura && window.Pinceles) { const fl = Pinceles.filtro(f.textura); if (fl) { if (!defs.includes(fl)) defs.push(fl); tx = ` filter="url(#tx-${f.textura})"`; } }
-      return `<path d="${d(f)}" fill="${f.cerrada ? relleno(f, R, defs) : "none"}"${st}${op(f)}${tx}${f.ref != null ? ` data-ref="${escT(f.ref)}"` : ""}${extra}/>`; };
+      return `<path d="${d(f)}" fill="${f.cerrada ? relleno(f, R, defs) : "none"}"${st}${op(f)}${tx}${hz(f)}${f.ref != null ? ` data-ref="${escT(f.ref)}"` : ""}${extra}/>`; };
     const conEspejo = (f, extra) => uno(f, extra) + (f.simetrica && f.tipo !== "texto" ? `<g transform="scale(-1 1)"${ed ? ' pointer-events="none"' : ""}>${uno(f, "")}</g>` : "");
     // FORMAS LÍQUIDAS (como las de Moho): un grupo (f.liquido = { g, modo }) combina sus formas SIN perderlas; cada una sigue con sus
     // puntos, se anima y se dobla con los huesos. La de más abajo es la base; las demás se unen, restan o intersecan con ella.
@@ -76,14 +78,14 @@
       const tx = (f) => { if (!f.textura || !window.Pinceles) return ""; const fl = Pinceles.filtro(f.textura); if (!fl) return ""; if (!defs.includes(fl)) defs.push(fl); return ` filter="url(#tx-${f.textura})"`; };
       // capa 1: contornos (cada una con su trazo o, si no tiene, el de la base); capa 2: rellenos encima
       const c1 = U.map(({ f }) => { const gw = f.grosor || w, col = f.trazo ? R(f.trazo) : sc; if (!gw || !col) return "";
-        return esp(f, `<path d="${d(f)}" fill="${f.cerrada ? col : "none"}" stroke="${col}" stroke-width="${f2(gw)}" stroke-linejoin="round" stroke-linecap="round"${op(f)} pointer-events="none"/>`); }).join("");
-      const c2 = U.map(({ i, f }) => f.cerrada ? esp(f, `<path d="${d(f)}" fill="${relleno(f, R, defs)}"${op(f)}${tx(f)}${ex(i)}/>`) : "").join("");
-      const clipU = `<clipPath id="${id}-u">${U.filter((m) => m.f.cerrada).map(({ f }) => esp(f, `<path d="${d(f)}"/>`)).join("")}</clipPath>`;
-      const borde = (f) => (w && sc ? esp(f, `<path d="${d(f)}" fill="none" stroke="${sc}" stroke-width="${f2(w)}" stroke-linejoin="round" clip-path="url(#${id}-u)" pointer-events="none"/>`) : "");
+        return esp(f, `<path d="${d(f)}" fill="${f.cerrada ? col : "none"}" stroke="${col}" stroke-width="${f2(gw)}" stroke-linejoin="round" stroke-linecap="round"${op(f)}${hz(f)} pointer-events="none"/>`); }).join("");
+      const c2 = U.map(({ i, f }) => f.cerrada ? esp(f, `<path d="${d(f)}" fill="${relleno(f, R, defs)}"${op(f)}${tx(f)}${hz(f)}${ex(i)}/>`) : "").join("");
+      const clipU = `<clipPath id="${id}-u">${U.filter((m) => m.f.cerrada).map(({ f }) => esp(f, `<path d="${d(f)}"${hz(f)}/>`)).join("")}</clipPath>`;
+      const borde = (f) => (w && sc ? esp(f, `<path d="${d(f)}"${hz(f)} fill="none" stroke="${sc}" stroke-width="${f2(w)}" stroke-linejoin="round" clip-path="url(#${id}-u)" pointer-events="none"/>`) : "");
       let cuerpo = c1 + c2 + Rs.map((m) => borde(m.f)).join("") + I.map((m) => borde(m.f)).join(""), defsG = clipU;
-      if (Rs.length) { defsG += `<mask id="${id}-m" maskUnits="userSpaceOnUse" x="-4000" y="-4000" width="8000" height="8000"><rect x="-4000" y="-4000" width="8000" height="8000" fill="#fff"/>${Rs.map(({ f }) => esp(f, `<path d="${d(f)}" fill="#000"/>`)).join("")}</mask>`;
+      if (Rs.length) { defsG += `<mask id="${id}-m" maskUnits="userSpaceOnUse" x="-4000" y="-4000" width="8000" height="8000"><rect x="-4000" y="-4000" width="8000" height="8000" fill="#fff"/>${Rs.map(({ f }) => esp(f, `<path d="${d(f)}" fill="#000"${hz(f)}/>`)).join("")}</mask>`;
         cuerpo = `<g mask="url(#${id}-m)">${cuerpo}</g>`; }
-      I.forEach(({ f }, n) => { defsG += `<clipPath id="${id}-i${n}">${esp(f, `<path d="${d(f)}"/>`)}</clipPath>`; cuerpo = `<g clip-path="url(#${id}-i${n})">${cuerpo}</g>`; });
+      I.forEach(({ f }, n) => { defsG += `<clipPath id="${id}-i${n}">${esp(f, `<path d="${d(f)}"${hz(f)}/>`)}</clipPath>`; cuerpo = `<g clip-path="url(#${id}-i${n})">${cuerpo}</g>`; });
       // en el taller, las que restan o intersecan se ven como un contorno discontinuo que se puede elegir
       const guias = ed ? [...Rs, ...I].map(({ i, f }) => `<path d="${d(f)}" fill="#ffffff" fill-opacity="0.04" stroke="${f.liquido.modo === "resta" ? "#ff8a7a" : "#7ab8ff"}" stroke-width="${f2(1.4 * ed.k)}" stroke-dasharray="${f2(5 * ed.k)} ${f2(4 * ed.k)}"${ex(i)}/>`).join("") : "";
       return `<g data-liquido="${escT(base.liquido.g)}">${defsG}${cuerpo}</g>${guias}`; }
@@ -94,7 +96,7 @@
       const cuerpo = conEspejo(f, ex); if (!cortes.length) { out.push(cuerpo); return; }
       const id = "ag" + Math.abs([...(d(f) + cortes.map(d).join(""))].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)).toString(36);
       const corte = (c) => c.cerrada ? `fill="#000"` : `fill="none" stroke="#000" stroke-width="${f2(c.grosor || 12)}" stroke-linecap="round" stroke-linejoin="round"`;   // la goma recorta con su trazo
-      const hueco = cortes.map((c) => `<path d="${d(c)}" ${corte(c)}/>` + (c.simetrica ? `<path d="${d(c)}" ${corte(c)} transform="scale(-1 1)"/>` : "")).join("");
+      const hueco = cortes.map((c) => `<path d="${d(c)}" ${corte(c)}${hz(c)}/>` + (c.simetrica ? `<path d="${d(c)}" ${corte(c)}${hz(c)} transform="scale(-1 1)"/>` : "")).join("");
       out.push(`<mask id="${id}" maskUnits="userSpaceOnUse" x="-4000" y="-4000" width="8000" height="8000"><rect x="-4000" y="-4000" width="8000" height="8000" fill="#fff"/>${hueco}</mask><g mask="url(#${id})">${cuerpo}</g>`); });
     return (defs.length ? `<defs>${defs.join("")}</defs>\n` : "") + out.join("\n"); }
   function aSVG(D) { return svgFormas(D.formas, (c) => c, null); }
@@ -213,6 +215,7 @@
           <label class="chk"><input type="checkbox" id="tl-cerrada"> Forma cerrada (con relleno)</label>
           <label class="chk" title="Se dibuja también reflejada en el eje (la línea vertical del centro): media cara, medio sombrero"><input type="checkbox" id="tl-sim"> Simetría: se refleja sola en el eje</label>
           <label class="chk" title="Esta forma no se pinta: recorta la forma que tiene justo debajo (restar)"><input type="checkbox" id="tl-agujero"> Agujero: recorta la forma de debajo</label>
+          <div class="campo" id="tl-hueso-c" hidden><label>Hueso de esta forma <span class="tenue">(la sigue sin doblarse: mandíbula, ojo, ala, cola)</span></label><select id="tl-hueso-f"></select></div>
           <div id="tl-texto-det" hidden><div class="campo"><input id="tl-texto" type="text" placeholder="Texto"></div><div class="deslizador"><label>Tamaño del texto</label><input type="range" id="tl-tam" min="8" max="240" step="1"><output></output></div></div>
           <h4>Varias formas <span class="tenue">(Mayús + clic para elegir más)</span></h4>
           <div class="fila-botones tres tl-multi"><button data-al="izq" title="Alinear a la izquierda">⇤ Izq.</button><button data-al="cx" title="Centrar en horizontal (una sola: en el eje)">↔ Centro</button><button data-al="der" title="Alinear a la derecha">Der. ⇥</button>
@@ -246,6 +249,7 @@
     accion("tl-bajar", () => { if (sel <= 0) return; guardarHist(); [D.formas[sel], D.formas[sel - 1]] = [D.formas[sel - 1], D.formas[sel]]; sel--; pintar(); });
     accion("tl-borrar", borrarForma);
     $("#tl-sim", raiz).onchange = (ev) => { estilo.simetrica = ev.target.checked; for (const i of selSet()) { guardarHist(); D.formas[i].simetrica = ev.target.checked || undefined; } pintar(); };
+    $("#tl-hueso-f", raiz).onchange = (ev) => { const v = ev.target.value, idx = [...selSet()]; if (!idx.length) return; guardarHist(); for (const i of idx) { if (v) D.formas[i].hueso = v; else delete D.formas[i].hueso; } pintar(); };
     $("#tl-agujero", raiz).onchange = (ev) => { if (sel !== null) editarForma((f) => { f.agujero = ev.target.checked || undefined; if (f.agujero) f.cerrada = true; }); };
     $("#tl-texto", raiz).oninput = (ev) => { if (sel !== null && D.formas[sel].tipo === "texto") editarForma((f) => { f.texto = ev.target.value; }, "texto"); };
     $("#tl-tam", raiz).oninput = (ev) => { if (sel !== null && D.formas[sel].tipo === "texto") editarForma((f) => { f.tam = +ev.target.value; }, "tam"); };
@@ -428,6 +432,8 @@
     $("#tl-sim", raiz).checked = f ? !!f.simetrica : !!estilo.simetrica; $("#tl-agujero", raiz).checked = !!f?.agujero; $("#tl-agujero", raiz).disabled = !f || f.tipo === "texto";
     const esT = f?.tipo === "texto"; $("#tl-texto-det", raiz).hidden = !esT; if (esT) { if (document.activeElement !== $("#tl-texto", raiz)) $("#tl-texto", raiz).value = f.texto || ""; const tm = $("#tl-tam", raiz); if (document.activeElement !== tm) tm.value = f.tam || 48; tm.nextElementSibling.textContent = Math.round(f.tam || 48); }
     pintarLiquido(f);
+    { const hc = $("#tl-hueso-c", raiz), hs = cfg?.huesos || []; hc.hidden = !hs.length || !f || f.tipo === "texto";
+      if (!hc.hidden) { const s = $("#tl-hueso-f", raiz); if (s.dataset.firma !== hs.join("|")) { s.dataset.firma = hs.join("|"); s.replaceChildren(h("option", { value: "" }, "— como la capa (se dobla con los huesos) —"), ...hs.map((n) => h("option", { value: n }, "🦴 " + n))); } s.value = f.hueso && hs.includes(f.hueso) ? f.hueso : ""; } }
     const n = selSet().size; raiz.querySelectorAll(".tl-multi button").forEach((b) => (b.disabled = !n)); $("#tl-dist-x", raiz).disabled = $("#tl-dist-y", raiz).disabled = n < 3;
     $("#tl-agrupar", raiz).textContent = n > 1 && [...selSet()].every((i) => D.formas[i].grupo && D.formas[i].grupo === D.formas[[...selSet()][0]].grupo) ? "Desagrupar" : "Agrupar";
     raiz.querySelectorAll(".taller-panel .fila-botones:not(.tl-multi) button").forEach((b) => { if (!/tl-calco|tl-pz/.test(b.id)) b.disabled = !f; });
@@ -435,7 +441,7 @@
     [...D.formas.keys()].reverse().forEach((i) => { const fo = D.formas[i], mini = h("span", { class: "mini" }); mini.style.background = fo.cerrada ? res(fo.relleno) : "transparent"; mini.style.borderColor = fo.grosor ? res(fo.trazo) : "#4a4466";
       const ojo = h("button", { class: "ojo" + (fo.oculta ? " apagado" : ""), title: "Mostrar u ocultar", onclick: (ev) => { ev.stopPropagation(); guardarHist(); fo.oculta = !fo.oculta; pintar(); } }, fo.oculta ? "○" : "●");
       const candado = h("button", { class: "ojo" + (fo.bloqueada ? "" : " apagado"), title: fo.bloqueada ? "Bloqueada: no se puede tocar en el lienzo. Clic para desbloquear" : "Bloquear (no se toca en el lienzo)", onclick: (ev) => { ev.stopPropagation(); guardarHist(); fo.bloqueada = !fo.bloqueada || undefined; pintar(); } }, fo.bloqueada ? "🔒" : "🔓");
-      const tipoN = (fo.liquido ? "💧 " + ({ resta: "resta · ", inter: "interseca · " }[fo.liquido.modo] || "") : "") + (fo.tipo === "texto" ? `Texto «${(fo.texto || "").slice(0, 18)}»` : fo.agujero ? (fo.cerrada ? "Agujero" : "Goma") : `${fo.cerrada ? "Forma" : "Trazo"} · ${fo.puntos.length} puntos`);
+      const tipoN = (fo.hueso ? "🦴" + fo.hueso + " · " : "") + (fo.liquido ? "💧 " + ({ resta: "resta · ", inter: "interseca · " }[fo.liquido.modo] || "") : "") + (fo.tipo === "texto" ? `Texto «${(fo.texto || "").slice(0, 18)}»` : fo.agujero ? (fo.cerrada ? "Agujero" : "Goma") : `${fo.cerrada ? "Forma" : "Trazo"} · ${fo.puntos.length} puntos`);
       const nom = h("span", { title: "Doble clic para ponerle nombre" }, fo.nombre ? `${fo.nombre}` : `${tipoN}`);
       nom.ondblclick = async (ev) => { ev.stopPropagation(); const n = window.Dialogo ? await Dialogo.pedir("Nombre de la forma", { valor: fo.nombre || tipoN, aceptar: "Cambiar" }) : prompt("Nombre de la forma", fo.nombre || tipoN); if (n === null) return; guardarHist(); fo.nombre = n.trim() || undefined; pintar(); };
       ul.append(h("li", { class: i === sel ? "activo" : "", onclick: () => { sel = i; ponerHerr("sel"); pintar(); } }, ojo, candado, mini, nom)); }); }
