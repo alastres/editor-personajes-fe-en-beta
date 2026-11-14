@@ -282,5 +282,7 @@ Por hacer:
   - Doblar curva el objeto desde la base, como un árbol con viento o una caña con peso; Ondear le pasa una onda que sube; Respirar lo hace latir suave.
   - Se animan con claves (casilla «Animar con claves»). Cuesta 0,3 ms por objeto y fotograma.
   - [ ] Pendiente: lo mismo para las capas de las láminas y para las piezas del personaje, y una rejilla de puntos arrastrables (deformación libre a mano).
-- [ ] **Efectos de capa** en Escenas: sombra, desenfoque, resplandor y máscara por objeto o capa.
+- [x] **Efectos de capa** (como los de Moho): sombra, desenfoque, resplandor (con el color de la luz de la escena) y opacidad.
+  - En los objetos son parámetros más y se animan con claves; en los personajes, «Efectos de capa» en su panel.
+  - [ ] Pendiente: máscaras (recortar una capa con la forma de otra) y efectos en las capas de las láminas.
 

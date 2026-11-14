@@ -316,7 +316,24 @@
       if (ob.alFondo) params.horizonte = Math.round(horizonte(18000) / esc0);   // decorados de escena entera (mar Rojo): su horizonte es el del fondo
       const A = window.ATREZO && ATREZO[ob.tipo], clave = JSON.stringify([ob.tipo, params, frio]) + (A && (A.anima || (window.Atrezo?.deforma?.(params) && ((params.ondear || 0) > 0.005 || (params.respirar || 0) > 0.005))) ? "|" + t.toFixed(3) : "");
       if (clave !== O.k) { O.k = clave; O.g.innerHTML = window.Atrezo ? Atrezo.dibujar({ tipo: ob.tipo, params, frio }, t) : ""; }
+      efectosCapa(O.g, params, "o-" + (ob.id || ob.tipo), esc0);
       return ob.p || 0; }
+    // ---- EFECTOS DE CAPA (como los de Moho): sombra, desenfoque, resplandor (con el color de la luz de la escena) y opacidad, en
+    // cualquier objeto (parámetros con claves) o personaje (a.efectos). Un filtro SVG por elemento, que solo se rehace si cambia.
+    function efectosCapa(g, p, id, k = 1) { const s = +p.sombra || 0, b = +p.desenfoque || 0, r = +p.resplandor || 0, op = p.opacidad ?? 1, key = [s, b, r].map((v) => v.toFixed(3)).join("|");
+      g.setAttribute("opacity", op >= 0.999 ? 1 : Math.max(0, op).toFixed(3));
+      if (s < 0.005 && b < 0.005 && r < 0.005) { if (g.getAttribute("filter")) g.removeAttribute("filter"); return; }
+      const fid = "efx-" + id.replace(/[^\w-]/g, "_"); if (g.dataset.efxk === key && g.getAttribute("filter")) return; g.dataset.efxk = key;
+      const defs = g.ownerSVGElement.querySelector("defs") || el("defs", {}, g.ownerSVGElement); let f = defs.querySelector("#" + fid); if (f) f.remove();
+      f = el("filter", { id: fid, x: "-60%", y: "-60%", width: "220%", height: "220%", "color-interpolation-filters": "sRGB" }, defs);
+      const luz = (fondoDe(esc.fondo) || {}).luz || "#ffd27a", u = 1 / Math.max(0.2, k); let fuente = "SourceGraphic", capas = [];
+      if (b > 0.005) { el("feGaussianBlur", { in: "SourceGraphic", stdDeviation: (b * 14 * u).toFixed(2), result: "des" }, f); fuente = "des"; }
+      if (r > 0.005) { el("feGaussianBlur", { in: fuente, stdDeviation: (10 + r * 26) * u, result: "rb" }, f); el("feFlood", { "flood-color": luz, "flood-opacity": Math.min(1, r * 1.1).toFixed(2), result: "rc" }, f);
+        el("feComposite", { in: "rc", in2: "rb", operator: "in", result: "rr" }, f); capas.push("rr"); }
+      if (s > 0.005) { el("feGaussianBlur", { in: "SourceAlpha", stdDeviation: (6 + s * 10) * u, result: "sb" }, f); el("feOffset", { in: "sb", dx: (s * 22 * u).toFixed(1), dy: (s * 26 * u).toFixed(1), result: "so" }, f);
+        el("feFlood", { "flood-color": "#120c22", "flood-opacity": (0.55 * s + 0.15).toFixed(2), result: "sc" }, f); el("feComposite", { in: "sc", in2: "so", operator: "in", result: "ss" }, f); capas.unshift("ss"); }
+      const mg = el("feMerge", {}, f); for (const c of capas) el("feMergeNode", { in: c }, mg); el("feMergeNode", { in: fuente }, mg);
+      g.setAttribute("filter", `url(#${fid})`); }
     function camara(t) { const c = claves(esc.camara, t, ["x", "y", "zoom", "tilt", "roll", "alto"]) || { x: 0, y: -360, zoom: 1 }; const [dx, dy] = sacudida(esc, t);   // tilt: ángulo (−0,3 contrapicado … 0,6 picado; 0,18 normal); roll: cámara ladeada (grados)
       if (!esc.camaraFija) { const z0 = c.zoom || 1; c.x += (9 * Math.sin(t * 0.53) + 4 * Math.sin(t * 1.31)) / z0; c.y += (6 * Math.sin(t * 0.41 + 1) + 3 * Math.sin(t * 1.07)) / z0; c.zoom = z0 * (1 + 0.006 * Math.sin(t * 0.29)); } if (dx || dy) { c.x += dx / (c.zoom || 1); c.y += dy / (c.zoom || 1); } return c; }
     function dibujar(t) {
@@ -471,7 +488,7 @@
             e["brazo" + L] = { lado: 0.16 + 0.03 * Math.sin(t * 0.8 + ph + s2), frente: 0.1 + 0.04 * Math.sin(t * 0.55 + ph * s2), codo: 0.42 + 0.06 * Math.sin(t * 0.7 + ph), hacia: [0, -1, 0.3], k: 1 };
             if (!e["mano" + L]) e["mano" + L] = { relajada: 1 }; } }
         e.t = t; e.mundo = [X0 / esc0, Y0 / esc0];
-        A.m.dibujar(e);
+        A.m.dibujar(e); efectosCapa(A.g, a.efectos || {}, "a-" + a.id, esc0);
         // puntos del personaje en el mundo (para que otros le miren o le cojan de la mano en el fotograma siguiente)
         const P2 = A.m.puntos || {}, aMundo = (pt) => pt && [X0 + pt[0] * esc0, Y0 + pt[1] * esc0];
         A.wp = { cabeza: aMundo(P2.cabeza), manoIzq: aMundo(P2.manoIzq), manoDer: aMundo(P2.manoDer), pecho: aMundo(P2.pecho) };

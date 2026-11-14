@@ -238,7 +238,9 @@
   // ---- DEFORMADOR (como el deformador de malla de Moho / Cartoon Animator): cualquier objeto se puede doblar desde la base (viento,
   // peso), ondear (una onda que sube) o respirar (late suave). Son parámetros más del objeto, así que se animan con claves.
   // La geometría (círculos, rectángulos, trazos con arcos…) se muestrea una vez en puntos y se guarda; cada fotograma solo los mueve.
-  const DEF = { doblar: [-1, 1, 0.01, 0, "Doblar (viento, peso)"], ondear: [0, 1, 0.01, 0, "Ondear"], respirar: [0, 1, 0.01, 0, "Respirar (late suave)"] };
+  const DEF = { doblar: [-1, 1, 0.01, 0, "Doblar (viento, peso)"], ondear: [0, 1, 0.01, 0, "Ondear"], respirar: [0, 1, 0.01, 0, "Respirar (late suave)"],
+    // efectos de capa (como los de Moho): los aplica la escena (comun/escena.js, efectosCapa) al grupo del objeto
+    sombra: [0, 1, 0.01, 0, "Efecto: sombra"], desenfoque: [0, 1, 0.01, 0, "Efecto: desenfoque"], resplandor: [0, 1, 0.01, 0, "Efecto: resplandor"], opacidad: [0, 1, 0.01, 1, "Efecto: opacidad"] };
   for (const A of Object.values(ATREZO)) A.params = Object.assign({}, A.params, DEF);
   const NSs = "http://www.w3.org/2000/svg", GEO = new Map(); let medidor = null;
   function geometria(svg) { if (GEO.has(svg)) return GEO.get(svg); if (GEO.size > 200) GEO.clear();

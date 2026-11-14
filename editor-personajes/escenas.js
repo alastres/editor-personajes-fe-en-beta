@@ -261,7 +261,7 @@
       return r && r.v < 2 ? `${pj.nombre || x.personaje}: ${r.v.toFixed(2).replace(".", ",")}:1 contra ${r.donde}` : null; }).filter(Boolean);
     const av = $("#aviso-contraste"); av.hidden = !malos.length; if (malos.length) av.textContent = "⚠ Piel con poco contraste con el fondo (mínimo 2:1):\n" + malos.join("\n") + "\nCambia el fondo o sus colores, o el tono de piel en Personajes.";
     const a = actor(); $("#actor-det").hidden = !a;
-    if (a) { const q = posActor(a); deslizar("a-x", q.x, (v) => Math.round(v)); deslizar("a-p", q.p || 0, (v) => v.toFixed(2)); deslizar("a-giro", q.giro ?? 20, (v) => Math.round(v) + "°"); deslizar("a-escala", a.escala || 1, (v) => Math.round(v * 100) + "%");
+    if (a) { for (const i of document.querySelectorAll("[data-efx]")) { const k = i.dataset.efx; deslizar(i.id, a.efectos?.[k] ?? (k === "opacidad" ? 1 : 0), (v) => Math.round(v * 100) + "%"); } const q = posActor(a); deslizar("a-x", q.x, (v) => Math.round(v)); deslizar("a-p", q.p || 0, (v) => v.toFixed(2)); deslizar("a-giro", q.giro ?? 20, (v) => Math.round(v) + "°"); deslizar("a-escala", a.escala || 1, (v) => Math.round(v * 100) + "%");
       const acc = [...(PJ[a.personaje]?.acciones || []), ...Object.values(window.ACCIONES || {}).map((x) => Object.assign({}, x, { comun: true }))];
       $("#a-accion").replaceChildren(...(acc.length ? acc.map((x) => h("option", { value: x.id }, (x.comun ? "★ " : "") + (x.nombre || x.id))) : [h("option", { value: "" }, "— sin acciones: créalas en Personajes → Animación —")]));
       $("#b-add-bloque").disabled = !acc.length;
@@ -386,6 +386,9 @@
   $("#a-p").addEventListener("input", (ev) => editarActor({ p: Number(ev.target.value) }, "a-p"));
   $("#a-giro").addEventListener("input", (ev) => ponDireccion(Number(ev.target.value), "a-giro"));
   $("#a-escala").addEventListener("input", (ev) => { const a = actor(); if (a) cambio((x) => { x.actores.find((y) => y.id === a.id).escala = Number(ev.target.value); }, "a-escala", false); });
+  // efectos de capa del personaje (sombra, desenfoque, resplandor, opacidad): comun/escena.js, efectosCapa
+  for (const i of document.querySelectorAll("[data-efx]")) i.addEventListener("input", () => { const a = actor(); if (!a) return; const k = i.dataset.efx, v = Number(i.value);
+    cambio((x) => { const q = x.actores.find((y) => y.id === a.id), e = (q.efectos = q.efectos || {}); if (k === "opacidad" ? v >= 0.999 : v <= 0.001) delete e[k]; else e[k] = v; if (!Object.keys(e).length) delete q.efectos; }, "a-efx-" + k, false); });
   $("#b-add-bloque").addEventListener("click", () => { const a = actor(), acc = $("#a-accion").value; if (!a || !acc) return; const def = Personajes.buscarAccion(PJ[a.personaje], acc)?.duracion || 2;
     cambio((x) => { const ax = x.actores.find((y) => y.id === a.id); ax.bloques = ax.bloques || []; ax.bloques.push({ t: +tiempo.toFixed(2), accion: acc, dur: +Math.min(def * 2, D() - tiempo || def).toFixed(1) || def }); ax.bloques.sort((m, n) => m.t - n.t); selBloque = ax.bloques.findIndex((b) => b.accion === acc && Math.abs(b.t - tiempo) < 0.02); }, null, false); });
   $("#b-dur").addEventListener("input", (ev) => { const a = actor(); if (!a || selBloque === null) return; cambio((x) => { x.actores.find((y) => y.id === a.id).bloques[selBloque].dur = Number(ev.target.value); }, "b-dur" + selBloque, false); });

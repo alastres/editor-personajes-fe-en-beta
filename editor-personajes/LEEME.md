@@ -649,3 +649,14 @@ Como el deformador de malla de Moho y Cartoon Animator, en todos los objetos del
   - en cada fotograma solo se mueven los puntos, unos 0,3 ms por objeto;
   - los objetos sin deformar salen exactamente igual que antes.
 
+## Efectos de capa (14 nov 2026)
+Como los efectos de capa de Moho, en **Escenas**:
+- **Objetos del atrezo:** «Efecto: sombra», «Efecto: desenfoque», «Efecto: resplandor» y «Efecto: opacidad», junto a sus otros ajustes. Se animan con claves, por ejemplo una brasa que se enciende o un objeto que se desvanece.
+- **Personajes:** en su panel, **«Efectos de capa»**: los mismos cuatro, para uno que brilla en una aparición, otro desenfocado en primer término o un fantasma medio transparente.
+- **Cómo son:**
+  - **sombra:** proyectada abajo a la derecha, en violeta oscuro;
+  - **desenfoque:** útil para lo que queda muy cerca o muy lejos de la cámara;
+  - **resplandor:** un halo del **color de la luz de la escena** (cálido de día, azulado de noche);
+  - **opacidad:** de transparente a opaco.
+- **Datos:** en los objetos, `params.sombra / desenfoque / resplandor / opacidad`; en los personajes, `efectos: { … }`. Los aplica `efectosCapa` en `comun/escena.js` con un filtro SVG por elemento, que solo se rehace si cambian los valores.
+
