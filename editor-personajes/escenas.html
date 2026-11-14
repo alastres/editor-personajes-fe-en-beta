@@ -105,6 +105,7 @@
           <div class="deslizador"><label>Ángulo exacto</label><input type="range" id="a-giro" min="-180" max="180" step="1" /><output></output></div>
           <label class="chk" title="Al andar gira solo hacia donde va (al empezar cada tramo) y se queda mirando así al pararse. Si eliges una dirección en una clave, esa manda."><input type="checkbox" id="a-orientar" /> Mira hacia donde anda</label>
           <div class="deslizador"><label>Tamaño</label><input type="range" id="a-escala" min="0.4" max="2" step="0.01" /><output></output></div>
+          <div class="campo"><label>Máscara <span class="tenue">(solo se ve dentro de la forma de un objeto: asomar por una puerta o una ventana)</span></label><div class="fila-anadir"><select id="a-mascara"></select><label class="chk" title="Esconde el objeto que hace de máscara (solo cuenta su forma)"><input type="checkbox" id="a-mascara-oculta" /> ocultarla</label></div></div>
           <details class="sub-bloque"><summary>Efectos de capa <span class="tenue">(sombra, desenfoque, resplandor, opacidad)</span></summary>
             <div class="deslizador"><label>Sombra</label><input type="range" id="a-efx-sombra" data-efx="sombra" min="0" max="1" step="0.01" /><output></output></div>
             <div class="deslizador"><label>Desenfoque</label><input type="range" id="a-efx-desenfoque" data-efx="desenfoque" min="0" max="1" step="0.01" /><output></output></div>
@@ -159,6 +160,7 @@
           <div class="deslizador"><label>Profundidad z (negativo = primer término, delante de todos · 1+ = lejos)</label><input type="range" id="o-p" min="-0.9" max="4" step="0.01" /><output></output></div>
           <div class="deslizador"><label>Tamaño</label><input type="range" id="o-escala" min="0.2" max="3" step="0.01" /><output></output></div>
           <div class="fila-botones dos"><label class="chk"><input type="checkbox" id="o-espejo" /> Espejo</label><label class="chk" title="A la misma profundidad que un personaje, queda detrás de él"><input type="checkbox" id="o-detras" /> Detrás de los personajes</label></div>
+          <div class="campo"><label>Máscara <span class="tenue">(solo se ve dentro de la forma de otro objeto)</span></label><div class="fila-anadir"><select id="o-mascara"></select><label class="chk" title="Esconde el objeto que hace de máscara (solo cuenta su forma)"><input type="checkbox" id="o-mascara-oculta" /> ocultarla</label></div></div>
           <div id="o-params"></div>
           <label class="chk" title="Con claves, los valores de arriba (piedra, luz, fuego…) cambian con el tiempo: cada cambio crea una clave en el cabezal"><input type="checkbox" id="o-animar" /> Animar con claves en el cabezal</label>
           <button id="b-quitar-objeto" class="peligro" style="margin-top:10px">Quitar de la escena</button>

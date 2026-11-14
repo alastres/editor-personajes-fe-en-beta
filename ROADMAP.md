@@ -288,5 +288,6 @@ Por hacer:
   - [ ] Pendiente: piezas del personaje y una rejilla de puntos arrastrables (deformación libre a mano).
 - [x] **Efectos de capa** (como los de Moho): sombra, desenfoque, resplandor (con el color de la luz de la escena) y opacidad.
   - En los objetos son parámetros más y se animan con claves; en los personajes, «Efectos de capa» en su panel.
-  - [ ] Pendiente: máscaras (recortar una capa con la forma de otra) y efectos en las capas de las láminas.
+  - [x] Máscaras: un objeto o un personaje se ve solo dentro de la forma de otro objeto (asomar por una puerta o una ventana; una animación a mano dentro de un marco). «ocultarla» esconde el objeto que hace de máscara.
+  - [ ] Pendiente: efectos en las capas de las láminas.
 

@@ -318,6 +318,15 @@
       if (clave !== O.k) { O.k = clave; O.g.innerHTML = window.Atrezo ? Atrezo.dibujar({ tipo: ob.tipo, params, frio }, t) : ""; }
       efectosCapa(O.g, params, "o-" + (ob.id || ob.tipo), esc0);
       return ob.p || 0; }
+    function mascara(g, quien, id) { const M = quien.mascara && objetos.find((x) => (x.ob.id || x.ob.tipo) === quien.mascara);
+      if (!M || M.g === g) { if (g.getAttribute("mask")) g.removeAttribute("mask"); return; }
+      const defs = g.ownerSVGElement.querySelector("defs") || el("defs", {}, g.ownerSVGElement), mid = "msk-" + id.replace(/[^\w-]/g, "_");
+      let mk = defs.querySelector("#" + mid); if (!mk) mk = el("mask", { id: mid, maskUnits: "userSpaceOnUse", x: -20000, y: -20000, width: 40000, height: 40000, style: "mask-type:alpha" }, defs);
+      // la forma del objeto máscara, pasada a las coordenadas del enmascarado (los dos cuelgan del mismo grupo del mundo)
+      const mG = g.transform.baseVal.consolidate()?.matrix || new DOMMatrix(), mM = M.g.transform.baseVal.consolidate()?.matrix || new DOMMatrix(), r = mG.inverse().multiply(mM);
+      const clave = M.k + "|" + [r.a, r.b, r.c, r.d, r.e, r.f].map((v) => v.toFixed(3)).join(",");
+      if (mk.dataset.k !== clave) { mk.dataset.k = clave; mk.innerHTML = `<g transform="matrix(${r.a} ${r.b} ${r.c} ${r.d} ${r.e} ${r.f})">${M.g.innerHTML}</g>`; }
+      g.setAttribute("mask", `url(#${mid})`); if (quien.mascaraOculta) M.g.setAttribute("display", "none"); }
     // ---- EFECTOS DE CAPA (como los de Moho): sombra, desenfoque, resplandor (con el color de la luz de la escena) y opacidad, en
     // cualquier objeto (parámetros con claves) o personaje (a.efectos). Un filtro SVG por elemento, que solo se rehace si cambia.
     function efectosCapa(g, p, id, k = 1) { const s = +p.sombra || 0, b = +p.desenfoque || 0, r = +p.resplandor || 0, op = p.opacidad ?? 1, key = [s, b, r].map((v) => v.toFixed(3)).join("|");
@@ -361,6 +370,11 @@
       for (const A of actores) { if (!A.m) continue; const q = actor(A, t); orden.push({ g: A.g, p: q.p || 0 }); }
       for (const O of objetos) orden.push({ g: O.g, p: O.ob.alFondo ? 99 + objeto(O, t) : objeto(O, t) + (O.ob.detras ? 0.0005 : -0.0005) });   // alFondo: decorado de escena entera, detrás de todos
       orden.sort((x, y) => y.p - x.p).forEach((o) => mundo.appendChild(o.g));
+      // MÁSCARAS (como las de Moho): un objeto o un personaje con «mascara: id de un objeto» solo se ve dentro de la forma de ese
+      // objeto (un personaje que asoma por una puerta, una animación a mano dentro de una ventana). «mascaraOculta» esconde el objeto
+      // que hace de máscara. La forma se copia cada fotograma, ya colocada en el sitio del objeto enmascarado.
+      for (const O of objetos) O.g.removeAttribute("display");
+      for (const [g, quien, id] of [...objetos.map((O) => [O.g, O.ob, "o-" + (O.ob.id || O.ob.tipo)]), ...actores.filter((A) => A.m).map((A) => [A.g, A.a, "a-" + A.a.id])]) mascara(g, quien, id);
       // REJILLA DE PROFUNDIDAD (editor: botón # de la planta, o esc.rejilla): líneas del suelo en p = −0,5 … 4 y el horizonte de la cámara
       gRej.replaceChildren(); if (esc.rejilla || window.REJILLA_PROF) { gRej.setAttribute("transform", tr);
         for (const p of [-0.5, -0.25, 0, 0.25, 0.5, 1, 2, 4]) { const y = proy(0, p).y; el("line", { x1: c.x - 4000, x2: c.x + 4000, y1: y, y2: y, stroke: p === 0 ? "#ff5a8a" : "#5af0ff", "stroke-width": 3 / z, opacity: 0.8 }, gRej);

@@ -269,7 +269,8 @@
       return r && r.v < 2 ? `${pj.nombre || x.personaje}: ${r.v.toFixed(2).replace(".", ",")}:1 contra ${r.donde}` : null; }).filter(Boolean);
     const av = $("#aviso-contraste"); av.hidden = !malos.length; if (malos.length) av.textContent = "⚠ Piel con poco contraste con el fondo (mínimo 2:1):\n" + malos.join("\n") + "\nCambia el fondo o sus colores, o el tono de piel en Personajes.";
     const a = actor(); $("#actor-det").hidden = !a;
-    if (a) { for (const i of document.querySelectorAll("[data-efx]")) { const k = i.dataset.efx; deslizar(i.id, a.efectos?.[k] ?? (k === "opacidad" ? 1 : 0), (v) => Math.round(v * 100) + "%"); } const q = posActor(a); deslizar("a-x", q.x, (v) => Math.round(v)); deslizar("a-p", q.p || 0, (v) => v.toFixed(2)); deslizar("a-giro", q.giro ?? 20, (v) => Math.round(v) + "°"); deslizar("a-escala", a.escala || 1, (v) => Math.round(v * 100) + "%");
+    if (a) { { const s = $("#a-mascara"); if (document.activeElement !== s) { opcionesMascara(s, null); s.value = a.mascara || ""; } $("#a-mascara-oculta").checked = !!a.mascaraOculta; }
+      for (const i of document.querySelectorAll("[data-efx]")) { const k = i.dataset.efx; deslizar(i.id, a.efectos?.[k] ?? (k === "opacidad" ? 1 : 0), (v) => Math.round(v * 100) + "%"); } const q = posActor(a); deslizar("a-x", q.x, (v) => Math.round(v)); deslizar("a-p", q.p || 0, (v) => v.toFixed(2)); deslizar("a-giro", q.giro ?? 20, (v) => Math.round(v) + "°"); deslizar("a-escala", a.escala || 1, (v) => Math.round(v * 100) + "%");
       const acc = [...(PJ[a.personaje]?.acciones || []), ...Object.values(window.ACCIONES || {}).map((x) => Object.assign({}, x, { comun: true }))];
       $("#a-accion").replaceChildren(...(acc.length ? acc.map((x) => h("option", { value: x.id }, (x.comun ? "★ " : "") + (x.nombre || x.id))) : [h("option", { value: "" }, "— sin acciones: créalas en Personajes → Animación —")]));
       $("#b-add-bloque").disabled = !acc.length;
@@ -300,6 +301,7 @@
       h("span", {}, "▲"), h("span", {}, ATREZO[o.tipo]?.nombre || o.tipo), h("span", { class: "hueso" }, o.claves?.length ? `${o.claves.length} claves` : ""), h("span")));
     const ob = objeto(); $("#objeto-det").hidden = !ob;
     if (ob) { deslizar("o-x", ob.x || 0, (v) => Math.round(v)); deslizar("o-p", ob.p || 0, (v) => v.toFixed(2)); deslizar("o-escala", ob.escala || 1, (v) => Math.round(v * 100) + "%");
+      { const s = $("#o-mascara"); if (document.activeElement !== s) { opcionesMascara(s, ob.id); s.value = ob.mascara || ""; } $("#o-mascara-oculta").checked = !!ob.mascaraOculta; }
       $("#o-espejo").checked = !!ob.espejo; $("#o-detras").checked = !!ob.detras; $("#o-animar").checked = !!ob.claves?.length;
       const defs = ATREZO[ob.tipo]?.params || {}, cont = $("#o-params"), vals = paramsObjeto(ob);
       if (!cont.contains(document.activeElement)) { cont.replaceChildren();
@@ -421,6 +423,13 @@
   $("#o-escala").addEventListener("input", (ev) => cambiaObj((o) => (o.escala = +ev.target.value), "oe"));
   $("#o-espejo").addEventListener("change", (ev) => cambiaObj((o) => { if (ev.target.checked) o.espejo = true; else delete o.espejo; }));
   $("#o-detras").addEventListener("change", (ev) => cambiaObj((o) => { if (ev.target.checked) o.detras = true; else delete o.detras; }));
+  // máscaras (comun/escena.js, mascara): la lista son los demás objetos de la escena
+  const opcionesMascara = (sel, yo) => { const v = sel.value; sel.replaceChildren(h("option", { value: "" }, "— sin máscara —"), ...(esc?.objetos || []).filter((o) => o.id !== yo).map((o) => h("option", { value: o.id }, "▲ " + (ATREZO[o.tipo]?.nombre || o.tipo) + " (" + o.id + ")"))); sel.value = v; };
+  const ponerMascara = (lista, id, k, v) => cambio((x) => { const q = x[lista].find((y) => y.id === id); if (!q) return; if (v) q[k] = v; else delete q[k]; }, null, false);
+  $("#o-mascara").addEventListener("change", (ev) => { const ob = objeto(); if (ob) ponerMascara("objetos", ob.id, "mascara", ev.target.value); });
+  $("#o-mascara-oculta").addEventListener("change", (ev) => { const ob = objeto(); if (ob) ponerMascara("objetos", ob.id, "mascaraOculta", ev.target.checked); });
+  $("#a-mascara").addEventListener("change", (ev) => { const a = actor(); if (a) ponerMascara("actores", a.id, "mascara", ev.target.value); });
+  $("#a-mascara-oculta").addEventListener("change", (ev) => { const a = actor(); if (a) ponerMascara("actores", a.id, "mascaraOculta", ev.target.checked); });
   $("#o-animar").addEventListener("change", (ev) => cambiaObj((o) => { if (ev.target.checked) { const v = paramsObjeto(o); o.claves = [Object.assign({ t: +tiempo.toFixed(2) }, v)]; } else { o.params = paramsObjeto(o); delete o.claves; } }));
   $("#b-quitar-objeto").addEventListener("click", () => { const ob = objeto(); if (!ob) return; cambio((x) => { x.objetos = x.objetos.filter((y) => y.id !== ob.id); }); selObjeto = null; pintarPanel(); aviso("Quitado (Ctrl+Z lo recupera)"); });
   $("#b-quitar-actor").addEventListener("click", () => { const a = actor(); if (!a) return; cambio((x) => { x.actores = x.actores.filter((y) => y.id !== a.id); }); selActor = esc.actores[0]?.id || null; aviso("Quitado de la escena (Ctrl+Z lo recupera)"); });

@@ -675,4 +675,10 @@ Como los efectos de capa de Moho, en **Escenas**:
   - **resplandor:** un halo del **color de la luz de la escena** (cálido de día, azulado de noche);
   - **opacidad:** de transparente a opaco.
 - **Datos:** en los objetos, `params.sombra / desenfoque / resplandor / opacidad`; en los personajes, `efectos: { … }`. Los aplica `efectosCapa` en `comun/escena.js` con un filtro SVG por elemento, que solo se rehace si cambian los valores.
+- **Máscaras** (como las de Moho): en el panel de un objeto o de un personaje, **«Máscara»** elige otro objeto de la escena. El enmascarado solo se ve **dentro de la forma** de ese objeto:
+  - un personaje que asoma por una ventana o una puerta;
+  - una animación a mano dentro de un marco;
+  - agua dentro de una vasija.
+  - Con **«ocultarla»** el objeto que hace de máscara no se ve, solo cuenta su forma (por ejemplo, una animación a mano con un círculo blanco).
+  - La máscara sigue al objeto aunque se mueva o se anime. Datos: `mascara: "id del objeto"`, `mascaraOculta: true`.
 
