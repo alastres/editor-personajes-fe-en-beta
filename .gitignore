@@ -12,6 +12,8 @@
 !/piezas/
 !/escenas/
 !/shorts/
+# capturas del README
+!/docs/
 # app de escritorio (Electron): el código, sin dependencias ni instaladores
 !/app-escritorio/
 /app-escritorio/node_modules/

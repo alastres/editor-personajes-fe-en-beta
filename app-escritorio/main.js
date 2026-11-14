@@ -50,8 +50,10 @@ function crearVentana(puerto) {
   ventana.webContents.setWindowOpenHandler(({ url }) => { if (url.startsWith(base)) return { action: "allow", overrideBrowserWindowOptions: { autoHideMenuBar: true, backgroundColor: "#121018" } }; shell.openExternal(url); return { action: "deny" }; });
   ventana.webContents.on("will-navigate", (ev, url) => { if (!url.startsWith(base)) { ev.preventDefault(); shell.openExternal(url); } });
   ventana.once("ready-to-show", () => ventana.show());
-  ventana.loadURL(base + "/"); }
+  ventana.loadURL(base + "/" + (process.env.FEB_PAGINA || "")); }   // FEB_PAGINA: abrir directamente otra página (capturas para la documentación)
 
+// FEB_PERFIL: otro perfil (y otra «única instancia») para probar o hacer capturas sin tocar la app instalada que esté abierta
+if (process.env.FEB_PERFIL) app.setPath("userData", process.env.FEB_PERFIL);
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on("second-instance", () => { if (ventana) { if (ventana.isMinimized()) ventana.restore(); ventana.focus(); } });
