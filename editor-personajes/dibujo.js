@@ -60,7 +60,35 @@
       let tx = ""; if (f.textura && window.Pinceles) { const fl = Pinceles.filtro(f.textura); if (fl) { if (!defs.includes(fl)) defs.push(fl); tx = ` filter="url(#tx-${f.textura})"`; } }
       return `<path d="${d(f)}" fill="${f.cerrada ? relleno(f, R, defs) : "none"}"${st}${op(f)}${tx}${f.ref != null ? ` data-ref="${escT(f.ref)}"` : ""}${extra}/>`; };
     const conEspejo = (f, extra) => uno(f, extra) + (f.simetrica && f.tipo !== "texto" ? `<g transform="scale(-1 1)"${ed ? ' pointer-events="none"' : ""}>${uno(f, "")}</g>` : "");
-    F.forEach((f, i) => { if (f.oculta) return; const ex = ed ? ` data-i="${i}" class="forma${ed.sel(i) ? " sel" : ""}"` : "";
+    // FORMAS LÍQUIDAS (como las de Moho): un grupo (f.liquido = { g, modo }) combina sus formas SIN perderlas; cada una sigue con sus
+    // puntos, se anima y se dobla con los huesos. La de más abajo es la base; las demás se unen, restan o intersecan con ella.
+    //   unir:      se pintan primero los contornos de todas y encima los rellenos → un solo contorno exterior, sin líneas dentro
+    //   restar:    una máscara quita su forma; su borde se dibuja con el contorno de la base, solo dentro de la unión (la «mordida»)
+    //   intersecar: un recorte deja solo lo común, también con su borde
+    const grupos = {}; F.forEach((f, i) => { if (f.liquido?.g && !f.oculta && f.tipo !== "texto" && f.puntos.length > 1) (grupos[f.liquido.g] = grupos[f.liquido.g] || []).push(i); });
+    const enGrupo = new Map(); for (const [g, idx] of Object.entries(grupos)) if (idx.length > 1) for (const i of idx) enGrupo.set(i, g);
+    const hashTxt = (t) => Math.abs([...t].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)).toString(36);
+    function liquido(idx) { const M = idx.map((i, n) => ({ i, f: F[i], modo: n === 0 ? "union" : F[i].liquido.modo || "union" }));
+      const U = M.filter((m) => m.modo === "union"), Rs = M.filter((m) => m.modo === "resta"), I = M.filter((m) => m.modo === "inter"), base = M[0].f;
+      const w = base.grosor || 0, sc = base.trazo ? R(base.trazo) : null, id = "lq" + hashTxt(M.map((m) => m.modo + d(m.f)).join("|"));
+      const esp = (f, html) => html + (f.simetrica ? `<g transform="scale(-1 1)" pointer-events="none">${html}</g>` : "");
+      const ex = (i) => (ed ? ` data-i="${i}" class="forma${ed.sel(i) ? " sel" : ""}"` : "");
+      const tx = (f) => { if (!f.textura || !window.Pinceles) return ""; const fl = Pinceles.filtro(f.textura); if (!fl) return ""; if (!defs.includes(fl)) defs.push(fl); return ` filter="url(#tx-${f.textura})"`; };
+      // capa 1: contornos (cada una con su trazo o, si no tiene, el de la base); capa 2: rellenos encima
+      const c1 = U.map(({ f }) => { const gw = f.grosor || w, col = f.trazo ? R(f.trazo) : sc; if (!gw || !col) return "";
+        return esp(f, `<path d="${d(f)}" fill="${f.cerrada ? col : "none"}" stroke="${col}" stroke-width="${f2(gw)}" stroke-linejoin="round" stroke-linecap="round"${op(f)} pointer-events="none"/>`); }).join("");
+      const c2 = U.map(({ i, f }) => f.cerrada ? esp(f, `<path d="${d(f)}" fill="${relleno(f, R, defs)}"${op(f)}${tx(f)}${ex(i)}/>`) : "").join("");
+      const clipU = `<clipPath id="${id}-u">${U.filter((m) => m.f.cerrada).map(({ f }) => esp(f, `<path d="${d(f)}"/>`)).join("")}</clipPath>`;
+      const borde = (f) => (w && sc ? esp(f, `<path d="${d(f)}" fill="none" stroke="${sc}" stroke-width="${f2(w)}" stroke-linejoin="round" clip-path="url(#${id}-u)" pointer-events="none"/>`) : "");
+      let cuerpo = c1 + c2 + Rs.map((m) => borde(m.f)).join("") + I.map((m) => borde(m.f)).join(""), defsG = clipU;
+      if (Rs.length) { defsG += `<mask id="${id}-m" maskUnits="userSpaceOnUse" x="-4000" y="-4000" width="8000" height="8000"><rect x="-4000" y="-4000" width="8000" height="8000" fill="#fff"/>${Rs.map(({ f }) => esp(f, `<path d="${d(f)}" fill="#000"/>`)).join("")}</mask>`;
+        cuerpo = `<g mask="url(#${id}-m)">${cuerpo}</g>`; }
+      I.forEach(({ f }, n) => { defsG += `<clipPath id="${id}-i${n}">${esp(f, `<path d="${d(f)}"/>`)}</clipPath>`; cuerpo = `<g clip-path="url(#${id}-i${n})">${cuerpo}</g>`; });
+      // en el taller, las que restan o intersecan se ven como un contorno discontinuo que se puede elegir
+      const guias = ed ? [...Rs, ...I].map(({ i, f }) => `<path d="${d(f)}" fill="#ffffff" fill-opacity="0.04" stroke="${f.liquido.modo === "resta" ? "#ff8a7a" : "#7ab8ff"}" stroke-width="${f2(1.4 * ed.k)}" stroke-dasharray="${f2(5 * ed.k)} ${f2(4 * ed.k)}"${ex(i)}/>`).join("") : "";
+      return `<g data-liquido="${escT(base.liquido.g)}">${defsG}${cuerpo}</g>${guias}`; }
+    F.forEach((f, i) => { if (f.oculta) return; const gl = enGrupo.get(i); if (gl) { if (grupos[gl][0] === i) out.push(liquido(grupos[gl])); return; }
+      const ex = ed ? ` data-i="${i}" class="forma${ed.sel(i) ? " sel" : ""}"` : "";
       if (f.agujero) { if (ed && f.puntos.length > 1) out.push(`<path d="${d(f)}" fill="#ffffff" fill-opacity="0.05" stroke="#f0a33a" stroke-width="${f2(1.5 * ed.k)}" stroke-dasharray="${f2(5 * ed.k)} ${f2(4 * ed.k)}"${ex}/>`); return; }
       const cortes = []; for (let k = i + 1; k < F.length && F[k].agujero; k++) if (!F[k].oculta && F[k].puntos.length > 1) cortes.push(F[k]);
       const cuerpo = conEspejo(f, ex); if (!cortes.length) { out.push(cuerpo); return; }
@@ -176,6 +204,9 @@
           <div class="deslizador"><label>Girar la selección</label><input type="range" id="tl-giro" min="-180" max="180" step="1" value="0"><output>0°</output></div>
           <h4>Combinar dos o más formas <span class="tenue">(Mayús + clic para elegirlas)</span></h4>
           <div class="fila-botones tres"><button id="tl-union" title="Une las formas elegidas en una sola">Unir</button><button id="tl-resta" title="A la de más abajo le quita las demás">Restar</button><button id="tl-inter" title="Deja solo la parte común">Intersección</button></div>
+          <h4>Formas líquidas <span class="tenue">(se combinan sin perderse: cada una se sigue moviendo y animando)</span></h4>
+          <div class="fila-botones tres"><button id="tl-lq-union" title="Une las formas elegidas con un solo contorno (sin líneas dentro). Siguen siendo formas sueltas">Unir 💧</button><button id="tl-lq-resta" title="A la de más abajo le quitan su forma las demás (una boca que muerde la cara). Siguen siendo formas sueltas">Restar 💧</button><button id="tl-lq-inter" title="Solo queda la parte común: recorta el grupo con esta forma (una pupila dentro del ojo, un sombrero cortado por el borde). Siguen siendo formas sueltas">Intersecar 💧</button></div>
+          <div id="tl-lq-det" hidden><div class="campo"><label id="tl-lq-txt">Esta forma en su grupo líquido</label><div class="seg pequeno" id="tl-lq-modo"></div></div><div class="fila-botones dos"><button id="tl-lq-sacar" title="Saca esta forma del grupo (vuelve a ser normal)">Sacar del grupo</button><button id="tl-lq-sep" title="Deshace el grupo: todas vuelven a ser formas normales">Separar el grupo</button></div></div>
           <div class="fila-botones tres"><button id="tl-dup">Duplicar</button><button id="tl-refl">Reflejar ↔</button><button id="tl-reflv">Reflejar ↕</button>
             <button id="tl-menos">Encoger</button><button id="tl-mas">Agrandar</button><button id="tl-rot">Girar 15°</button>
             <button id="tl-subir">Subir</button><button id="tl-bajar">Bajar</button><button id="tl-borrar" class="peligro">Borrar</button></div>
@@ -238,6 +269,10 @@
     giro.oninput = (ev) => { const a = (+ev.target.value * Math.PI) / 180, co = Math.cos(a), si = Math.sin(a); ev.target.nextElementSibling.textContent = ev.target.value + "°"; if (!giroBase) return;
       giroBase.idx.forEach((i, n) => D.formas[i].puntos.forEach((q, j) => { const o = giroBase.P[n][j]; for (const [x, y] of [["x", "y"], ["ix", "iy"], ["ox", "oy"]]) { const dx = o[x] - giroBase.c.x, dy = o[y] - giroBase.c.y; q[x] = giroBase.c.x + dx * co - dy * si; q[y] = giroBase.c.y + dx * si + dy * co; } })); pintarFormas(); pintarAsas(); };
     giro.addEventListener("change", () => { giroBase = null; giro.value = 0; giro.nextElementSibling.textContent = "0°"; pintar(); });
+    $("#tl-lq-union", raiz).onclick = () => liquidar("union"); $("#tl-lq-resta", raiz).onclick = () => liquidar("resta"); $("#tl-lq-inter", raiz).onclick = () => liquidar("inter");
+    $("#tl-lq-sep", raiz).onclick = () => { const g = sel !== null && D.formas[sel]?.liquido?.g; if (!g) return; guardarHist(); for (const f of D.formas) if (f.liquido?.g === g) delete f.liquido; pintar(); avisoT("Grupo líquido separado"); };
+    $("#tl-lq-sacar", raiz).onclick = () => { if (sel === null || !D.formas[sel]?.liquido) return; guardarHist(); const g = D.formas[sel].liquido.g; delete D.formas[sel].liquido;
+      const resto = D.formas.filter((f) => f.liquido?.g === g); if (resto.length < 2) resto.forEach((f) => delete f.liquido); pintar(); };
     $("#tl-union", raiz).onclick = () => combinar("union"); $("#tl-resta", raiz).onclick = () => combinar("resta"); $("#tl-inter", raiz).onclick = () => combinar("inter");
     for (const k of ["tam", "sens", "curva", "estab", "afinar", "opac"]) $("#tl-pz-" + k, raiz).oninput = (ev) => { pz[k] = +ev.target.value; recordarPincel(); pintarPincel(); };
     $("#tl-pz-simular", raiz).onchange = (ev) => { pz.simular = ev.target.checked; recordarPincel(); };
@@ -269,6 +304,19 @@
       nuevas.push(Object.assign(clon(base), { puntos: suavizar(P, true), cerrada: true, agujero: ext.includes(L) ? undefined : true, grupo: undefined, nombre: undefined })); }
     for (const i of [...idx].reverse()) D.formas.splice(i, 1);
     D.formas.splice(idx[0], 0, ...nuevas); sel = idx[0]; multi = new Set(); pintar(); avisoT({ union: "Unidas", resta: "Restadas", inter: "Intersección hecha" }[modo] + ` (${nuevas.length} forma${nuevas.length > 1 ? "s" : ""})`); }
+  // FORMAS LÍQUIDAS: las elegidas pasan a un grupo (el de alguna de ellas, si ya tenía); la de más abajo es la base y las demás toman
+  // el modo del botón. Con una sola forma elegida que ya está en un grupo, solo cambia su modo.
+  function liquidar(modo) { const idx = [...selSet()].filter((i) => D.formas[i].tipo !== "texto" && D.formas[i].puntos.length > 1).sort((a, b) => a - b);
+    if (idx.length === 1 && D.formas[idx[0]].liquido) { guardarHist(); const f = D.formas[idx[0]], miembros = D.formas.map((x, i) => [x, i]).filter(([x]) => x.liquido?.g === f.liquido.g);
+      if (miembros[0][1] === idx[0]) return avisoT("Es la base del grupo: elige otra forma del grupo para cambiar cómo se combina"); f.liquido.modo = modo; pintar(); return; }
+    if (idx.length < 2) return avisoT("Elige dos o más formas (Mayús + clic): la de más abajo es la base");
+    guardarHist(); const g = idx.map((i) => D.formas[i].liquido?.g).find(Boolean) || "l" + Date.now().toString(36);
+    idx.forEach((i, n) => { const f = D.formas[i]; if (f.liquido?.g === g && f.liquido.modo && n > 0) return; f.liquido = { g, modo: n === 0 && !D.formas.some((x, j) => j < i && x.liquido?.g === g) ? "union" : modo }; if (modo !== "union" && n > 0) f.cerrada = true; });
+    sel = idx[idx.length - 1]; multi = new Set(); pintar(); avisoT({ union: "Unidas como forma líquida", resta: "Restadas como forma líquida", inter: "Intersecadas como forma líquida" }[modo] + ": cada una se sigue editando y animando"); }
+  function pintarLiquido(f) { const det = $("#tl-lq-det", raiz); det.hidden = !f?.liquido; if (det.hidden) return; const g = f.liquido.g, miembros = D.formas.map((x, i) => [x, i]).filter(([x]) => x.liquido?.g === g), esBase = miembros[0]?.[0] === f;
+    $("#tl-lq-txt", raiz).textContent = esBase ? `Base del grupo líquido (${miembros.length} formas)` : `En un grupo líquido de ${miembros.length} formas: cómo se combina`;
+    const c = $("#tl-lq-modo", raiz); c.replaceChildren(); if (esBase) return;
+    for (const [k, n] of [["union", "Unir"], ["resta", "Restar"], ["inter", "Intersecar"]]) c.append(h("button", { class: (f.liquido.modo || "union") === k ? "activo" : "", onclick: () => editarForma((x) => { x.liquido.modo = k; if (k !== "union") x.cerrada = true; }) }, n)); }
   // contornos de una máscara binaria (marching squares): lista de lazos cerrados en coordenadas de píxel
   function contornos(dentro, W, H) { const segs = new Map(), clave = (x, y) => x + "," + y, add = (a, b) => { segs.set(clave(...a), b); };
     for (let y = -1; y < H; y++) for (let x = -1; x < W; x++) { const c = (dentro(x, y) ? 8 : 0) | (dentro(x + 1, y) ? 4 : 0) | (dentro(x + 1, y + 1) ? 2 : 0) | (dentro(x, y + 1) ? 1 : 0);
@@ -376,14 +424,15 @@
     $("#tl-cerrada", raiz).checked = !!f?.cerrada; $("#tl-cerrada", raiz).disabled = !f;
     $("#tl-sim", raiz).checked = f ? !!f.simetrica : !!estilo.simetrica; $("#tl-agujero", raiz).checked = !!f?.agujero; $("#tl-agujero", raiz).disabled = !f || f.tipo === "texto";
     const esT = f?.tipo === "texto"; $("#tl-texto-det", raiz).hidden = !esT; if (esT) { if (document.activeElement !== $("#tl-texto", raiz)) $("#tl-texto", raiz).value = f.texto || ""; const tm = $("#tl-tam", raiz); if (document.activeElement !== tm) tm.value = f.tam || 48; tm.nextElementSibling.textContent = Math.round(f.tam || 48); }
+    pintarLiquido(f);
     const n = selSet().size; raiz.querySelectorAll(".tl-multi button").forEach((b) => (b.disabled = !n)); $("#tl-dist-x", raiz).disabled = $("#tl-dist-y", raiz).disabled = n < 3;
     $("#tl-agrupar", raiz).textContent = n > 1 && [...selSet()].every((i) => D.formas[i].grupo && D.formas[i].grupo === D.formas[[...selSet()][0]].grupo) ? "Desagrupar" : "Agrupar";
-    raiz.querySelectorAll(".taller-panel .fila-botones:not(.tl-multi) button").forEach((b) => { if (!/tl-calco/.test(b.id)) b.disabled = !f; });
+    raiz.querySelectorAll(".taller-panel .fila-botones:not(.tl-multi) button").forEach((b) => { if (!/tl-calco|tl-pz/.test(b.id)) b.disabled = !f; });
     const ul = $("#tl-capas", raiz); ul.replaceChildren(); if (!D.formas.length) ul.append(h("li", { class: "vacio" }, "Aún no hay formas: elige una herramienta y dibuja."));
     [...D.formas.keys()].reverse().forEach((i) => { const fo = D.formas[i], mini = h("span", { class: "mini" }); mini.style.background = fo.cerrada ? res(fo.relleno) : "transparent"; mini.style.borderColor = fo.grosor ? res(fo.trazo) : "#4a4466";
       const ojo = h("button", { class: "ojo" + (fo.oculta ? " apagado" : ""), title: "Mostrar u ocultar", onclick: (ev) => { ev.stopPropagation(); guardarHist(); fo.oculta = !fo.oculta; pintar(); } }, fo.oculta ? "○" : "●");
       const candado = h("button", { class: "ojo" + (fo.bloqueada ? "" : " apagado"), title: fo.bloqueada ? "Bloqueada: no se puede tocar en el lienzo. Clic para desbloquear" : "Bloquear (no se toca en el lienzo)", onclick: (ev) => { ev.stopPropagation(); guardarHist(); fo.bloqueada = !fo.bloqueada || undefined; pintar(); } }, fo.bloqueada ? "🔒" : "🔓");
-      const tipoN = fo.tipo === "texto" ? `Texto «${(fo.texto || "").slice(0, 18)}»` : fo.agujero ? (fo.cerrada ? "Agujero" : "Goma") : `${fo.cerrada ? "Forma" : "Trazo"} · ${fo.puntos.length} puntos`;
+      const tipoN = (fo.liquido ? "💧 " + ({ resta: "resta · ", inter: "interseca · " }[fo.liquido.modo] || "") : "") + (fo.tipo === "texto" ? `Texto «${(fo.texto || "").slice(0, 18)}»` : fo.agujero ? (fo.cerrada ? "Agujero" : "Goma") : `${fo.cerrada ? "Forma" : "Trazo"} · ${fo.puntos.length} puntos`);
       const nom = h("span", { title: "Doble clic para ponerle nombre" }, fo.nombre ? `${fo.nombre}` : `${tipoN}`);
       nom.ondblclick = async (ev) => { ev.stopPropagation(); const n = window.Dialogo ? await Dialogo.pedir("Nombre de la forma", { valor: fo.nombre || tipoN, aceptar: "Cambiar" }) : prompt("Nombre de la forma", fo.nombre || tipoN); if (n === null) return; guardarHist(); fo.nombre = n.trim() || undefined; pintar(); };
       ul.append(h("li", { class: i === sel ? "activo" : "", onclick: () => { sel = i; ponerHerr("sel"); pintar(); } }, ojo, candado, mini, nom)); }); }

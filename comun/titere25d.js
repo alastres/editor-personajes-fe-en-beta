@@ -161,6 +161,16 @@
     tinta: "#14171e", papel: "#f7f1e5", noche: "#1c1230", nariz: "#a8444a", boca: "#3a1424", mejilla: "#e07a6a",
   };
   let cuenta = 0;
+  // IDS ÚNICOS por copia: un dibujo con máscaras, recortes o degradados (agujeros, formas líquidas) puede estar varias veces en la
+  // página (el personaje grande y las vistas del giro, varios actores). Con el mismo id, todas usarían la máscara de la primera
+  // copia, y si los huesos deforman cada copia a su manera, el recorte no seguiría a la suya. Se renombran los id del grupo y sus url(#…).
+  let cuentaIds = 0;
+  function idsUnicos(raiz) { const conId = raiz.querySelectorAll("[id]"); if (!conId.length) return raiz; const suf = "_" + (++cuentaIds).toString(36), mapa = new Map();
+    for (const e of conId) { const v = e.id; mapa.set(v, v + suf); e.id = v + suf; }
+    const cambia = (t) => t.replace(/url\(#([^)]+)\)/g, (m, id) => (mapa.has(id) ? `url(#${mapa.get(id)})` : m));
+    for (const e of raiz.querySelectorAll("*")) for (const a of ["fill", "stroke", "mask", "clip-path", "filter", "href", "xlink:href", "style"]) { const v = e.getAttribute(a); if (!v) continue;
+      if (a === "href" || a === "xlink:href") { if (v[0] === "#" && mapa.has(v.slice(1))) e.setAttribute(a, "#" + mapa.get(v.slice(1))); } else if (v.includes("url(#")) e.setAttribute(a, cambia(v)); }
+    return raiz; }
 
   function crear(padre, op = {}) {
     const C = Object.assign({}, COLORES, op.colores || {});
@@ -338,8 +348,8 @@
       const padre = h_ === "cabeza" ? gC : /^(mano|brazo|antebrazo)/.test(h_) && lado >= 0 ? brazos[lado].g : /^(pie|muslo|pierna)/.test(h_) && lado >= 0 ? piernas[lado].g : gT;
       const g = el("g", { "data-pieza": pz.id || "" }, padre), dentro = el("g", {}, g), tinta = (t) => String(t || "").replace(/\{(\w+)\}/g, (m0, k) => C[k] || m0);
       // un dibujo por vista (como las capas de cambio de Moho): frente (svg), perfil (svgPerfil, mirando a la derecha; se refleja) y espaldas
-      const vis = { frente: el("g", {}, dentro) }; vis.frente.innerHTML = tinta(pz.svg);
-      for (const [k, src] of [["perfil", pz.svgPerfil], ["espaldas", pz.svgEspaldas]]) if (src) { vis[k] = el("g", { display: "none" }, dentro); vis[k].innerHTML = tinta(src); }
+      const vis = { frente: el("g", {}, dentro) }; vis.frente.innerHTML = tinta(pz.svg); idsUnicos(vis.frente);
+      for (const [k, src] of [["perfil", pz.svgPerfil], ["espaldas", pz.svgEspaldas]]) if (src) { vis[k] = el("g", { display: "none" }, dentro); vis[k].innerHTML = tinta(src); idsUnicos(vis[k]); }
       return { pz, g, dentro, padre, vis };
     });
     const PROF0 = { cabeza: 58, pecho: 47, cintura: 52 };
@@ -792,7 +802,7 @@
       const vistaT = torsos.length ? torsos.reduce((m, L) => (Math.abs(dif(gT_, L.vista)) < Math.abs(dif(gT_, m.vista)) ? L : m)) : null;
       for (const L of VEC.listas) {
         if (!L.g) { L.g = { torso: gT, brazoIzq: brazos.find((b) => b.sg > 0).g, brazoDer: brazos.find((b) => b.sg < 0).g, piernaIzq: piernas.find((b) => b.sg > 0).g, piernaDer: piernas.find((b) => b.sg < 0).g }[L.grupo];
-          if (!L.g) continue; L.vg = el("g", { "data-vector": L.id }); L.vg.innerHTML = L.svg; L.paths = [...L.vg.querySelectorAll("path")].map((e) => ({ e, ...parsearV(e.getAttribute("d") || "") }));
+          if (!L.g) continue; L.vg = el("g", { "data-vector": L.id }); L.vg.innerHTML = L.svg; idsUnicos(L.vg); L.paths = [...L.vg.querySelectorAll("path")].map((e) => ({ e, ...parsearV(e.getAttribute("d") || "") }));
           for (const P of L.paths) P.w = P.pts.map((v) => pesosV(L.huesos, v)); }
         if (!L.g) continue;
         // lo dibujado por código se esconde; quedan las piezas propias (data-pieza) y la capa vectorial
@@ -942,6 +952,6 @@
   const transformCamara = (e, temblor = [0, 0], giroG = 0) =>
     `translate(${f1(1080 * (e.fx ?? 0.5) + temblor[0])} ${f1(1920 * e.fy + temblor[1])}) rotate(${f1(giroG)}) scale(${(e.zoom).toFixed(4)}) translate(${f1(-e.x)} ${f1(-e.y)})`;
 
-  window.Titere25D = { opciones: (o) => Object.assign(OPC, o), crear, giro, pisada, desplSuelo, velocidad, EMOCIONES, MANOS, W, PR, camara, PLANOS, encuadre, mezclaEncuadre, transformCamara, LS, ST, COLORES,
+  window.Titere25D = { opciones: (o) => Object.assign(OPC, o), crear, idsUnicos, giro, pisada, desplSuelo, velocidad, EMOCIONES, MANOS, W, PR, camara, PLANOS, encuadre, mezclaEncuadre, transformCamara, LS, ST, COLORES,
     escalaEn, horizonte, get TILT() { return TILT; }, get PERS() { return PERS; } };
 })();

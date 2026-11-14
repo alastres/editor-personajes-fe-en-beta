@@ -23,7 +23,7 @@
         const cx = c.imagen.x + c.imagen.w / 2, cy = c.imagen.y + c.imagen.h / 2;
         const hb = c.hueso && sk?.H[c.hueso] ? c.hueso : sk ? nombres.reduce((m, n) => (Rig2D.distSeg([cx, cy], sk.H[n].o, sk.H[n].e).d < Rig2D.distSeg([cx, cy], sk.H[m].o, sk.H[m].e).d ? n : m)) : null;
         return { g, im, hueso: hb, rigida: true }; }
-      g.innerHTML = c.svg || ""; if (!sk) return { g, mallas: [] };
+      g.innerHTML = c.svg || ""; window.Titere25D?.idsUnicos?.(g); if (!sk) return { g, mallas: [] };
       const mallas = [...g.querySelectorAll("path")].map((e) => { const d = e.getAttribute("d") || ""; try { return { e, m: Rig2D.malla(sk, d, c.hueso && sk.H[c.hueso] ? { rigido: c.hueso } : { huesos: nombres }) }; } catch { return null; } }).filter(Boolean);
       return { g, mallas }; });
     let alto = 0; for (const h of huesos) alto = Math.max(alto, -h.o[1], -h.e[1]);

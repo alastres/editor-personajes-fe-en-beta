@@ -771,3 +771,21 @@ Con la herramienta **Pincel** (B), arriba del panel del taller aparecen los pinc
 - **Panel de ajustes:** si cambia solo de pestaña (al elegir algo en el lienzo), ya no sube arriba, sino que muestra lo que se acaba de elegir. Además, si el panel salta al principio justo después de un clic sin que lo haya movido el usuario, por ejemplo al repintar la lista de piezas, vuelve a donde estaba (`interfaz.js`).
 - **App de escritorio:** menú ⋯ → «Buscar actualizaciones» (ver `app-escritorio/LEEME.md`).
 
+## Formas líquidas en el taller (15 nov 2026)
+Como las *liquid shapes* de Moho: se combinan formas **sin perderlas**. Cada una sigue siendo una forma suelta, con sus puntos: se edita con Seleccionar, se anima y se dobla con los huesos. La combinación se recalcula al dibujar, también en Escenas y en el vídeo.
+
+- **Cómo:** elige dos o más formas (Mayús + clic) y pulsa en el panel **Unir 💧**, **Restar 💧** o **Intersecar 💧**. La de más abajo en la lista es la **base**.
+  - **Unir:** un solo contorno exterior, sin líneas por dentro. Por ejemplo, el brazo y el cuerpo, o una nube hecha de círculos. Cada forma conserva su relleno.
+  - **Restar:** la forma quita su silueta a la base, y el borde del corte se dibuja con el contorno de la base. Por ejemplo, una boca que muerde la cara o un mordisco en una fruta.
+  - **Intersecar:** solo queda la parte común, también con su borde. Por ejemplo, una pupila dentro del ojo o un sombrero cortado por un marco.
+- **En el lienzo**, las que restan se ven con un contorno discontinuo rojizo y las que intersecan, azulado. Se pueden elegir y mover.
+- **En la lista de formas** llevan 💧 y su modo.
+- Con una forma del grupo elegida, el panel muestra **cómo se combina** (Unir / Restar / Intersecar), **Sacar del grupo** y **Separar el grupo**.
+- **Datos:** `liquido: { g: "id del grupo", modo: "union" | "resta" | "inter" }`. En el SVG se guarda un `<g data-liquido>` con:
+  - para unir, una capa de contornos y otra de rellenos encima;
+  - para restar, una `<mask>`;
+  - para intersecar, `<clipPath>` anidados;
+  - el recorte de la unión, para el borde de las restas.
+- **Identificadores únicos por copia** (`Titere25D.idsUnicos`): un dibujo con máscaras, recortes o degradados puede estar varias veces en la página, como el personaje grande, las vistas del giro o varios actores. Antes, todas las copias usaban la máscara de la primera, y si los huesos deformaban cada copia a su manera, el recorte no seguía a la suya. Ahora se renombran los `id` de cada copia al insertarla: piezas, capas de la marioneta vectorial y capas de la marioneta libre. Esto arregla también los agujeros y los degradados.
+- **Arreglado de paso:** los botones «Guardar como pincel propio» y «Ajustes de serie» salían desactivados si no había ninguna forma elegida.
+
