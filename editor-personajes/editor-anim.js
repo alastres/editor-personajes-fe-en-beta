@@ -8,7 +8,7 @@
   const LOCO = { quieto: { n: "Quieto", v: { amp: 0 } }, andar: { n: "Andando", v: { amp: 1, correr: 0 } }, correr: { n: "Corriendo", v: { amp: 1, correr: 1 } } };
   // deslizadores de Posar: [clave, etiqueta, min, max, paso, formato]
   const gr = (g) => (v) => Math.round(v) + "°", pc = (v) => Math.round(v * 100) + "%", n2 = (v) => v.toFixed(2);
-  const CUERPO = [["torso", "Girar el torso", -90, 90, 1, gr()], ["cabeza", "Girar la cabeza", -60, 60, 1, gr()], ["miraY", "Mirar abajo / arriba", -1, 1, 0.01, n2],
+  const CUERPO = [["estira", "Elástico (− aplastar · + estirar)", -0.5, 0.6, 0.01, pc], ["torso", "Girar el torso", -90, 90, 1, gr()], ["cabeza", "Girar la cabeza", -60, 60, 1, gr()], ["miraY", "Mirar abajo / arriba", -1, 1, 0.01, n2],
     ["inclina", "Inclinarse", -0.3, 0.5, 0.01, n2], ["ladeo", "Ladear la cabeza", -20, 20, 0.5, gr()], ["hombros", "Encoger hombros", -10, 20, 0.5, (v) => Math.round(v)],
     ["agacha", "Agacharse (sentarse, arrodillarse)", 0, 1.6, 0.01, pc], ["altura", "Despegar del suelo", 0, 260, 1, (v) => Math.round(v)], ["tumbado", "Tumbarse", 0, 1, 0.01, pc],
     ["pieDerFrente", "Pie derecho: adelante / atrás", -160, 160, 1, (v) => Math.round(v)], ["pieDerLado", "Pie derecho: abrir", -30, 120, 1, (v) => Math.round(v)], ["pieDerAlto", "Pie derecho: levantar", 0, 220, 1, (v) => Math.round(v)],
@@ -99,7 +99,7 @@
     const lista = j().acciones; if (acc && !accion()) acc = null; if (!acc && !libre && lista.length) acc = lista[0].id;
     const sel = $("#a-lista"); sel.replaceChildren(h("option", { value: "" }, lista.length ? "— Pose libre (sin acción) —" : "— Pose libre: crea una acción con «+ Nueva» —"), ...lista.map((a) => h("option", { value: a.id }, a.nombre || a.id))); sel.value = acc || "";
     const a = accion(); $("#a-detalle").hidden = !a; $("#a-duplicar").disabled = $("#a-borrar").disabled = !a;
-    if (a) { if (document.activeElement !== $("#a-nombre")) $("#a-nombre").value = a.nombre || ""; $("#a-dur").value = durac(a); $("#a-dur").nextElementSibling.textContent = durac(a).toFixed(1) + " s"; $("#a-bucle").checked = !!a.bucle;
+    if (a) { if (document.activeElement !== $("#a-nombre")) $("#a-nombre").value = a.nombre || ""; $("#a-dur").value = durac(a); $("#a-retraso").value = a.retraso || 0; $("#a-retraso").nextElementSibling.textContent = Math.round((a.retraso || 0) * 100) + "%"; $("#a-dur").nextElementSibling.textContent = durac(a).toFixed(1) + " s"; $("#a-bucle").checked = !!a.bucle;
       const lo = a.locomocion || {}; E.seg("#a-loco", Object.fromEntries(Object.entries(LOCO).map(([k, v]) => [k, v.n])), !lo.amp ? "quieto" : lo.correr ? "correr" : "andar", (k) => E.cambio((x) => { x.acciones.find((y) => y.id === a.id).locomocion = Object.assign({}, LOCO[k].v); })); }
     // valores de Posar
     const p = poseActual(), i = claveEn(a, tiempo);
@@ -153,6 +153,8 @@
   $("#a-dur").addEventListener("input", (ev) => { const a = accion(); if (!a) return; const d = Number(ev.target.value);
     E.cambio((x) => { const ax = x.acciones.find((y) => y.id === a.id), k = d / durac(ax); ax.claves.forEach((c) => { c.t = +(c.t * k).toFixed(2); }); ax.duracion = d; }, "a-dur"); tiempo = Math.min(tiempo, d); });
   $("#a-bucle").addEventListener("change", (ev) => { const a = accion(); if (a) E.cambio((x) => { x.acciones.find((y) => y.id === a.id).bucle = ev.target.checked; }); });
+  $("#a-retraso").addEventListener("input", (ev) => { const a = accion(); if (!a) return; const v = +ev.target.value; ev.target.nextElementSibling.textContent = Math.round(v * 100) + "%";
+    E.cambio((x) => { const ax = x.acciones.find((y) => y.id === a.id); if (v > 0) ax.retraso = v; else delete ax.retraso; }, "a-retraso"); });
 
   // ---- línea de tiempo
   const pista = $("#pista");

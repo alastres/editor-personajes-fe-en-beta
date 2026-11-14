@@ -259,8 +259,9 @@ Por hacer:
   Al acabar se convierte en claves: se quedan las de la acción y se añaden solo las necesarias. Sin acción, crea «Toma en vivo» de 4 s.
   - [ ] Pendiente: interpretar también brazos y cuerpo (Motion Pilot), y grabar solo algunos canales.
   - Arreglado de paso: un error al dibujar un fotograma paraba todo el bucle del editor; ahora se avisa en la consola y sigue (Personajes, Escenas y Montaje).
-- [ ] **Elástico (squash & stretch)** del personaje entero, conservando el volumen, como clave de la pose.
-- [ ] **Seguimiento y retraso automáticos** (follow-through): cabeza, brazos y piezas llegan un poco después que el cuerpo, con un deslizador.
+- [x] **Elástico (squash & stretch):** deslizador «Elástico» en Posar → Cuerpo (`estira`, de −0,5 a +0,6), desde los pies y conservando el volumen. Se anima con claves como cualquier otro.
+- [x] **Seguimiento (follow-through):** deslizador «Seguimiento» en la acción (`retraso`, de 0 a 1). La cabeza llega hasta 0,15 s tarde y los brazos y las manos hasta 0,25 s, también en Escenas.
+  - [ ] Pendiente: el mismo retraso para las piezas con física y el pelo.
 - [ ] **Marioneta libre:** huesos sobre cualquier dibujo o PNG (animales, objetos, criaturas), con `rig2d.js` de lab-huesos.
 - [ ] **Capas fotograma a fotograma** (como Moho): dibujar a mano efectos, humo o chispas, cuadro a cuadro, sobre la escena.
 - [ ] **Editor de gráficas** de movimiento por canal (giro, altura, cabeza…), con tangentes.

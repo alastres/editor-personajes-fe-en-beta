@@ -584,3 +584,13 @@ Como el Face Puppet de Cartoon Animator: en vez de poner claves a mano, se actú
   - Ctrl+Z deshace la toma entera.
 - Sin acción elegida, crea una llamada **«Toma en vivo»** de 4 s.
 
+## Elástico y seguimiento (14 nov 2026)
+- **Elástico (squash & stretch):** en Animación → Posar → Cuerpo, el deslizador **«Elástico»**:
+  - en negativo aplasta y ensancha; en positivo estira y estrecha;
+  - parte de los pies y conserva el volumen (ancho = 1 / √alto);
+  - se guarda en la pose como `estira` y se anima con claves: aplastado al caer, estirado al saltar.
+- **Seguimiento (follow-through):** en la acción, el deslizador **«Seguimiento (cabeza y brazos van detrás)»**:
+  - con `retraso` de 0 a 1, la cabeza (giro, ladeo, mirada) repite lo de la acción hasta 0,15 s después, y brazos y manos hasta 0,25 s;
+  - así un giro o un frenazo se ven encadenados en vez de moverse de una pieza;
+  - funciona igual en Escenas, porque está en `Personajes.accionPose`.
+

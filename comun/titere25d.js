@@ -494,7 +494,9 @@
       const subir = ALT + vuelo;          // todo el cuerpo despega; la sombra se queda en el suelo y encoge
       // tumbado (0…1): el cuerpo gira sobre los pies hasta quedar en el suelo, boca arriba (tumbadoLado: 1 la cabeza a la derecha, −1 a la izquierda)
       const TB = cl(e.tumbado || 0), tbL = e.tumbadoLado || 1;
-      cuerpo.setAttribute("transform", `translate(0 ${f1(-subir * KBY - 66 * TB)})${TB > 0.001 ? ` rotate(${f1(90 * TB * tbL)} 0 0)` : ""}`);
+      // ELÁSTICO (squash & stretch): estira > 0 alarga y estrecha, < 0 aplasta y ensancha, desde los pies y conservando el volumen
+      const EST = Math.max(-0.6, Math.min(0.8, e.estira || 0)), sy = 1 + EST, sx = 1 / Math.sqrt(sy);
+      cuerpo.setAttribute("transform", `translate(0 ${f1(-subir * KBY - 66 * TB)})${TB > 0.001 ? ` rotate(${f1(90 * TB * tbL)} 0 0)` : ""}${Math.abs(EST) > 0.001 ? ` scale(${sx.toFixed(4)} ${sy.toFixed(4)})` : ""}`);
       sombra.setAttribute("opacity", (0.45 * (1 - cl(subir / 500) * 0.6) * (1 - 0.55 * cl((TILT - 0.35) / 0.3))).toFixed(2));   // desde muy arriba la sombra parecía un agujero
       const kP = escalaEn([0, 0, 0]), qS = PR([0, 0, 0]);
       sombra.setAttribute("cx", f1(qS[0] * KBX)); sombra.setAttribute("cy", f1(qS[1] * KBY));

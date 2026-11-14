@@ -33,7 +33,7 @@
   const POSE0 = { torso: 0, cabeza: 0, inclina: 0, ladeo: 0, hombros: 0, agacha: 0, altura: 0, miraY: 0,
     bIzqK: 0, bIzqLado: 0.29, bIzqFrente: 0, bIzqCodo: 0.25, bIzqHacia: -0.3, bDerK: 0, bDerLado: 0.29, bDerFrente: 0, bDerCodo: 0.25, bDerHacia: -0.3,
     mIzq: { relajada: 1 }, mDer: { relajada: 1 }, pIzq: "auto", pDer: "auto", cara: {},
-    pieIzqLado: 0, pieIzqAlto: 0, pieIzqFrente: 0, pieDerLado: 0, pieDerAlto: 0, pieDerFrente: 0, tumbado: 0 };
+    pieIzqLado: 0, pieIzqAlto: 0, pieIzqFrente: 0, pieDerLado: 0, pieDerAlto: 0, pieDerFrente: 0, tumbado: 0, estira: 0 };
   const PALMAS = { auto: null, adelante: [0, 0, 1], arriba: [0, -0.75, 0.65], cuerpo: [0, 0, -1] };
   const rad = (g) => (g * Math.PI) / 180, lerp = (a, b, k) => a + (b - a) * k;
   const esObj = (x) => x && typeof x === "object" && !Array.isArray(x);
@@ -69,7 +69,13 @@
     return (x) => { if (x <= 0) return 0; if (x >= 1) return 1; let t = x; for (let i = 0; i < 6; i++) { const d = dB(x1, x2, t); if (Math.abs(d) < 1e-6) break; t -= (B(x1, x2, t) - x) / d; if (t < 0 || t > 1) { t = x; break; } }
       if (Math.abs(B(x1, x2, t) - x) > 1e-4) { let lo = 0, hi = 1; for (let i = 0; i < 30; i++) { t = (lo + hi) / 2; if (B(x1, x2, t) < x) lo = t; else hi = t; } } return B(y1, y2, t); }; }
   const curva = (k) => { const c = k?.curva; if (Array.isArray(c) && c.length === 4) { const key = c.join(","); let f = _bez.get(key); if (!f) { f = bezier(c); _bez.set(key, f); } return f; } return CURVAS[c] || CURVAS.suave; };
-  function accionPose(a, t) {
+  // SEGUIMIENTO (follow-through, como el «retraso» de Cartoon Animator): con a.retraso (0…1) la cabeza llega hasta 0,15 s tarde y los
+  // brazos y manos hasta 0,25 s tarde respecto al cuerpo; así un giro o un salto se ven encadenados y no de una pieza
+  const RETRASO_CAB = ["cabeza", "ladeo", "miraY"], RETRASO_BRAZOS = /^(b(Izq|Der)|m(Izq|Der))/;
+  function accionPose(a, t) { const o = accionPose0(a, t), r = Math.max(0, Math.min(1, a?.retraso || 0)); if (r < 0.01) return o;
+    const pc = accionPose0(a, t - 0.15 * r), pb = accionPose0(a, t - 0.25 * r);
+    for (const k of RETRASO_CAB) o[k] = pc[k]; for (const k in pb) if (RETRASO_BRAZOS.test(k)) o[k] = pb[k]; return o; }
+  function accionPose0(a, t) {
     const ks = [...(a.claves || [])].sort((x, y) => x.t - y.t); if (!ks.length) return completa({});
     const D = Math.max(0.1, a.duracion || ks[ks.length - 1].t || 1); let u = a.bucle ? ((t % D) + D) % D : Math.max(0, Math.min(D, t));
     if (u <= ks[0].t && !a.bucle) return completa(ks[0].pose);
@@ -82,7 +88,7 @@
   // pose → parámetros de dibujar(); base: { giro (grados), variantes … }
   function pose(p, base = {}) { p = completa(p); const g = base.giro || 0, aT = rad(g + p.torso);
     const e = { torso: aT, brazos: aT, cabeza: rad(g + p.torso + p.cabeza), ojos: rad(g + p.torso + p.cabeza), inclina: p.inclina, ladeo: p.ladeo, hombros: p.hombros,
-      agacha: p.agacha, altura: p.altura, miraY: p.miraY, cara: p.cara, tumbado: p.tumbado };
+      agacha: p.agacha, altura: p.altura, miraY: p.miraY, cara: p.cara, tumbado: p.tumbado, estira: p.estira };
     for (const L of ["Izq", "Der"]) if (p["pie" + L + "Lado"] || p["pie" + L + "Alto"] || p["pie" + L + "Frente"]) e["paso" + L] = { lado: p["pie" + L + "Lado"], alto: p["pie" + L + "Alto"], frente: p["pie" + L + "Frente"] };
     for (const L of ["Izq", "Der"]) { const k = p["b" + L + "K"];
       if (k > 0.001) e["brazo" + L] = { lado: p["b" + L + "Lado"], frente: p["b" + L + "Frente"], codo: p["b" + L + "Codo"], hacia: [p["b" + L + "Hacia"], -1, 0.3], k: Math.min(1, k) };
