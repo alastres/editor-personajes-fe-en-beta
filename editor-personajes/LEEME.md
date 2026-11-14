@@ -583,6 +583,11 @@ Como el Face Puppet de Cartoon Animator: en vez de poner claves a mano, se actú
   - se añaden solo las claves necesarias (las que no se adivinan en línea recta desde sus vecinas), con curva lineal;
   - Ctrl+Z deshace la toma entera.
 - Sin acción elegida, crea una llamada **«Toma en vivo»** de 4 s.
+- **Qué se interpreta** (el desplegable junto a «● En vivo»):
+  - **Cabeza y mirada:** lo de arriba;
+  - **Brazo derecho / Brazo izquierdo:** la mano va adonde apuntas con el ratón (la misma cinemática inversa que las asas);
+  - **Cuerpo:** a izquierda o derecha gira; arriba o abajo se inclina, y abajo además se agacha.
+- **Por capas:** cada toma graba solo sus canales y deja el resto como estaba. Primero el cuerpo, luego un brazo, luego la cabeza, cada vez sobre la acción que ya tienes. Las emociones (1–8) se graban en cualquier toma si pulsas alguna.
 
 ## Elástico y seguimiento (14 nov 2026)
 - **Elástico (squash & stretch):** en Animación → Posar → Cuerpo, el deslizador **«Elástico»**:

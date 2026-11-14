@@ -257,7 +257,7 @@ Por hacer:
   - las teclas 1–8 ponen emociones y el 0 la quita.
 
   Al acabar se convierte en claves: se quedan las de la acción y se añaden solo las necesarias. Sin acción, crea «Toma en vivo» de 4 s.
-  - [ ] Pendiente: interpretar también brazos y cuerpo (Motion Pilot), y grabar solo algunos canales.
+  - [x] Junto a «● En vivo» se elige qué se interpreta: cabeza y mirada, brazo derecho o izquierdo (la mano sigue al ratón con IK) o cuerpo (gira, se inclina, se agacha). Cada toma graba solo esos canales y respeta lo demás, así que las tomas se suman por capas.
   - Arreglado de paso: un error al dibujar un fotograma paraba todo el bucle del editor; ahora se avisa en la consola y sigue (Personajes, Escenas y Montaje).
 - [x] **Elástico (squash & stretch):** deslizador «Elástico» en Posar → Cuerpo (`estira`, de −0,5 a +0,6), desde los pies y conservando el volumen. Se anima con claves como cualquier otro.
 - [x] **Seguimiento (follow-through):** deslizador «Seguimiento» en la acción (`retraso`, de 0 a 1). La cabeza llega hasta 0,15 s tarde y los brazos y las manos hasta 0,25 s, también en Escenas.

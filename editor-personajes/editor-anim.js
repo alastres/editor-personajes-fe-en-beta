@@ -241,47 +241,57 @@
   // (0 la quita) que entra y sale suave. Al acabar se convierte en claves: las de la acción se quedan (con lo interpretado encima) y se
   // añaden las justas para seguir lo grabado.
   const EMO_TECLAS = ["neutra", "alegre", "risa", "triste", "enfado", "sorpresa", "miedo", "pensativo", "verguenza"];
-  const vivoPose = () => { const v = vivo, o = { cabeza: v.cab, miraY: v.mira, ladeo: v.lad }, c = {}; for (const [n, w] of Object.entries(v.peso)) if (n !== "neutra" && w > 0.01) c[n] = +w.toFixed(2); o.cara = c; return o; };
+  // qué se interpreta en cada toma (se graban solo esos canales; las tomas se suman por capas)
+  const VIVO_QUE = { cabeza: { n: "Cabeza y mirada", c: ["cabeza", "miraY", "ladeo"], ayuda: "ratón: cabeza y mirada · Mayús: ladear" },
+    brazoDer: { n: "Brazo derecho", c: ["bDerK", "bDerLado", "bDerFrente", "bDerCodo"], ayuda: "ratón: la mano derecha va adonde apuntas" },
+    brazoIzq: { n: "Brazo izquierdo", c: ["bIzqK", "bIzqLado", "bIzqFrente", "bIzqCodo"], ayuda: "ratón: la mano izquierda va adonde apuntas" },
+    cuerpo: { n: "Cuerpo", c: ["torso", "inclina", "agacha"], ayuda: "ratón: ← → gira el cuerpo · ↑ ↓ se inclina y se agacha" } };
+  const vivoPose = () => { const v = vivo, o = {}; for (const k of VIVO_QUE[v.que].c) o[k] = v.cur[k];
+    if (v.usaCara) { const c = {}; for (const [n, w] of Object.entries(v.peso)) if (n !== "neutra" && w > 0.01) c[n] = +w.toFixed(2); o.cara = c; } return o; };
   function vivoMuestra(tReal) { const v = vivo, dt = v.tR == null ? 0 : Math.min(0.1, tReal - v.tR); v.tR = tReal;
-    // suavizado (como un muelle corto): el ratón manda el objetivo y la cabeza llega un poco después
-    const k = 1 - Math.exp(-dt * 12); v.cab += (v.obj.cab - v.cab) * k; v.mira += (v.obj.mira - v.mira) * k; v.lad += (v.obj.lad - v.lad) * k;
+    // suavizado (como un muelle corto): el ratón manda el objetivo y el cuerpo llega un poco después
+    const k = 1 - Math.exp(-dt * 12); for (const c of VIVO_QUE[v.que].c) v.cur[c] += (v.obj[c] - v.cur[c]) * k;
     for (const n of EMO_TECLAS) { const meta = n === v.emo ? 0.9 : 0; v.peso[n] = (v.peso[n] || 0) + (meta - (v.peso[n] || 0)) * (1 - Math.exp(-dt * 7)); }
     if (tiempo - (v.ult ?? -1) >= 0.12) { v.ult = tiempo; v.muestras.push(Object.assign({ t: +tiempo.toFixed(2) }, JSON.parse(JSON.stringify(vivoPose())))); }
     if (!play) { if (tiempo - (v.ult ?? -1) > 0.01) v.muestras.push(Object.assign({ t: +tiempo.toFixed(2) }, JSON.parse(JSON.stringify(vivoPose())))); vivoFin(); } }   // la última, justo al final
   function vivoEmpezar() { let a = accion(); if (!a) { nuevaAccion(null); a = accion(); E.cambio((x) => { const ax = x.acciones.find((y) => y.id === a.id); ax.duracion = 4; ax.bucle = false; ax.nombre = "Toma en vivo"; }); a = accion(); }
-    const p0 = P.completa(P.accionPose(a, 0));
-    vivo = { cuenta: 3, grabando: false, cab: p0.cabeza || 0, mira: p0.miraY || 0, lad: p0.ladeo || 0, obj: { cab: p0.cabeza || 0, mira: p0.miraY || 0, lad: p0.ladeo || 0 }, emo: "neutra", peso: {}, muestras: [], tR: null, bucle: a.bucle };
+    const que = $("#t-vivo-que")?.value || "cabeza", p0 = P.completa(P.accionPose(a, 0)), cur = {}; for (const c of VIVO_QUE[que].c) cur[c] = p0[c] ?? 0;
+    vivo = { que, cuenta: 3, grabando: false, cur, obj: Object.assign({}, cur), usaCara: que === "cabeza", emo: "neutra", peso: {}, muestras: [], tR: null, bucle: a.bucle, tIK: 0 };
     for (const [n, w] of Object.entries(p0.cara || {})) { vivo.peso[n] = w; if (w > 0.4) vivo.emo = n; }
     document.body.classList.add("en-vivo"); const aviso = h("div", { class: "vivo-cuenta", id: "vivo-cuenta" }, "3"); $(".escenario").append(aviso);
     const paso = () => { if (!vivo) return aviso.remove(); vivo.cuenta--; if (vivo.cuenta > 0) { aviso.textContent = vivo.cuenta; setTimeout(paso, 600); return; }
-      aviso.textContent = "● Grabando · ratón: cabeza y mirada · Mayús: ladear · 1–8 emociones · 0 neutra · Esc o R: parar"; aviso.classList.add("grabando");
+      aviso.textContent = `● Grabando ${VIVO_QUE[que].n.toLowerCase()} · ${VIVO_QUE[que].ayuda} · 1–8 emociones · 0 neutra · Esc o R: parar`; aviso.classList.add("grabando");
       vivo.grabando = true; tiempo = 0; tAnt = null; play = true; const ax = accion(); if (ax.bucle) E.cambio((x) => { x.acciones.find((y) => y.id === ax.id).bucle = false; }, "vivo-bucle"); pintarLinea(); };
     setTimeout(paso, 600); pintarLinea(); }
   function vivoFin(cancelar) { const v = vivo; if (!v) return; vivo = null; play = false; document.body.classList.remove("en-vivo"); $("#vivo-cuenta")?.remove();
     const a = accion(); if (!a) return; if (v.bucle) E.cambio((x) => { x.acciones.find((y) => y.id === a.id).bucle = true; }, "vivo-bucle");
     if (cancelar || v.muestras.length < 2) { pintar(); return; }
     // de las muestras, solo las que hacen falta: si una se puede adivinar de sus vecinas (en línea recta) con poco error, sobra
-    const ms = v.muestras, num = (m) => [m.cabeza, m.miraY * 20, m.ladeo, ...EMO_TECLAS.map((n) => (m.cara[n] || 0) * 30)];
+    const CS = VIVO_QUE[v.que].c, ESC = { miraY: 20, inclina: 60, agacha: 30 }, escala = (c) => ESC[c] || (/^b(Der|Izq)/.test(c) ? 25 : 1);
+    const ms = v.muestras, num = (m) => [...CS.map((c) => m[c] * escala(c)), ...(v.usaCara ? EMO_TECLAS.map((n) => (m.cara?.[n] || 0) * 30) : [])];
     const quedan = [ms[0]]; for (let i = 1; i < ms.length - 1; i++) { const A = quedan[quedan.length - 1], B = ms[i + 1], k = (ms[i].t - A.t) / (B.t - A.t || 1);
       const err = num(ms[i]).reduce((mx, x, q) => Math.max(mx, Math.abs(x - (num(A)[q] + (num(B)[q] - num(A)[q]) * k))), 0); if (err > 1.5) quedan.push(ms[i]); }
     quedan.push(ms[ms.length - 1]);
-    const enT = (t) => { let i = ms.findIndex((m) => m.t >= t); if (i <= 0) return ms[Math.max(0, i)]; const A = ms[i - 1], B = ms[i], k = (t - A.t) / (B.t - A.t || 1), o = { cara: {} };
-      for (const c of ["cabeza", "miraY", "ladeo"]) o[c] = A[c] + (B[c] - A[c]) * k; for (const n of EMO_TECLAS) { const w = (A.cara[n] || 0) + ((B.cara[n] || 0) - (A.cara[n] || 0)) * k; if (w > 0.01) o.cara[n] = +w.toFixed(2); } return o; };
-    const t1 = ms[ms.length - 1].t;
+    const enT = (t) => { let i = ms.findIndex((m) => m.t >= t); if (i <= 0) return ms[Math.max(0, i)]; const A = ms[i - 1], B = ms[i], k = (t - A.t) / (B.t - A.t || 1), o = {};
+      for (const c of CS) o[c] = A[c] + (B[c] - A[c]) * k; if (v.usaCara) { o.cara = {}; for (const n of EMO_TECLAS) { const w = (A.cara?.[n] || 0) + ((B.cara?.[n] || 0) - (A.cara?.[n] || 0)) * k; if (w > 0.01) o.cara[n] = +w.toFixed(2); } } return o; };
+    const t1 = ms[ms.length - 1].t, poner = (pose, r) => { const o = P.completa(pose); for (const c of CS) o[c] = r[c]; if (v.usaCara) o.cara = r.cara; return limpia(o); };
     E.cambio((x) => { const ax = x.acciones.find((y) => y.id === a.id), orig = JSON.parse(JSON.stringify(ax));
       // las claves de la acción se quedan, con lo interpretado encima
-      for (const k of ax.claves) if (k.t <= t1 + 0.01) { const r = enT(k.t); k.pose = limpia(Object.assign(P.completa(k.pose), { cabeza: r.cabeza, miraY: r.miraY, ladeo: r.ladeo, cara: r.cara })); }
-      for (const m of quedan) { if (ax.claves.some((k) => Math.abs(k.t - m.t) < 0.06)) continue;
-        ax.claves.push({ t: m.t, curva: "lineal", pose: limpia(Object.assign(P.completa(P.accionPose(orig, m.t)), { cabeza: m.cabeza, miraY: m.miraY, ladeo: m.ladeo, cara: m.cara })) }); }
+      for (const k of ax.claves) if (k.t <= t1 + 0.01) k.pose = poner(k.pose, enT(k.t));
+      for (const m of quedan) { if (ax.claves.some((k) => Math.abs(k.t - m.t) < 0.06)) continue; ax.claves.push({ t: m.t, curva: "lineal", pose: poner(P.accionPose(orig, m.t), m) }); }
       ax.claves.sort((p, q) => p.t - q.t); });
-    tiempo = 0; pintar(); E.aviso(`Toma grabada: ${quedan.length} claves nuevas (Ctrl+Z la deshace)`); }
+    tiempo = 0; pintar(); E.aviso(`Toma de «${VIVO_QUE[v.que].n}» grabada: ${quedan.length} claves (Ctrl+Z la deshace)`); }
   $("#t-vivo").addEventListener("click", () => (vivo ? vivoFin() : vivoEmpezar()));
-  // el ratón sobre el lienzo dirige la cabeza (en coordenadas del escenario: el centro del lienzo es mirar al frente)
-  $("#lienzo").addEventListener("pointermove", (ev) => { if (!vivo) return; const r = $("#lienzo").getBoundingClientRect(), x = ((ev.clientX - r.left) / r.width) * 2 - 1, y = ((ev.clientY - r.top) / r.height) * 2 - 1;
+  // el ratón sobre el lienzo dirige lo que se interpreta (para la cabeza y el cuerpo, el centro del lienzo es el reposo)
+  $("#lienzo").addEventListener("pointermove", (ev) => { if (!vivo) return; const v = vivo, r = $("#lienzo").getBoundingClientRect(), x = ((ev.clientX - r.left) / r.width) * 2 - 1, y = ((ev.clientY - r.top) / r.height) * 2 - 1;
     const cx = Math.max(-1, Math.min(1, x * 1.4)), cy = Math.max(-1, Math.min(1, y * 1.6));
-    if (ev.shiftKey) vivo.obj.lad = cx * 18; else vivo.obj.cab = cx * 55; vivo.obj.mira = cy; });
+    if (v.que === "cabeza") { if (ev.shiftKey) v.obj.ladeo = cx * 18; else v.obj.cabeza = cx * 55; v.obj.miraY = cy; }
+    else if (v.que === "cuerpo") { v.obj.torso = cx * 45; v.obj.inclina = cy * 0.3; v.obj.agacha = Math.max(0, cy) * 1.1; }
+    else { const now = performance.now(); if (now - v.tIK < 35) return; v.tIK = now; const L = v.que === "brazoDer" ? "Der" : "Izq";
+      // la mano va al punto del ratón (cinemática inversa, la misma de las asas)
+      const q = ik(Object.assign(P.completa(poseActual()), v.cur), L, E.prueba.giro || 0, localP(ev)); for (const c of ["K", "Lado", "Frente", "Codo"]) v.obj["b" + L + c] = q["b" + L + c]; } });
   document.addEventListener("keydown", (ev) => { if (!vivo) return; if (ev.key === "Escape") { ev.preventDefault(); vivoFin(!vivo.grabando); return; }
-    if (/^[0-8]$/.test(ev.key)) { ev.preventDefault(); vivo.emo = EMO_TECLAS[+ev.key]; } }, true);
+    if (/^[0-8]$/.test(ev.key)) { ev.preventDefault(); vivo.emo = EMO_TECLAS[+ev.key]; vivo.usaCara = true; } }, true);
   document.addEventListener("keydown", (ev) => { if (document.body.classList.contains("con-taller")) return; if (!activo || ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName) && document.activeElement.type !== "range") return;
     if (ev.code === "Space") { ev.preventDefault(); if (vivo) vivoFin(); else reproducir(); } else if (ev.key.toLowerCase() === "k" && !ev.ctrlKey) anadirClave(); else if (ev.key.toLowerCase() === "r" && !ev.ctrlKey) { ev.preventDefault(); vivo ? vivoFin() : vivoEmpezar(); } });
 
