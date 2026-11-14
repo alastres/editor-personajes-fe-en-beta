@@ -375,7 +375,8 @@
   const CAPAS_VEC = { torso: ["Torso y túnica", []], brazoIzq: ["Brazo izquierdo", ["brazoIzq", "antebrazoIzq", "manoIzq"]], brazoDer: ["Brazo derecho", ["brazoDer", "antebrazoDer", "manoDer"]],
     piernaIzq: ["Pierna izquierda", ["musloIzq", "piernaIzq", "pieIzq"]], piernaDer: ["Pierna derecha", ["musloDer", "piernaDer", "pieDer"]] };
   // el torso se copia en cuatro vistas (frente, perfil derecho, espaldas, perfil izquierdo): cada una gira ±45° sobre un cilindro
-  const VISTAS_TORSO = [[0, "de frente"], [90, "de perfil (mira a la derecha)"], [180, "de espaldas"], [-90, "de perfil (mira a la izquierda)"]];
+  // ocho vistas: cada una gira como mucho ±22,5°, así los trazos de dentro (cinturón, abertura) no asoman por el borde
+  const VISTAS_TORSO = [[0, "de frente"], [45, "3/4 derecha"], [90, "de perfil (mira a la derecha)"], [135, "3/4 de espaldas derecha"], [180, "de espaldas"], [-135, "3/4 de espaldas izquierda"], [-90, "de perfil (mira a la izquierda)"], [-45, "3/4 izquierda"]];
   function exportarCuerpo() { const NSv = "http://www.w3.org/2000/svg", svg = document.createElementNS(NSv, "svg"); svg.style.cssText = "position:absolute;left:-9999px;width:10px;height:10px"; document.body.append(svg);
     const jj = JSON.parse(JSON.stringify(j)); delete jj.vector; jj.piezas = [];
     const copia = (g) => { const txt = [...g.children].filter((k) => !k.hasAttribute("data-pieza") && k.getAttribute("display") !== "none").map((k) => k.outerHTML).join("");

@@ -503,14 +503,14 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
 
 ## Marioneta vectorial, fase 1: el cuerpo (14 nov 2026)
 - En Personajes → Diseño → **Marioneta vectorial**, **«Convertir el cuerpo en vectores»** dibuja el muñeco en reposo y copia como dibujos vectoriales:
-  - el torso y la túnica, en cuatro vistas: de frente, de perfil a la derecha, de espaldas y de perfil a la izquierda;
+  - el torso y la túnica, en ocho vistas (cada 45°: de frente, 3/4, perfil, 3/4 de espaldas, espaldas…);
   - los dos brazos (con la mano) y las dos piernas (con el pie).
   
   Cada parte se edita con **✎** en el taller (con el resto de calco y las juntas en naranja).
 - **«Usar el muñeco automático» / «Usar los vectores»** cambia entre los dos sin perder nada. **«Volver a copiar del muñeco»** rehace la copia: se pierden los retoques, y sirve si cambias la ropa o las proporciones.
 - **Cómo se mueve** (`comun/titere25d.js`, `op.vector`):
   - cada punto de brazos y piernas va atado a los huesos más cercanos en reposo (`brazo`, `antebrazo`, `mano`; `muslo`, `pierna`, `pie`; el pie no gira), y sigue a las juntas del fotograma estirándose con el escorzo;
-  - el torso usa la vista más cercana al giro y la gira ±45° sobre un cilindro alrededor de la columna, que sigue a la cintura y al cuello;
+  - el torso usa la vista más cercana al giro y la gira ±22,5° sobre un cilindro alrededor de la columna, que sigue a la cintura y al cuello;
   - la cabeza y las piezas propias no cambian.
 - **Datos** en el personaje: `vector: { activo, juntas, capas: [{ id, nombre, grupo, huesos, vista?, juntas?, dibujo, svg }] }`.
 - El plan completo (cabeza, Smart Bones, expresiones) está en el ROADMAP.
