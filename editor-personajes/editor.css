@@ -303,3 +303,11 @@ button.mini { padding: 2px 7px; margin-left: 4px; }
 .hm-dialogo { max-width: 440px; }
 .hm-dialogo input[type=text] { width: 100%; box-sizing: border-box; margin-top: 6px; }
 button.peligro-fuerte { background: var(--acento2); border-color: var(--acento2); color: #fff; }
+
+/* ---- interpretar en vivo (editor-anim.js) */
+button.vivo { color: #ff8f7a; border-color: #6a3a3a; }
+button.vivo.activo { background: var(--acento2); color: #fff; border-color: var(--acento2); }
+.vivo-cuenta { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); z-index: 6; background: #000a; color: #fff; border-radius: 999px; padding: 8px 18px; font-size: 28px; font-weight: 700; pointer-events: none; }
+.vivo-cuenta.grabando { font-size: 13px; font-weight: 600; background: #be3f1ccc; }
+body.en-vivo #lienzo { cursor: crosshair; }
+.escenario { position: relative; }

@@ -234,3 +234,36 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [x] **Fase 4: expresiones dibujadas.** En Animar → Cara → «Crear o editar una emoción propia», **«✎ Dibujar la cara a mano»** abre la cara con esa emoción en el taller. Se mueven puntos de ojos, cejas, boca, nariz… sobre el mismo dibujo. La forma retocada entra con la intensidad de la emoción (su deslizador y las claves de `cara` en las acciones) y se mezcla con las demás. Sirve con la cabeza automática y con la vectorial. Al girar, lo de los lados se estrecha con la cabeza. Probado con «Pedro (vectorial)»: a intensidad 0 no cambia nada.
   - Arreglado de paso en el taller: una forma cerrada de dos puntos (la boca en forma de lente) perdía su segunda curva al guardarse. Además, al medir una corrección, las rectas que el taller convierte en curvas vuelven a los comandos originales.
 
+## Visión: lo mejor de Moho y de Cartoon Animator (14 nov 2026)
+El usuario quiere una herramienta en la que la creatividad no tenga límites: los huesos inteligentes, el dibujo vectorial y el control fino de **Moho**, con la rapidez de **Cartoon Animator** (interpretar en vivo, bibliotecas de movimientos, marionetas listas). Se trabaja en bucle, de lo de más impacto a lo de menos.
+
+Ya lo tenemos:
+- huesos con IK y asas;
+- correcciones por ángulo tipo Smart Bones;
+- capas de cambio (variantes);
+- física por pieza y en cadena;
+- labios por fonemas;
+- giro de cabeza 360 sobre un solo dibujo;
+- taller vectorial;
+- curvas propias;
+- recorridos con formas de andar;
+- acciones compartidas por capas;
+- cámara 2,5D;
+- partículas y ambiente.
+
+Por hacer:
+- [x] **Interpretar en vivo** (como el Face Puppet de Cartoon Animator). En Animación, «● En vivo» (o la tecla R) hace una cuenta atrás y reproduce la acción desde el principio. Mientras suena:
+  - el ratón gira la cabeza y mira arriba o abajo; con Mayúsculas, ladea;
+  - las teclas 1–8 ponen emociones y el 0 la quita.
+
+  Al acabar se convierte en claves: se quedan las de la acción y se añaden solo las necesarias. Sin acción, crea «Toma en vivo» de 4 s.
+  - [ ] Pendiente: interpretar también brazos y cuerpo (Motion Pilot), y grabar solo algunos canales.
+  - Arreglado de paso: un error al dibujar un fotograma paraba todo el bucle del editor; ahora se avisa en la consola y sigue (Personajes, Escenas y Montaje).
+- [ ] **Elástico (squash & stretch)** del personaje entero, conservando el volumen, como clave de la pose.
+- [ ] **Seguimiento y retraso automáticos** (follow-through): cabeza, brazos y piezas llegan un poco después que el cuerpo, con un deslizador.
+- [ ] **Marioneta libre:** huesos sobre cualquier dibujo o PNG (animales, objetos, criaturas), con `rig2d.js` de lab-huesos.
+- [ ] **Capas fotograma a fotograma** (como Moho): dibujar a mano efectos, humo o chispas, cuadro a cuadro, sobre la escena.
+- [ ] **Editor de gráficas** de movimiento por canal (giro, altura, cabeza…), con tangentes.
+- [ ] **Deformador libre (malla)** sobre piezas y láminas: doblar, ondear y respirar.
+- [ ] **Efectos de capa** en Escenas: sombra, desenfoque, resplandor y máscara por objeto o capa.
+

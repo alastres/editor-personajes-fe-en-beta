@@ -570,3 +570,17 @@ Son como los **Smart Bones de Moho**: la forma de una parte se corrige a mano en
   - Intro acepta y Esc cancela.
   - Si lo que se confirma borra o pisa algo, el foco empieza en «Cancelar».
 
+## Interpretar en vivo (14 nov 2026)
+Como el Face Puppet de Cartoon Animator: en vez de poner claves a mano, se actúa con el ratón mientras suena la acción.
+- En **Animación**, pulsa **«● En vivo»** (o la tecla **R**). Tras una cuenta atrás de 3, la acción suena desde el principio (sin bucle) y se graba:
+  - **ratón** a izquierda o derecha del lienzo: gira la cabeza (hasta ±55°);
+  - **ratón** arriba o abajo: mira arriba o abajo;
+  - **Mayúsculas + ratón:** ladea la cabeza;
+  - **teclas:** 1 alegre, 2 risa, 3 triste, 4 enfado, 5 sorpresa, 6 miedo, 7 pensativo, 8 vergüenza, y **0** neutra. La emoción entra y sale suave.
+- Termina sola al acabar la acción, o con **Esc**, **R** o **Espacio**. Esc en la cuenta atrás cancela sin grabar.
+- **Qué se guarda:**
+  - las claves que ya tenía la acción se quedan (con la cabeza, la mirada y la cara interpretadas encima);
+  - se añaden solo las claves necesarias (las que no se adivinan en línea recta desde sus vecinas), con curva lineal;
+  - Ctrl+Z deshace la toma entera.
+- Sin acción elegida, crea una llamada **«Toma en vivo»** de 4 s.
+

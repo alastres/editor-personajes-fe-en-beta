@@ -187,7 +187,10 @@
     for (let i = -6; i <= 6; i++) { const a = T.PR([i * 120, 0, -700]), b = T.PR([i * 120, 0, 500]); el("line", { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: "#ffffff", "stroke-opacity": 0.06, "stroke-width": 2 }, suelo); }
     for (let k = -6; k <= 4; k++) { const a = T.PR([-720, 0, k * 120]), b = T.PR([720, 0, k * 120]); el("line", { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: "#ffffff", "stroke-opacity": 0.06, "stroke-width": 2 }, suelo); } }
   let t0 = performance.now(), giroAnim = prueba.giro;
-  function bucle(ahora) {
+  // un error al dibujar un fotograma no debe parar el bucle (se avisa en la consola una vez por tipo de error)
+  const erroresVistos = new Set();
+  function bucle(ahora) { try { dibujarFotograma(ahora); } catch (e) { if (!erroresVistos.has(String(e))) { erroresVistos.add(String(e)); console.error(e); } } requestAnimationFrame(bucle); }
+  function dibujarFotograma(ahora) {
     const t = (ahora - t0) / 1000;
     if (m && window.EPA && EPA.activo()) { if (prueba.girar) { giroAnim = ((giroAnim + 0.6 + 180) % 360) - 180; $("#giro").value = Math.round(giroAnim); $("#giro-v").textContent = Math.round(giroAnim) + "°"; } else giroAnim = prueba.giro;
       T.camara(CAMARAS[prueba.camara].c); EPA.dibujar(t, giroAnim, m); }
@@ -197,7 +200,6 @@
       T.camara(CAMARAS[prueba.camara].c);
       m.dibujar(Object.assign({ torso: a, cabeza: a + 0.12 * S(t * 0.7), ojos: a + 0.15 * S(t * 0.7), brazos: a, cara: caraActual(A.cara), parpadeo: Math.max(0.1, Math.min(1, Math.abs((t % 3.4) - 3.3) / 0.08)), variantes: prueba.variantes }, e));
     }
-    requestAnimationFrame(bucle);
   }
 
   // ---- prueba (acción, emoción, giro, cámara)

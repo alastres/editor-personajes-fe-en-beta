@@ -16,6 +16,7 @@
   const BRAZO = (L) => [["b" + L + "K", "Cuánto se aplica esta pose del brazo", 0, 1, 0.01, pc], ["b" + L + "Lado", "Abrir hacia fuera", -0.5, 2.4, 0.01, n2], ["b" + L + "Frente", "Hacia delante / atrás", -1, 1.6, 0.01, n2],
     ["b" + L + "Codo", "Doblar el codo", 0, 2.6, 0.01, n2], ["b" + L + "Hacia", "El codo dobla hacia dentro / fuera", -1, 1, 0.01, n2]];
 
+  let vivo = null;   // interpretar en vivo (más abajo)
   let libre = false, activo = false, acc = null, tiempo = 0, play = false, tAnt = null, claveSel = null, poseLibre = P.completa({}), ctrl = {}, construido = false, fantasmas = [];
   const j = () => E.j;
   const accion = () => j()?.acciones.find((a) => a.id === acc) || null;
@@ -157,7 +158,7 @@
   const pista = $("#pista");
   function pintarLinea() {
     const a = accion(), D = durac(a); $("#t-tiempo").textContent = fmtT(tiempo) + (a ? " / " + fmtT(D) : ""); $("#t-play").textContent = play ? "❚❚" : "▶";
-    $("#t-play").disabled = $("#t-clave").disabled = !a; $("#t-borrar").disabled = !a || claveEn(a, tiempo) < 0;
+    $("#t-play").disabled = $("#t-clave").disabled = !a; $("#t-vivo").textContent = vivo ? "■ Parar" : "● En vivo"; $("#t-vivo").classList.toggle("activo", !!vivo); $("#t-borrar").disabled = !a || claveEn(a, tiempo) < 0;
     const ic = a ? claveEn(a, tiempo) : -1; $("#t-curva").disabled = ic < 0; if (ic >= 0) $("#t-curva").value = Array.isArray(a.claves[ic].curva) ? "propia" : a.claves[ic].curva || "suave"; $("#t-curva-ed").disabled = ic < 0;
     $("#t-ayuda").textContent = a ? (a.claves.length < 2 ? "Mueve el cabezal, cambia la postura en «Posar» y se crea otra clave." : "Arrastra las claves para cambiar el ritmo.") : "Crea una acción en el panel de la derecha.";
     const regla = $("#regla"); if (regla.dataset.d !== String(D)) { regla.dataset.d = D; regla.replaceChildren(); for (let t = 0; t <= D + 1e-6; t += 0.25) { const mayor = Math.abs(t % 1) < 1e-6 || Math.abs((t % 1) - 1) < 1e-6;
@@ -196,8 +197,55 @@
     const r = await fetch(`/api/acciones/${id}`, { method: "PUT", body: JSON.stringify(Object.assign(JSON.parse(JSON.stringify(a)), { id, origen: E.actual })) });
     if (r.ok) { E.aviso(`«${a.nombre}» está en la biblioteca común: cualquier personaje puede usarla`); cargarBiblio(); } else E.aviso("No se pudo compartir"); });
   $("#t-cebolla").addEventListener("change", () => { E.prueba.cebolla = $("#t-cebolla").checked; E.guardaPrueba(); });
+
+  // ---- INTERPRETAR EN VIVO (como el Face Puppet de Cartoon Animator): la acción suena desde el principio y, mientras tanto, el ratón
+  // sobre el lienzo gira la cabeza (izquierda / derecha), mira arriba o abajo y, con Mayúsculas, ladea; las teclas 1–8 ponen una emoción
+  // (0 la quita) que entra y sale suave. Al acabar se convierte en claves: las de la acción se quedan (con lo interpretado encima) y se
+  // añaden las justas para seguir lo grabado.
+  const EMO_TECLAS = ["neutra", "alegre", "risa", "triste", "enfado", "sorpresa", "miedo", "pensativo", "verguenza"];
+  const vivoPose = () => { const v = vivo, o = { cabeza: v.cab, miraY: v.mira, ladeo: v.lad }, c = {}; for (const [n, w] of Object.entries(v.peso)) if (n !== "neutra" && w > 0.01) c[n] = +w.toFixed(2); o.cara = c; return o; };
+  function vivoMuestra(tReal) { const v = vivo, dt = v.tR == null ? 0 : Math.min(0.1, tReal - v.tR); v.tR = tReal;
+    // suavizado (como un muelle corto): el ratón manda el objetivo y la cabeza llega un poco después
+    const k = 1 - Math.exp(-dt * 12); v.cab += (v.obj.cab - v.cab) * k; v.mira += (v.obj.mira - v.mira) * k; v.lad += (v.obj.lad - v.lad) * k;
+    for (const n of EMO_TECLAS) { const meta = n === v.emo ? 0.9 : 0; v.peso[n] = (v.peso[n] || 0) + (meta - (v.peso[n] || 0)) * (1 - Math.exp(-dt * 7)); }
+    if (tiempo - (v.ult ?? -1) >= 0.12) { v.ult = tiempo; v.muestras.push(Object.assign({ t: +tiempo.toFixed(2) }, JSON.parse(JSON.stringify(vivoPose())))); }
+    if (!play) { if (tiempo - (v.ult ?? -1) > 0.01) v.muestras.push(Object.assign({ t: +tiempo.toFixed(2) }, JSON.parse(JSON.stringify(vivoPose())))); vivoFin(); } }   // la última, justo al final
+  function vivoEmpezar() { let a = accion(); if (!a) { nuevaAccion(null); a = accion(); E.cambio((x) => { const ax = x.acciones.find((y) => y.id === a.id); ax.duracion = 4; ax.bucle = false; ax.nombre = "Toma en vivo"; }); a = accion(); }
+    const p0 = P.completa(P.accionPose(a, 0));
+    vivo = { cuenta: 3, grabando: false, cab: p0.cabeza || 0, mira: p0.miraY || 0, lad: p0.ladeo || 0, obj: { cab: p0.cabeza || 0, mira: p0.miraY || 0, lad: p0.ladeo || 0 }, emo: "neutra", peso: {}, muestras: [], tR: null, bucle: a.bucle };
+    for (const [n, w] of Object.entries(p0.cara || {})) { vivo.peso[n] = w; if (w > 0.4) vivo.emo = n; }
+    document.body.classList.add("en-vivo"); const aviso = h("div", { class: "vivo-cuenta", id: "vivo-cuenta" }, "3"); $(".escenario").append(aviso);
+    const paso = () => { if (!vivo) return aviso.remove(); vivo.cuenta--; if (vivo.cuenta > 0) { aviso.textContent = vivo.cuenta; setTimeout(paso, 600); return; }
+      aviso.textContent = "● Grabando · ratón: cabeza y mirada · Mayús: ladear · 1–8 emociones · 0 neutra · Esc o R: parar"; aviso.classList.add("grabando");
+      vivo.grabando = true; tiempo = 0; tAnt = null; play = true; const ax = accion(); if (ax.bucle) E.cambio((x) => { x.acciones.find((y) => y.id === ax.id).bucle = false; }, "vivo-bucle"); pintarLinea(); };
+    setTimeout(paso, 600); pintarLinea(); }
+  function vivoFin(cancelar) { const v = vivo; if (!v) return; vivo = null; play = false; document.body.classList.remove("en-vivo"); $("#vivo-cuenta")?.remove();
+    const a = accion(); if (!a) return; if (v.bucle) E.cambio((x) => { x.acciones.find((y) => y.id === a.id).bucle = true; }, "vivo-bucle");
+    if (cancelar || v.muestras.length < 2) { pintar(); return; }
+    // de las muestras, solo las que hacen falta: si una se puede adivinar de sus vecinas (en línea recta) con poco error, sobra
+    const ms = v.muestras, num = (m) => [m.cabeza, m.miraY * 20, m.ladeo, ...EMO_TECLAS.map((n) => (m.cara[n] || 0) * 30)];
+    const quedan = [ms[0]]; for (let i = 1; i < ms.length - 1; i++) { const A = quedan[quedan.length - 1], B = ms[i + 1], k = (ms[i].t - A.t) / (B.t - A.t || 1);
+      const err = num(ms[i]).reduce((mx, x, q) => Math.max(mx, Math.abs(x - (num(A)[q] + (num(B)[q] - num(A)[q]) * k))), 0); if (err > 1.5) quedan.push(ms[i]); }
+    quedan.push(ms[ms.length - 1]);
+    const enT = (t) => { let i = ms.findIndex((m) => m.t >= t); if (i <= 0) return ms[Math.max(0, i)]; const A = ms[i - 1], B = ms[i], k = (t - A.t) / (B.t - A.t || 1), o = { cara: {} };
+      for (const c of ["cabeza", "miraY", "ladeo"]) o[c] = A[c] + (B[c] - A[c]) * k; for (const n of EMO_TECLAS) { const w = (A.cara[n] || 0) + ((B.cara[n] || 0) - (A.cara[n] || 0)) * k; if (w > 0.01) o.cara[n] = +w.toFixed(2); } return o; };
+    const t1 = ms[ms.length - 1].t;
+    E.cambio((x) => { const ax = x.acciones.find((y) => y.id === a.id), orig = JSON.parse(JSON.stringify(ax));
+      // las claves de la acción se quedan, con lo interpretado encima
+      for (const k of ax.claves) if (k.t <= t1 + 0.01) { const r = enT(k.t); k.pose = limpia(Object.assign(P.completa(k.pose), { cabeza: r.cabeza, miraY: r.miraY, ladeo: r.ladeo, cara: r.cara })); }
+      for (const m of quedan) { if (ax.claves.some((k) => Math.abs(k.t - m.t) < 0.06)) continue;
+        ax.claves.push({ t: m.t, curva: "lineal", pose: limpia(Object.assign(P.completa(P.accionPose(orig, m.t)), { cabeza: m.cabeza, miraY: m.miraY, ladeo: m.ladeo, cara: m.cara })) }); }
+      ax.claves.sort((p, q) => p.t - q.t); });
+    tiempo = 0; pintar(); E.aviso(`Toma grabada: ${quedan.length} claves nuevas (Ctrl+Z la deshace)`); }
+  $("#t-vivo").addEventListener("click", () => (vivo ? vivoFin() : vivoEmpezar()));
+  // el ratón sobre el lienzo dirige la cabeza (en coordenadas del escenario: el centro del lienzo es mirar al frente)
+  $("#lienzo").addEventListener("pointermove", (ev) => { if (!vivo) return; const r = $("#lienzo").getBoundingClientRect(), x = ((ev.clientX - r.left) / r.width) * 2 - 1, y = ((ev.clientY - r.top) / r.height) * 2 - 1;
+    const cx = Math.max(-1, Math.min(1, x * 1.4)), cy = Math.max(-1, Math.min(1, y * 1.6));
+    if (ev.shiftKey) vivo.obj.lad = cx * 18; else vivo.obj.cab = cx * 55; vivo.obj.mira = cy; });
+  document.addEventListener("keydown", (ev) => { if (!vivo) return; if (ev.key === "Escape") { ev.preventDefault(); vivoFin(!vivo.grabando); return; }
+    if (/^[0-8]$/.test(ev.key)) { ev.preventDefault(); vivo.emo = EMO_TECLAS[+ev.key]; } }, true);
   document.addEventListener("keydown", (ev) => { if (document.body.classList.contains("con-taller")) return; if (!activo || ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName) && document.activeElement.type !== "range") return;
-    if (ev.code === "Space") { ev.preventDefault(); reproducir(); } else if (ev.key.toLowerCase() === "k" && !ev.ctrlKey) anadirClave(); });
+    if (ev.code === "Space") { ev.preventDefault(); if (vivo) vivoFin(); else reproducir(); } else if (ev.key.toLowerCase() === "k" && !ev.ctrlKey) anadirClave(); else if (ev.key.toLowerCase() === "r" && !ev.ctrlKey) { ev.preventDefault(); vivo ? vivoFin() : vivoEmpezar(); } });
 
   // ---- dibujo (lo llama el bucle del editor en modo Animación)
   function reconstruir() { const g = $("#fantasmas"); g.replaceChildren(); fantasmas = [0, 1].map((i) => { const gg = E.el("g", { opacity: 0.38 }, g); return { g: gg, m: P.crear(gg, j(), { id: `ed-f${i}-${E.actual}`, piezas: [] }) }; }); }
@@ -205,7 +253,7 @@
     const a = accion(), D = durac(a);
     if (play && a) { if (tAnt !== null) { tiempo += tReal - tAnt; if (tiempo > D) tiempo = a.bucle ? tiempo % D : (play = false, D); } tAnt = tReal; if (Math.floor(tReal * 15) !== Math.floor((tReal - 0.02) * 15)) pintarLinea(); }
     const lo = a?.locomocion || {}, base = { giro }, pv = E.prueba.variantes;
-    const pp = P.conControles(poseActual(), j().controles, ctrl), e = P.pose(pp, base);
+    const pp = P.conControles(poseActual(), j().controles, ctrl); if (vivo?.grabando) { vivoMuestra(tReal); if (vivo) Object.assign(pp, vivoPose()); } const e = P.pose(pp, base);
     if (lo.amp) Object.assign(e, { amp: lo.amp, correr: lo.correr || 0, fase: tiempo * (lo.cad || (lo.correr ? 1.45 : 0.95)) });
     m.dibujar(Object.assign(e, { variantes: pv, parpadeo: Math.max(0.1, Math.min(1, Math.abs((tReal % 3.4) - 3.3) / 0.08)) }));
     pintarAsas();

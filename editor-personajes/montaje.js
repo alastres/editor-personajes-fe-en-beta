@@ -73,7 +73,9 @@
   function callar() { sVoz?.pause(); sMus?.pause(); sfxProg.forEach(clearTimeout); sfxProg = []; }
   function parar() { play = false; tAnt = null; callar(); $("#t-play").textContent = "▶"; }
   function reproducir() { if (!sh) return; if (play) return parar(); if (tiempo >= D() - 0.02) tiempo = 0; play = true; tAnt = null; $("#t-play").textContent = "❚❚"; sonar(); }
-  function bucle(ahora) { const t = ahora / 1000; if (play && sh) { if (tAnt !== null) tiempo += t - tAnt; tAnt = t; if (tiempo >= D()) { tiempo = D(); parar(); } dibujar(); moverCabezal(); } requestAnimationFrame(bucle); }
+  const errBucle = new Set();   // un error al dibujar un fotograma no debe parar el bucle
+  function bucle(ahora) { try { bucleF(ahora); } catch (e) { if (!errBucle.has(String(e))) { errBucle.add(String(e)); console.error(e); } requestAnimationFrame(bucle); } }
+  function bucleF(ahora) { const t = ahora / 1000; if (play && sh) { if (tAnt !== null) tiempo += t - tAnt; tAnt = t; if (tiempo >= D()) { tiempo = D(); parar(); } dibujar(); moverCabezal(); } requestAnimationFrame(bucle); }
   requestAnimationFrame(bucle);
   $("#t-play").addEventListener("click", reproducir); $("#t-inicio").addEventListener("click", () => { parar(); tiempo = 0; dibujar(); moverCabezal(); });
 

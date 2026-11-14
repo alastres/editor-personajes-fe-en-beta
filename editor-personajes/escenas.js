@@ -99,7 +99,9 @@
   $("#planta").addEventListener("pointerup", () => { plArr = null; });
   $("#b-rejilla").addEventListener("click", () => { window.REJILLA_PROF = !window.REJILLA_PROF; $("#b-rejilla").classList.toggle("activo", !!window.REJILLA_PROF); dibujar(); });
   $("#b-planta").addEventListener("click", () => { const c = $("#planta-caja"); c.classList.toggle("plegada"); $("#b-planta").textContent = c.classList.contains("plegada") ? "+" : "–"; pintarPlanta(); });
-  function bucle(ahora) { const t = ahora / 1000;
+  const errBucle = new Set();   // un error al dibujar un fotograma no debe parar el bucle
+  function bucle(ahora) { try { bucleF(ahora); } catch (e) { if (!errBucle.has(String(e))) { errBucle.add(String(e)); console.error(e); } requestAnimationFrame(bucle); } }
+  function bucleF(ahora) { const t = ahora / 1000;
     if (play && esc) { if (tAnt !== null) tiempo += t - tAnt; tAnt = t; if (tiempo >= D()) { tiempo = D(); parar(); } dibujar(); moverCabezal();
       if (!(bucle.tP > t - 0.15)) { bucle.tP = t; const a = actor(); if (a) { const q = posActor(a); deslizar("a-x", q.x, (v) => Math.round(v)); deslizar("a-p", q.p || 0, (v) => v.toFixed(2)); deslizar("a-giro", q.giro ?? 20, (v) => Math.round(v) + "°"); } } }
     requestAnimationFrame(bucle); }
