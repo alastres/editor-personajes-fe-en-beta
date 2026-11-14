@@ -39,7 +39,11 @@
     "tono": 0.45,
     "vineta": 0.4,
     "particulas": "polvo",
-    "cantidad": 0.9
+    "cantidad": 0.9,
+    "armonia": {
+      "color": "#3a2a5a",
+      "fuerza": 0.15
+    }
   },
   "camara": [
     {
@@ -113,11 +117,11 @@
         }
       ],
       "luz": {
-        "noche": 0.35,
+        "noche": 0.12,
         "color": "#ffb060",
         "lado": 1,
-        "ancho": 6,
-        "fuerza": 0.6
+        "ancho": 7,
+        "fuerza": 0.85
       }
     }
   ]

@@ -60,7 +60,11 @@
   },
   "ambiente": {
     "vineta": 0.3,
-    "tono": -0.05
+    "tono": -0.05,
+    "armonia": {
+      "color": "#2a9ab0",
+      "fuerza": 0.15
+    }
   },
   "camaraFija": false,
   "efectos": [
@@ -162,7 +166,11 @@
           "dur": 4,
           "capa": "cara"
         }
-      ]
+      ],
+      "colores": {
+        "ropa": "#d0502e",
+        "ropaS": "#9a3420"
+      }
     },
     {
       "id": "israelita2",

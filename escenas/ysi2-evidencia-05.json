@@ -105,7 +105,11 @@
     "tono": 0.6,
     "vineta": 0.5,
     "particulas": "chispas",
-    "cantidad": 0.7
+    "cantidad": 0.7,
+    "armonia": {
+      "color": "#6a3a6a",
+      "fuerza": 0.3
+    }
   },
   "objetos": [
     {

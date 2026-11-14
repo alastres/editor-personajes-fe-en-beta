@@ -158,3 +158,5 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [x] *(14 nov 2026)* Fondos de láminas dibujadas con formas básicas (`comun/formas.py`) para todas las escenas de la prueba ysi2-evidencia; capas con claves de opacidad (fundidos, relámpagos).
 - [x] *(14 nov 2026)* Perspectiva de láminas: horizonte pintado = horizonte de la cámara, capas que se mueven con los picados y contrapicados, rejilla de profundidad en el editor; regla de duración mínima de plano y pausas en la voz.
 - [x] *(14 nov 2026)* Láminas con vida (`data-anim`: deriva, vaivén, latido, sube) y reparto en profundidad por puntos del dibujo (`PT`/`PD`); tumbas a escala de persona.
+- [x] *(14 nov 2026)* Medidor de la regla 60-30-10 (`comun/regla-603010.py`), armonía de color por escena y colores de ropa por escena.
+- [ ] Paletas de láminas pensadas en 60-30-10 desde el principio (los jardines mezclan cinco familias de color y no se arreglan solo tiñendo).

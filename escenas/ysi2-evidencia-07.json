@@ -28,8 +28,12 @@
     ]
   },
   "ambiente": {
-    "tono": -0.5,
-    "vineta": 0.6
+    "tono": -0.15,
+    "vineta": 0.45,
+    "armonia": {
+      "color": "#3a2a5a",
+      "fuerza": 0.2
+    }
   },
   "efectos": [
     {
@@ -105,11 +109,11 @@
         }
       ],
       "luz": {
-        "noche": 0.35,
+        "noche": 0.12,
         "color": "#ffb060",
         "lado": 1,
-        "ancho": 6,
-        "fuerza": 0.6
+        "ancho": 7,
+        "fuerza": 0.85
       },
       "mirar": [
         {
@@ -143,11 +147,11 @@
         }
       ],
       "luz": {
-        "noche": 0.35,
+        "noche": 0.12,
         "color": "#ffb060",
         "lado": 1,
-        "ancho": 6,
-        "fuerza": 0.6
+        "ancho": 7,
+        "fuerza": 0.85
       },
       "mirar": [
         {

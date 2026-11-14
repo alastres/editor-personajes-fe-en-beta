@@ -283,7 +283,8 @@
   function crear(svg, esc, PJ, op = {}) { formato(op.formato || esc.formato);
     const raiz = el("g", {}, svg), fondo = el("g", {}, raiz), lamAtras = el("g", {}, raiz), mundo = el("g", {}, raiz), lamDelante = el("g", {}, raiz), gDelante = el("g", {}, raiz), gRej = el("g", { "pointer-events": "none" }, raiz), gAmb = el("g", { "pointer-events": "none" }, raiz), gTextos = el("g", {}, raiz);
     let fondoKey = null;
-    const actores = (esc.actores || []).map((a) => { const j = PJ[a.personaje]; const g = el("g", { "data-actor": a.id }, mundo);
+    // a.colores: cambia colores del personaje solo en esta escena (p. ej. { ropa, ropaS } para la paleta 60-30-10 de la escena)
+    const actores = (esc.actores || []).map((a) => { const j0 = PJ[a.personaje], j = j0 && a.colores ? Object.assign({}, j0, { colores: Object.assign({}, j0.colores, a.colores) }) : j0; const g = el("g", { "data-actor": a.id }, mundo);
       if (!j) { const tx = el("text", { fill: "#f66", "font-size": 40 }, g); tx.textContent = "falta el personaje «" + a.personaje + "»"; return { a, g, m: null, j: null }; }
       // ILUMINACIÓN DEL ACTOR (a.luz): tono de la escena (noche: más oscuro y frío) y un filo de luz del color de una fuente (la puerta,
       // el fuego) en el lado que da a ella. a.luz = { noche: 0…1, color: "#ffb860", lado: 1 (derecha) | -1, ancho: 7, fuerza: 0.9 }
@@ -362,6 +363,9 @@
         // grupos con movimiento propio (data-anim, ver comun/formas.py: nubes que derivan, árboles y plantas que se mecen, estrellas, humo…)
         const anims = [...g.querySelectorAll("[data-anim]")].map((e) => { try { return { e, ks: JSON.parse(e.getAttribute("data-anim")) }; } catch { return null; } }).filter(Boolean);
         placas.push({ c, g, anims }); }
+    // ARMONÍA (esc.ambiente.armonia = { color, fuerza }): tiñe el fondo de lámina hacia un color (mezcla «color») para que el dominante
+    // de la regla 60-30-10 mande; los personajes quedan encima, sin teñir, y pueden ser el secundario o el acento
+    { const ar = esc.ambiente?.armonia; if (LAM && ar?.color) el("rect", { x: -9000, y: -9000, width: 18000, height: 18000, fill: ar.color, opacity: ar.fuerza ?? 0.3, style: "mix-blend-mode:color", "pointer-events": "none" }, lamAtras); }
     let tPlacas = 0;
     // HORIZONTE DE LA LÁMINA: fondo.horizonte = altura del horizonte pintado (px de la referencia de 1376 de alto). Si está, la cámara toma
     // la altura que lo hace coincidir con el del espacio 2,5D: los personajes encogen y suben con la profundidad igual que el dibujo.

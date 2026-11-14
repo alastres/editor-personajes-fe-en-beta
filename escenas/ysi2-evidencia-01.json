@@ -41,9 +41,13 @@
   "rol": "gancho",
   "ambiente": {
     "vineta": 0.45,
-    "tono": -0.2,
+    "tono": -0.1,
     "particulas": "luciernagas",
-    "cantidad": 0.5
+    "cantidad": 0.5,
+    "armonia": {
+      "color": "#5a4aa0",
+      "fuerza": 0.25
+    }
   },
   "efectos": [
     {
@@ -113,11 +117,15 @@
         }
       ],
       "luz": {
-        "noche": 0.45,
+        "noche": 0.25,
         "color": "#ffb860",
         "lado": 1,
         "ancho": 7,
-        "fuerza": 0.7
+        "fuerza": 0.85
+      },
+      "colores": {
+        "ropa": "#d0502e",
+        "ropaS": "#9a3420"
       },
       "mirar": [
         {

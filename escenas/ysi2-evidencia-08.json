@@ -40,10 +40,14 @@
     ]
   },
   "ambiente": {
-    "tono": -0.3,
-    "vineta": 0.5,
+    "tono": -0.1,
+    "vineta": 0.45,
     "particulas": "luciernagas",
-    "cantidad": 0.4
+    "cantidad": 0.4,
+    "armonia": {
+      "color": "#5a4aa0",
+      "fuerza": 0.25
+    }
   },
   "efectos": [
     {
@@ -143,11 +147,11 @@
         }
       ],
       "luz": {
-        "noche": 0.45,
+        "noche": 0.25,
         "color": "#ffb860",
         "lado": 1,
         "ancho": 7,
-        "fuerza": 0.7
+        "fuerza": 0.85
       },
       "mirar": [
         {
@@ -193,11 +197,11 @@
         }
       ],
       "luz": {
-        "noche": 0.45,
+        "noche": 0.25,
         "color": "#ffb860",
         "lado": 1,
         "ancho": 7,
-        "fuerza": 0.7
+        "fuerza": 0.85
       },
       "mirar": [
         {

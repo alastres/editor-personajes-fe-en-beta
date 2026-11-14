@@ -393,6 +393,12 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
 - **Escala y reparto en profundidad:**
   - `PT(xr, yr)` da un punto del dibujo en el mundo; `PD(xr, yr)` da `{ x, p }` de un punto del suelo pintado, para poner a alguien justo ahí; `VE(xr, yr, zoom)` encuadra un punto del dibujo.
   - Comprobación: un personaje en la puerta de una tumba debe medir como mucho unos 0,85 de la puerta. Por eso la tumba va a escala 2,6, el jardín 1 a 1,9 y el jardín 2 a 2,3.
+- **Regla 60-30-10 de color** (14 nov 2026):
+  - `python comun/regla-603010.py <short>` mide cada escena del último render en 3 fotogramas. Agrupa los colores en familias (ΔE < 22, sin encadenar) y da el veredicto: dominante 50-70 %, secundario 20-40 % y acento de 4-16 % saturado y que contraste con el dominante. Es orientativo: en los primeros planos manda el personaje.
+  - Herramientas para cumplirla:
+    - `ambiente.armonia: { color, fuerza }` tiñe solo el fondo de lámina hacia el dominante (mezcla «color»; más de 0,2 apaga los verdes);
+    - `actor.colores: { ropa, ropaS }` cambia la ropa de un personaje solo en esa escena (el acento rojo anaranjado, o tonos del secundario);
+    - las paletas de las láminas: ladera azul en la tumba, suelo de madera en la sala, cara violeta de las dunas y suelo de un solo tono en el campamento.
 - **Ritmo** (14 nov 2026; con 46 planos en 63 s el usuario dijo que «no da tiempo a procesar las animaciones»):
   - `planos()` quita los planos de menos de 1,5 s, y el último debe durar al menos 1,2 s.
   - `PAUSAS` en `dirigir.js` mete silencios en la voz tras las líneas clave: corta el WAV con ffmpeg, desplaza las palabras y la envolvente, y parte de `sh.vozBase`.
