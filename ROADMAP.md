@@ -298,6 +298,9 @@ Por hacer:
   - Barra con las secciones y un menú ⋯; lista con buscador y ＋; panel en pestañas.
   - En el teléfono, el lienzo con la lista y los ajustes como hojas.
   - [ ] Pendiente: el taller de dibujo y las ventanas (curvas, correcciones) con el mismo aspecto, y la línea de tiempo de Escenas más cómoda en el teléfono.
+- [x] **Formas clave** (animar los puntos de un dibujo, como en Moho; 15 nov 2026).
+  - Otras versiones de una pieza o capa con los mismos puntos movidos, que se mezclan con deslizadores, claves y curvas. Las formas líquidas se recalculan con ellas: una boca que resta se abre.
+  - [ ] Pendiente: en las piezas que se doblan (`doblar`); en las capas de las láminas y en el atrezo dibujado; y un modo «animar puntos» directamente en la línea de tiempo, sin pasar por el taller.
 - [x] **Formas líquidas** (como las *liquid shapes* de Moho, hecho el 15 nov 2026): unir, restar e intersecar formas sin perderlas.
   - Cada una sigue siendo una forma con sus puntos, que se anima y se dobla con los huesos.
   - Se combinan al dibujar, con máscaras y recortes SVG, y el contorno de la unión se saca con el truco de pintar los trazos debajo de los rellenos.

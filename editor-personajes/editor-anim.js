@@ -41,6 +41,7 @@
     const bloque = (t, cls = "humano") => { const d = h("details", { class: "bloque " + cls, open: "" }, h("summary", {}, t)); c.append(d); return d; };
     // marioneta libre: sus huesos (editor-libre.js) y lo del cuerpo que también le sirve
     const lb = bloque("Huesos", "libre-bloque"); lb.append(h("div", { id: "lb-posar" }));
+    const fcB = bloque("Formas clave", "formas-bloque"); fcB.append(h("div", { id: "fc-posar" })); fcB.hidden = true;
     for (const d of CUERPO.filter((x) => ["estira", "torso", "altura"].includes(x[0]))) deslizador(lb, d);
     const cu = bloque("Cuerpo"); CUERPO.forEach((d) => deslizador(cu, d));
     for (const [L, nom] of [["Der", "Brazo derecho"], ["Izq", "Brazo izquierdo"]]) { const b = bloque(nom);
@@ -316,6 +317,16 @@
   document.addEventListener("keydown", (ev) => { if (document.body.classList.contains("con-taller")) return; if (!activo || ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName) && document.activeElement.type !== "range") return;
     if (ev.code === "Space") { ev.preventDefault(); if (vivo) vivoFin(); else reproducir(); } else if (ev.key.toLowerCase() === "k" && !ev.ctrlKey) anadirClave(); else if (ev.key.toLowerCase() === "r" && !ev.ctrlKey) { ev.preventDefault(); vivo ? vivoFin() : vivoEmpezar(); } });
 
+  // ---- FORMAS CLAVE (comun/titere25d.js, morfo): un deslizador por cada forma clave de las piezas (y de las capas de la marioneta
+  // libre); se guarda en la pose como formas: { "pieza/forma": peso } y se anima con claves y en la gráfica como lo demás
+  function pintarFormasClave() { const c = $("#fc-posar"); if (!c) return; const jj = j(), fuentes = [];
+    for (const pz of jj.piezas || []) for (const k of pz.formasClave || []) fuentes.push([pz.id + "/" + k.id, (pz.nombre || pz.id) + " · " + k.nombre]);
+    for (const ca of jj.libre?.capas || []) for (const k of ca.formasClave || []) fuentes.push([ca.id + "/" + k.id, (ca.nombre || ca.id) + " · " + k.nombre]);
+    c.closest("details").hidden = !fuentes.length; const firma = fuentes.map((f) => f.join("=")).join("|");
+    if (c.dataset.firma !== firma) { c.dataset.firma = firma; c.replaceChildren(...fuentes.map(([k, et]) => { const inp = h("input", { type: "range", min: 0, max: 1, step: 0.01, "data-fc": k }), out = h("output");
+        inp.addEventListener("input", () => { out.textContent = Math.round(inp.value * 100) + "%"; editar((p) => { p.formas = Object.assign({}, p.formas, { [k]: +inp.value }); if (+inp.value < 0.005) delete p.formas[k]; }, "fc-" + k); });
+        return h("div", { class: "deslizador" }, h("label", {}, et), inp, out); }), h("p", { class: "ayuda" }, "0 % = la base; 100 % = la forma clave dibujada. Se mezclan entre sí y con las formas líquidas.")); }
+    const f = (poseActual() || {}).formas || {}; for (const i of c.querySelectorAll("[data-fc]")) { if (document.activeElement === i) continue; const v = f[i.dataset.fc] || 0; i.value = v; i.nextElementSibling.textContent = Math.round(v * 100) + "%"; } }
   // ---- dibujo (lo llama el bucle del editor en modo Animación)
   function reconstruir() { const g = $("#fantasmas"); g.replaceChildren(); fantasmas = [0, 1].map((i) => { const gg = E.el("g", { opacity: 0.38 }, g); return { g: gg, m: P.crear(gg, j(), { id: `ed-f${i}-${E.actual}`, piezas: [] }) }; }); }
   function dibujar(tReal, giro, m) {
@@ -325,6 +336,7 @@
     const pp = P.conControles(poseActual(), j().controles, ctrl); if (vivo?.grabando) { vivoMuestra(tReal); if (vivo) Object.assign(pp, vivoPose()); } const e = P.pose(pp, base);
     if (lo.amp) Object.assign(e, { amp: lo.amp, correr: lo.correr || 0, fase: tiempo * (lo.cad || (lo.correr ? 1.45 : 0.95)) });
     m.dibujar(Object.assign(e, { variantes: pv, parpadeo: Math.max(0.1, Math.min(1, Math.abs((tReal % 3.4) - 3.3) / 0.08)) })); if (m.libre) window.EPL?.fotograma(m);
+    pintarFormasClave();
     pintarAsas();
     // papel cebolla: la clave anterior y la siguiente, en transparente (solo parado)
     const ver = !play && a && a.claves.length > 1 && E.prueba.cebolla !== false;

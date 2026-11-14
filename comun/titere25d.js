@@ -172,6 +172,27 @@
       if (a === "href" || a === "xlink:href") { if (v[0] === "#" && mapa.has(v.slice(1))) e.setAttribute(a, "#" + mapa.get(v.slice(1))); } else if (v.includes("url(#")) e.setAttribute(a, cambia(v)); }
     return raiz; }
 
+  // FORMAS CLAVE (como animar los puntos en Moho): una pieza o capa guarda otras versiones de su dibujo (formasClave: [{ id, nombre, svg }])
+  // con LOS MISMOS PUNTOS movidos de sitio. Cada fotograma, cada trazado <path> (también los de máscaras y recortes: las formas
+  // líquidas se recalculan solas) es la base más la suma de (clave − base) × peso. Un trazado de la clave que no tenga la misma
+  // estructura (otros comandos u otro número de puntos) se ignora. morfo(raiz, claves) → { aplicar(peso(id)), ds(peso(id)), validas }
+  const TOKM = /[a-zA-Z]|-?\d*\.?\d+(?:e[-+]?\d+)?/gi;
+  const trozosD = (d) => { const t = String(d || "").match(TOKM) || [], nums = [], letras = []; for (const x of t) { if (/[a-zA-Z]/.test(x)) letras.push(x); else nums.push(+x); } return { t, nums, firma: letras.join("") + "|" + nums.length }; };
+  const escribeD = (t, nums) => { let i = 0; return t.map((x) => (/[a-zA-Z]/.test(x) ? x : (Math.round(nums[i++] * 100) / 100).toString())).join(" "); };
+  function morfo(raiz, claves) {
+    const base = [...raiz.querySelectorAll("path")].map((e) => ({ e, d: e.getAttribute("d") || "", ...trozosD(e.getAttribute("d")) }));
+    const K = (claves || []).map((c) => { const doc = new DOMParser().parseFromString(`<svg xmlns="${NS}">${c.svg || ""}</svg>`, "image/svg+xml"), ps = [...doc.querySelectorAll("path")];
+      const deltas = base.map((b, i) => { const q = ps[i] && trozosD(ps[i].getAttribute("d")); return q && q.firma === b.firma ? q.nums.map((v, k) => v - b.nums[k]) : null; });
+      return { id: c.id, deltas, valida: ps.length === base.length && deltas.every(Boolean) }; });
+    let ultimo = "";
+    // d de cada trazado con estos pesos (null = como la base)
+    const ds = (peso) => base.map((b, i) => { let nums = null; for (const k of K) { const w = +peso(k.id) || 0; if (Math.abs(w) < 0.001 || !k.deltas[i]) continue; nums = nums || b.nums.slice(); for (let n = 0; n < nums.length; n++) nums[n] += k.deltas[i][n] * w; }
+      return nums ? escribeD(b.t, nums) : null; });
+    function aplicar(peso) { const firma = K.map((k) => (+peso(k.id) || 0).toFixed(3)).join(","); if (firma === ultimo) return false; ultimo = firma;
+      ds(peso).forEach((d, i) => base[i].e.setAttribute("d", d ?? base[i].d)); return true; }
+    return { aplicar, ds, base, validas: K.filter((k) => k.valida).map((k) => k.id), claves: K };
+  }
+
   function crear(padre, op = {}) {
     const C = Object.assign({}, COLORES, op.colores || {});
     const id = (op.id || "titere") + "-" + ++cuenta;
@@ -350,7 +371,8 @@
       // un dibujo por vista (como las capas de cambio de Moho): frente (svg), perfil (svgPerfil, mirando a la derecha; se refleja) y espaldas
       const vis = { frente: el("g", {}, dentro) }; vis.frente.innerHTML = tinta(pz.svg); idsUnicos(vis.frente);
       for (const [k, src] of [["perfil", pz.svgPerfil], ["espaldas", pz.svgEspaldas]]) if (src) { vis[k] = el("g", { display: "none" }, dentro); vis[k].innerHTML = tinta(src); idsUnicos(vis[k]); }
-      return { pz, g, dentro, padre, vis };
+      const morf = pz.formasClave?.length && !pz.doblar ? morfo(vis.frente, pz.formasClave) : null;
+      return { pz, g, dentro, padre, vis, morf };
     });
     const PROF0 = { cabeza: 58, pecho: 47, cintura: 52 };
     const activa = (pz, ve) => { const vari = Object.assign({}, op.variantes || {}, ve || {}); return pz.grupo ? vari[pz.grupo] === pz.id : pz.activo !== false; };
@@ -487,6 +509,7 @@
       const aH = e.cabeza ?? aT, aOjo = e.ojos ?? aH, aA = e.brazos ?? aT;
       const aPie = { 1: e.pieIzq ?? aT, [-1]: e.pieDer ?? aT }, alzaGiro = { 1: e.alzaIzq || 0, [-1]: e.alzaDer || 0 };
       PARP = e.parpadeo ?? 1;
+      for (const P of PIEZAS) if (P.morf) P.morf.aplicar((k) => e.formas?.[P.pz.id + "/" + k]);   // formas clave de las piezas
       ponerCara(e.cara || {}); EXP.miraY += e.miraY || 0;
       if (e.visema) { const v = e.visema; EXP.abre = EXP.abre * 0.3 + v.abre * 0.95; EXP.ancho *= v.ancho; EXP.dientes = v.dientes ?? 0; }   // labios por fonemas
       else if (e.boca) { EXP.abre += 0.75 * e.boca; EXP.ancho *= 1 - 0.3 * e.boca + 0.25 * (e.bocaAncho || 0); }   // hablar: la boca se abre con la voz (escenas: envolvente del audio)
@@ -952,6 +975,6 @@
   const transformCamara = (e, temblor = [0, 0], giroG = 0) =>
     `translate(${f1(1080 * (e.fx ?? 0.5) + temblor[0])} ${f1(1920 * e.fy + temblor[1])}) rotate(${f1(giroG)}) scale(${(e.zoom).toFixed(4)}) translate(${f1(-e.x)} ${f1(-e.y)})`;
 
-  window.Titere25D = { opciones: (o) => Object.assign(OPC, o), crear, idsUnicos, giro, pisada, desplSuelo, velocidad, EMOCIONES, MANOS, W, PR, camara, PLANOS, encuadre, mezclaEncuadre, transformCamara, LS, ST, COLORES,
+  window.Titere25D = { opciones: (o) => Object.assign(OPC, o), crear, idsUnicos, morfo, giro, pisada, desplSuelo, velocidad, EMOCIONES, MANOS, W, PR, camara, PLANOS, encuadre, mezclaEncuadre, transformCamara, LS, ST, COLORES,
     escalaEn, horizonte, get TILT() { return TILT; }, get PERS() { return PERS; } };
 })();

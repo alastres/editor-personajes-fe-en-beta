@@ -346,3 +346,9 @@ body:not(.es-libre) .libre-solo, body:not(.es-libre) details.libre-bloque { disp
 .tl-pz .ic { width: 18px; text-align: center; } .tl-pz.activo { border-color: var(--acento); background: var(--acento-t, #f0a33a22); }
 .tl-pz .x { margin-left: auto; opacity: .5; padding: 0 2px; } .tl-pz .x:hover { opacity: 1; color: #ff9b85; }
 #tl-pincel { border-bottom: 1px solid var(--borde); padding-bottom: 10px; margin-bottom: 10px; }
+
+/* taller: formas clave */
+.tl-fc { display: flex; align-items: center; gap: 4px; margin-left: 10px; }
+.tl-fc .seg { margin: 0; } .tl-fc .seg button { white-space: nowrap; padding: 4px 9px; }
+.tl-fc .fc-mal { color: #ffb09a; }
+.tl-fc .mini { padding: 3px 7px; }

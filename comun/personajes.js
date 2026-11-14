@@ -33,7 +33,7 @@
   const POSE0 = { torso: 0, cabeza: 0, inclina: 0, ladeo: 0, hombros: 0, agacha: 0, altura: 0, miraY: 0,
     bIzqK: 0, bIzqLado: 0.29, bIzqFrente: 0, bIzqCodo: 0.25, bIzqHacia: -0.3, bDerK: 0, bDerLado: 0.29, bDerFrente: 0, bDerCodo: 0.25, bDerHacia: -0.3,
     mIzq: { relajada: 1 }, mDer: { relajada: 1 }, pIzq: "auto", pDer: "auto", cara: {},
-    pieIzqLado: 0, pieIzqAlto: 0, pieIzqFrente: 0, pieDerLado: 0, pieDerAlto: 0, pieDerFrente: 0, tumbado: 0, estira: 0 };
+    pieIzqLado: 0, pieIzqAlto: 0, pieIzqFrente: 0, pieDerLado: 0, pieDerAlto: 0, pieDerFrente: 0, tumbado: 0, estira: 0, formas: {} };
   const PALMAS = { auto: null, adelante: [0, 0, 1], arriba: [0, -0.75, 0.65], cuerpo: [0, 0, -1] };
   const rad = (g) => (g * Math.PI) / 180, lerp = (a, b, k) => a + (b - a) * k;
   const esObj = (x) => x && typeof x === "object" && !Array.isArray(x);
@@ -88,7 +88,7 @@
   // pose → parámetros de dibujar(); base: { giro (grados), variantes … }
   function pose(p, base = {}) { p = completa(p); const g = base.giro || 0, aT = rad(g + p.torso);
     const e = { torso: aT, brazos: aT, cabeza: rad(g + p.torso + p.cabeza), ojos: rad(g + p.torso + p.cabeza), inclina: p.inclina, ladeo: p.ladeo, hombros: p.hombros,
-      agacha: p.agacha, altura: p.altura, miraY: p.miraY, cara: p.cara, tumbado: p.tumbado, estira: p.estira, huesos: p.huesos };
+      agacha: p.agacha, altura: p.altura, miraY: p.miraY, cara: p.cara, tumbado: p.tumbado, estira: p.estira, huesos: p.huesos, formas: p.formas };
     for (const L of ["Izq", "Der"]) if (p["pie" + L + "Lado"] || p["pie" + L + "Alto"] || p["pie" + L + "Frente"]) e["paso" + L] = { lado: p["pie" + L + "Lado"], alto: p["pie" + L + "Alto"], frente: p["pie" + L + "Frente"] };
     for (const L of ["Izq", "Der"]) { const k = p["b" + L + "K"];
       if (k > 0.001) e["brazo" + L] = { lado: p["b" + L + "Lado"], frente: p["b" + L + "Frente"], codo: p["b" + L + "Codo"], hacia: [p["b" + L + "Hacia"], -1, 0.3], k: Math.min(1, k) };

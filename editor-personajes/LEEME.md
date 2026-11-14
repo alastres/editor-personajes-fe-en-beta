@@ -789,3 +789,22 @@ Como las *liquid shapes* de Moho: se combinan formas **sin perderlas**. Cada una
 - **Identificadores únicos por copia** (`Titere25D.idsUnicos`): un dibujo con máscaras, recortes o degradados puede estar varias veces en la página, como el personaje grande, las vistas del giro o varios actores. Antes, todas las copias usaban la máscara de la primera, y si los huesos deformaban cada copia a su manera, el recorte no seguía a la suya. Ahora se renombran los `id` de cada copia al insertarla: piezas, capas de la marioneta vectorial y capas de la marioneta libre. Esto arregla también los agujeros y los degradados.
 - **Arreglado de paso:** los botones «Guardar como pincel propio» y «Ajustes de serie» salían desactivados si no había ninguna forma elegida.
 
+## Formas clave: animar los puntos de un dibujo (15 nov 2026)
+Como animar los puntos en Moho: una pieza del muñeco o una capa de la marioneta libre puede tener **otras versiones de su dibujo** con **los mismos puntos en otro sitio**. Por ejemplo: boca cerrada → abierta, ojo abierto → cerrado, pelo quieto → al viento, gusano delgado → inflado. En Animación se pasa de una a otra punto por punto, con claves y curvas.
+
+- **Crear una forma clave (taller):**
+  1. Al editar una pieza o una capa, arriba aparece **Base · ＋ Forma clave**.
+  2. «＋ Forma clave» copia la base y pide un nombre.
+  3. Mueve sus puntos y tiradores; la base se ve en fantasma debajo.
+  - Con ✎ se cambia el nombre y con ✕ se borra.
+  - **No añadas ni quites puntos ni formas** en una forma clave. Si la estructura no coincide con la base, sale con ⚠ y no se mezcla. Al guardar se avisa.
+- **Animarla:** en Animación → Pose, el bloque **Formas clave** tiene un deslizador por cada una («Cara con boca · Boca abierta»), de 0 % (la base) a 100 % (la forma dibujada).
+  - Se guarda en la pose como `formas: { "pieza/forma": peso }` y se anima con claves, curvas y el editor de gráficas, como todo lo demás.
+  - Varias formas clave se suman entre sí.
+- **Con las formas líquidas:** también se mezclan los trazados de las máscaras y recortes, así que una boca que **resta** se abre de verdad sobre la cara, con su borde.
+- **Con huesos:** en la marioneta libre, la malla de la capa se rehace sobre la forma mezclada, así que se dobla con los huesos y cambia de forma a la vez.
+- **Datos:** la pieza o capa guarda `formasClave: [{ id, nombre, dibujo, svg }]`.
+- **Motor:** `Titere25D.morfo(raiz, claves)` compara cada `<path>` de la base con el de la clave (mismos comandos y número de coordenadas) y mezcla base + Σ (clave − base) × peso.
+  - Las piezas que se doblan (`doblar`) aún no admiten formas clave.
+  - Funciona en Personajes, Escenas, Montaje y en el vídeo.
+

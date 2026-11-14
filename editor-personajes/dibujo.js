@@ -164,7 +164,7 @@
   function construir() {
     raiz = h("div", { class: "taller", hidden: "" });
     raiz.innerHTML = `
-      <div class="taller-barra"><b id="tl-titulo">Dibujar pieza</b><input id="tl-nombre" placeholder="Nombre" title="Nombre con el que se guarda" /><div class="seg pequeno" id="tl-vista"></div><span class="tenue" id="tl-ayuda"></span>
+      <div class="taller-barra"><b id="tl-titulo">Dibujar pieza</b><input id="tl-nombre" placeholder="Nombre" title="Nombre con el que se guarda" /><div class="seg pequeno" id="tl-vista"></div><div class="tl-fc" id="tl-fc" hidden><div class="seg pequeno" id="tl-fc-lista"></div><button id="tl-fc-ren" class="mini" title="Cambiar el nombre de esta forma clave" hidden>✎</button><button id="tl-fc-del" class="mini peligro" title="Borrar esta forma clave" hidden>✕</button></div><span class="tenue" id="tl-ayuda"></span>
         <button id="tl-deshacer" title="Deshacer (Ctrl + Z)">↶ Deshacer</button><button id="tl-rehacer" title="Rehacer (Ctrl + Y)">↷ Rehacer</button><button id="tl-atajos" title="Atajos de teclado">⌨ Atajos</button>
         <button id="tl-cancelar">Cancelar</button><button id="tl-guardar" class="primario">Guardar pieza</button></div>
       <div class="tl-atajos" id="tl-atajos-caja" hidden><b>Atajos de teclado</b><ul>
@@ -174,7 +174,7 @@
         <li>Puntos: doble clic = esquina ⇄ curva · doble clic en el trazo = añadir punto · <kbd>Alt</kbd> + clic = quitar punto · <kbd>Alt</kbd> al mover un tirador = romper la curva</li></ul></div>
       <div class="taller-cuerpo">
         <div class="taller-herr" id="tl-herr"></div>
-        <div class="taller-lienzo"><svg id="tl-svg"><g id="tl-calco"></g><g id="tl-ref"></g><g id="tl-ejes"></g><g id="tl-formas"></g><g id="tl-ref2" pointer-events="none"></g><g id="tl-asas"></g><path id="tl-trazo" fill="none" stroke="#f0a33a" stroke-width="2" stroke-dasharray="4 3"/><circle id="tl-cursor" r="0" fill="none" stroke="#ffffff" stroke-opacity="0.7" pointer-events="none"/></svg>
+        <div class="taller-lienzo"><svg id="tl-svg"><g id="tl-calco"></g><g id="tl-ref"></g><g id="tl-ejes"></g><g id="tl-fantasma" pointer-events="none" opacity="0.28"></g><g id="tl-formas"></g><g id="tl-ref2" pointer-events="none"></g><g id="tl-asas"></g><path id="tl-trazo" fill="none" stroke="#f0a33a" stroke-width="2" stroke-dasharray="4 3"/><circle id="tl-cursor" r="0" fill="none" stroke="#ffffff" stroke-opacity="0.7" pointer-events="none"/></svg>
           <div class="tl-zoom"><button id="tl-zm">−</button><button id="tl-z0">Encajar</button><button id="tl-zp">+</button><label class="chk"><input type="checkbox" id="tl-verref" checked> Ver el personaje</label></div></div>
         <div class="taller-panel">
           <div id="tl-pincel" hidden>
@@ -269,6 +269,9 @@
     giro.oninput = (ev) => { const a = (+ev.target.value * Math.PI) / 180, co = Math.cos(a), si = Math.sin(a); ev.target.nextElementSibling.textContent = ev.target.value + "°"; if (!giroBase) return;
       giroBase.idx.forEach((i, n) => D.formas[i].puntos.forEach((q, j) => { const o = giroBase.P[n][j]; for (const [x, y] of [["x", "y"], ["ix", "iy"], ["ox", "oy"]]) { const dx = o[x] - giroBase.c.x, dy = o[y] - giroBase.c.y; q[x] = giroBase.c.x + dx * co - dy * si; q[y] = giroBase.c.y + dx * si + dy * co; } })); pintarFormas(); pintarAsas(); };
     giro.addEventListener("change", () => { giroBase = null; giro.value = 0; giro.nextElementSibling.textContent = "0°"; pintar(); });
+    $("#tl-fc-ren", raiz).onclick = async () => { const k = fcs?.find((x) => x.id === fcSel); if (!k) return; const n = window.Dialogo ? await Dialogo.pedir("Nombre de la forma clave", { valor: k.nombre, aceptar: "Cambiar" }) : prompt("Nombre", k.nombre); if (n) { k.nombre = n.trim() || k.nombre; fcPintar(); } };
+    $("#tl-fc-del", raiz).onclick = async () => { const k = fcs?.find((x) => x.id === fcSel); if (!k) return; if (window.Dialogo && !(await Dialogo.confirmar(`¿Borrar la forma clave «${k.nombre}»? Las animaciones que la usen dejarán de moverla.`, { peligro: true, aceptar: "Borrar" }))) return;
+      fcs = fcs.filter((x) => x !== k); fcSel = null; D = clon(cfg.dibujos.frente); hist = []; fut = []; fcPintar(); pintar(); };
     $("#tl-lq-union", raiz).onclick = () => liquidar("union"); $("#tl-lq-resta", raiz).onclick = () => liquidar("resta"); $("#tl-lq-inter", raiz).onclick = () => liquidar("inter");
     $("#tl-lq-sep", raiz).onclick = () => { const g = sel !== null && D.formas[sel]?.liquido?.g; if (!g) return; guardarHist(); for (const f of D.formas) if (f.liquido?.g === g) delete f.liquido; pintar(); avisoT("Grupo líquido separado"); };
     $("#tl-lq-sacar", raiz).onclick = () => { if (sel === null || !D.formas[sel]?.liquido) return; guardarHist(); const g = D.formas[sel].liquido.g; delete D.formas[sel].liquido;
@@ -556,7 +559,24 @@
     const ej = $("#tl-ejes", raiz); ej.replaceChildren(); el("line", { x1: -2000, y1: 0, x2: 2000, y2: 0, stroke: "#ffffff", "stroke-opacity": 0.12 }, ej); el("line", { x1: 0, y1: -2000, x2: 0, y2: 2000, stroke: "#ffffff", "stroke-opacity": 0.12 }, ej);
     el("circle", { cx: 0, cy: 0, r: 4, fill: "#ff6a4a" }, ej); pintarRejilla(); }
   function seg() { const c = $("#tl-vista", raiz); c.replaceChildren(); if (!cfg.vistas) return;
-    for (const [k, n] of Object.entries(cfg.vistas)) c.append(h("button", { class: k === cfg.vista ? "activo" : "", onclick: () => { if (k === cfg.vista) return; cfg.dibujos[cfg.vista] = D; D = cfg.dibujos[k] || { formas: [] }; sel = null; hist = []; fut = []; ponerVista(k); pintar(); } }, n)); }
+    for (const [k, n] of Object.entries(cfg.vistas)) c.append(h("button", { class: k === cfg.vista ? "activo" : "", onclick: () => { if (k === cfg.vista) return; if (fcSel) fcElegir(null); cfg.dibujos[cfg.vista] = D; D = cfg.dibujos[k] || { formas: [] }; sel = null; hist = []; fut = []; ponerVista(k); fcPintar(); pintar(); } }, n)); }
+  // ---- FORMAS CLAVE (comun/titere25d.js, morfo): otras versiones del dibujo de frente con los mismos puntos movidos. Se elige
+  // «Base» o una forma clave arriba; mientras se edita una, la base se ve en fantasma. Al guardar van en info.formasClave.
+  let fcs = null, fcSel = null;
+  const firmaDib = (dib) => [...aSVG(dib).matchAll(/ d="([^"]*)"/g)].map((m) => { const t = m[1].match(/[a-zA-Z]|-?\d*\.?\d+(?:e[-+]?\d+)?/gi) || []; return t.filter((x) => /[a-zA-Z]/.test(x)).join("") + t.filter((x) => !/[a-zA-Z]/.test(x)).length; }).join("|");
+  const fcBase = () => (fcSel ? cfg.dibujos.frente : D);
+  function fcGuardarActual() { if (!fcs) return; if (fcSel) { const k = fcs.find((x) => x.id === fcSel); if (k) k.dibujo = D; } else cfg.dibujos.frente = D; }
+  function fcElegir(id) { if (!fcs || id === fcSel) return; fcGuardarActual(); fcSel = id; D = clon(id ? fcs.find((x) => x.id === id).dibujo : cfg.dibujos.frente); sel = null; multi = new Set(); hist = []; fut = []; fcPintar(); pintar(); }
+  function fcPintar() { const caja = $("#tl-fc", raiz); caja.hidden = !fcs || cfg.vista !== "frente"; if (caja.hidden) { $("#tl-fantasma", raiz).replaceChildren(); return; }
+    const base = fcBase(), fb = firmaDib(base), lista = $("#tl-fc-lista", raiz); lista.replaceChildren();
+    lista.append(h("button", { class: fcSel ? "" : "activo", title: "El dibujo de partida", onclick: () => fcElegir(null) }, "Base"));
+    for (const k of fcs) { const mal = firmaDib(k.id === fcSel ? D : k.dibujo) !== fb; lista.append(h("button", { class: (k.id === fcSel ? "activo" : "") + (mal ? " fc-mal" : ""), title: mal ? "⚠ No tiene los mismos puntos que la base: no se podrá mezclar (añadiste o quitaste puntos o formas)" : "Forma clave: los mismos puntos en otro sitio", onclick: () => fcElegir(k.id) }, (mal ? "⚠ " : "") + k.nombre)); }
+    lista.append(h("button", { title: "Copia la base para mover sus puntos (boca abierta, ojo cerrado, pelo al viento…)", onclick: fcNueva }, "＋ Forma clave"));
+    $("#tl-fc-ren", raiz).hidden = $("#tl-fc-del", raiz).hidden = !fcSel;
+    const fan = $("#tl-fantasma", raiz); fan.innerHTML = fcSel ? svgFormas(base.formas, res, null) : "";
+    if (fcSel) avisoT("Forma clave «" + fcs.find((x) => x.id === fcSel).nombre + "»: mueve puntos y tiradores (no añadas ni quites puntos ni formas). La base se ve en fantasma."); }
+  async function fcNueva() { const n = window.Dialogo ? await Dialogo.pedir("Nombre de la forma clave", { valor: "Forma " + (fcs.length + 1), ayuda: "Por ejemplo: boca abierta, ojo cerrado, pelo al viento. Luego mueve sus puntos; en Animación se mezcla con la base con un deslizador.", aceptar: "Crear" }) : prompt("Nombre", "Forma " + (fcs.length + 1));
+    if (!n) return; fcGuardarActual(); const k = { id: "fc-" + Date.now().toString(36), nombre: n.trim() || "Forma", dibujo: clon(fcBase()) }; fcs.push(k); fcSel = null; fcElegir(k.id); }
   function abrir(op) {
     if (!raiz) construir(); cfg = Object.assign({ vistas: null, vista: "frente", dibujos: {} }, op); colores = op.colores || {};
     // fondos y láminas: sin colores del personaje ({piel}, {ropa}…); se dibuja con colores de verdad
@@ -566,10 +586,14 @@
     for (const v of Object.keys(cfg.vistas || { frente: 1 })) if (!cfg.dibujos[v] && cfg.svgs?.[v]) { try { cfg.dibujos[v] = deSVG(cfg.svgs[v]); } catch { cfg.dibujos[v] = { formas: [] }; } }
     D = clon(cfg.dibujos[cfg.vista] || { formas: [] }); Object.keys(cfg.dibujos).forEach((k) => (cfg.dibujos[k] = clon(cfg.dibujos[k])));
     sel = null; multi = new Set(); pintarCalco(); pintarRejilla(); hist = []; fut = []; $("#tl-titulo", raiz).textContent = op.titulo || "Dibujar pieza"; $("#tl-nombre", raiz).hidden = op.nombre === undefined; $("#tl-nombre", raiz).value = op.nombre || ""; $("#tl-atajos-caja", raiz).hidden = true; $("#tl-guardar", raiz).textContent = op.textoGuardar || "Guardar pieza"; raiz.hidden = false; document.body.classList.add("con-taller");
-    ponerVista(cfg.vista); ponerHerr(D.formas.length ? "sel" : "lazo"); requestAnimationFrame(() => { encajar(); pintar(); }); }
+    fcs = op.formasClave ? clon(op.formasClave) : null; fcSel = null;
+    ponerVista(cfg.vista); ponerHerr(D.formas.length ? "sel" : "lazo"); fcPintar(); requestAnimationFrame(() => { encajar(); pintar(); }); }
   function cerrar() { plumaFin(); raiz.hidden = true; document.body.classList.remove("con-taller"); }
-  function guardar() { plumaFin(); cfg.dibujos[cfg.vista] = D; const out = {};
+  function guardar() { plumaFin(); if (fcs && cfg.vista === "frente") { fcGuardarActual(); fcSel = null; D = cfg.dibujos.frente; } cfg.dibujos[cfg.vista] = D; const out = {};
     for (const [v, dib] of Object.entries(cfg.dibujos)) if (dib) out[v] = { dibujo: dib, svg: aSVG(dib) };
-    cfg.alGuardar(out, { nombre: $("#tl-nombre", raiz).value.trim() }); cerrar(); }
+    const info = { nombre: $("#tl-nombre", raiz).value.trim() };
+    if (fcs) { const fb = firmaDib(cfg.dibujos.frente); info.formasClave = fcs.map((k) => ({ id: k.id, nombre: k.nombre, dibujo: k.dibujo, svg: aSVG(k.dibujo), compatible: firmaDib(k.dibujo) === fb }));
+      const malas = info.formasClave.filter((k) => !k.compatible); if (malas.length) avisoT("⚠ " + malas.map((k) => "«" + k.nombre + "»").join(", ") + " no tiene los mismos puntos que la base: no se mezclará"); }
+    cfg.alGuardar(out, info); cerrar(); }
   window.Taller = { abrir, deSVG, aSVG };
 })();
