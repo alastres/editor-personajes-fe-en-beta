@@ -192,10 +192,10 @@
   $("#lm-cy").addEventListener("input", (ev) => cambiaFondo((v) => { v.centro = Object.assign({ x: 0, y: -400 }, v.centro, { y: +ev.target.value }); }, "lmcy"));
   $("#lm-hz").addEventListener("input", (ev) => cambiaFondo((v) => { v.horizonte = +ev.target.value; }, "lmhz"));
   $("#lm-recargar").addEventListener("click", async () => { const n = esc.fondo?.lamina; if (!n) return; await recargarLamina(n); reconstruir(); aviso("Lámina recargada"); });
-  $("#lm-nueva").addEventListener("click", async () => { const nom = prompt("Nombre de la lámina nueva (minúsculas y guiones, p. ej. «templo-noche»)"); if (!nom) return; const n = nom.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  $("#lm-nueva").addEventListener("click", async () => { const nom = await Dialogo.pedir("Lámina nueva", { ayuda: "Nombre en minúsculas y con guiones.", marcador: "templo-noche", aceptar: "Crear" }); if (!nom) return; const n = nom.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const r = await fetch("/api/laminas/" + n, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ capas: ["lejos", "medio", "delante"] }) });
     if (!r.ok) return aviso(r.status === 409 ? "Ya hay una lámina con ese nombre" : "No se pudo crear"); await recargarLamina(n); cambio((x) => { x.fondo = laminaPorDefecto(n); }); aviso("Lámina creada: dibuja cada capa con ✎ Editar"); });
-  $("#lm-capa-nueva").addEventListener("click", async () => { const n = esc.fondo?.lamina; if (!n) return; const nom = prompt("Nombre de la capa (p. ej. «arboles» o «niebla»)"); if (!nom) return;
+  $("#lm-capa-nueva").addEventListener("click", async () => { const n = esc.fondo?.lamina; if (!n) return; const nom = await Dialogo.pedir("Capa nueva de la lámina", { marcador: "arboles, niebla…", aceptar: "Crear" }); if (!nom) return;
     const id = nom.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const r = await fetch(`/api/laminas/${n}/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ svg: "" }) }); if (!r.ok) return aviso("No se pudo crear la capa");
     await recargarLamina(n); cambiaFondo((v) => { v.capas = v.capas || []; v.capas.push({ id, par: 0 }); }); editarCapaLamina(n, id); });

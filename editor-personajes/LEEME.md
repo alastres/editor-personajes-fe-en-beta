@@ -558,3 +558,15 @@ Son como los **Smart Bones de Moho**: la forma de una parte se corrige a mano en
   - `formasCabeza("*")` da todas las formas visibles en el orden en que se ven: deja fuera las que van recortadas, como la nuca, pero no las recortadas a la cara, como ojos y rubor.
 - En el taller, una forma cerrada de dos puntos (lente, como la boca) ya conserva su segunda curva.
 
+## Interfaz más cómoda (14 nov 2026)
+- **Secciones plegables en el panel de la derecha** de Personajes, Escenas y Montaje:
+  - se pliegan o despliegan pulsando su título (o con Intro sobre él);
+  - el editor recuerda cómo las dejaste, por página;
+  - la primera vez quedan abiertas las tres primeras de cada modo;
+  - «Plegar todo» / «Desplegar todo» actúa sobre todas.
+- **Al elegir algo** (un personaje, un objeto, un rótulo, un tramo), su sección se despliega sola si estaba plegada.
+- **Buscador de ajustes** arriba del panel: escribe, por ejemplo, «barba», «zoom» o «música» y quedan solo las secciones que lo contienen, desplegadas. Tecla **/** para ir al buscador; Esc lo vacía.
+- **Diálogos propios** en lugar de los del navegador (`prompt`/`confirm`), que algunos navegadores bloquean: `Dialogo.pedir(título, { valor, ayuda })` y `Dialogo.confirmar(texto, { peligro })` en `herramientas.js`.
+  - Intro acepta y Esc cancela.
+  - Si lo que se confirma borra o pisa algo, el foco empieza en «Cancelar».
+

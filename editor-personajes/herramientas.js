@@ -12,7 +12,7 @@
   function modal(titulo, cuerpo, botones = []) { cerrar(); const fondo = h("div", { class: "hm-fondo", onclick: (ev) => { if (ev.target === fondo) cerrar(); } });
     const caja = h("div", { class: "hm-caja" }, h("div", { class: "hm-titulo" }, h("b", {}, titulo), h("button", { class: "hm-x", title: "Cerrar (Esc)", onclick: cerrar }, "✕")), cuerpo);
     if (botones.length) caja.append(h("div", { class: "hm-botones" }, ...botones)); fondo.append(caja); document.body.append(fondo); return caja; }
-  function cerrar() { document.querySelector(".hm-fondo")?.remove(); }
+  function cerrar() { const f = document.querySelector(".hm-fondo"); if (!f) return; f.remove(); if (f._alCerrar) f._alCerrar(); }
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") cerrar(); if (ev.key === "F1") { ev.preventDefault(); ayuda(); } });
 
   // ---- historial y papelera
@@ -45,10 +45,10 @@
 
   // ---- ayuda: atajos y recorrido guiado
   const ATAJOS = {
-    personajes: [["Ctrl+Z / Ctrl+Y", "Deshacer / rehacer"], ["Espacio", "Reproducir la acción (Animación)"], ["K", "Clave en el cabezal (Animación)"], ["Arrastrar las asas", "Manos, pies, cadera, cabeza y pecho (Animación)"], ["F1", "Esta ayuda"],
+    personajes: [["Ctrl+Z / Ctrl+Y", "Deshacer / rehacer"], ["Espacio", "Reproducir la acción (Animación)"], ["K", "Clave en el cabezal (Animación)"], ["Arrastrar las asas", "Manos, pies, cadera, cabeza y pecho (Animación)"], ["F1", "Esta ayuda"], ["/", "Buscar un ajuste en el panel de la derecha"],
       ["Taller: V B L P E R C I T", "Seleccionar, pincel, lazo, pluma, elipse, rectángulo, cápsula, cuentagotas, texto"], ["Taller: Mayús + clic", "Elegir varias formas"], ["Taller: espacio + arrastrar, rueda", "Mover y acercar la vista"], ["Taller: Alt + clic en un punto", "Quitarlo"], ["Taller: doble clic", "Esquina ⇄ curva, o añadir un punto en el trazo"]],
-    escenas: [["Ctrl+Z / Ctrl+Y", "Deshacer / rehacer"], ["Espacio", "Reproducir"], ["Arrastrar un personaje u objeto", "Izquierda/derecha lo mueve, arriba/abajo lo aleja"], ["Arrastrar rombos y bloques", "Cambiar el ritmo en la línea de tiempo"], ["F1", "Esta ayuda"]],
-    montaje: [["Ctrl+Z / Ctrl+Y", "Deshacer / rehacer"], ["Espacio", "Reproducir"], ["Arrastrar el borde entre escenas", "Mover el corte"], ["Arrastrar una escena", "Cambiarla de hueco"], ["Clic en un subtítulo", "Corregirlo (| corta la línea)"], ["F1", "Esta ayuda"]] };
+    escenas: [["Ctrl+Z / Ctrl+Y", "Deshacer / rehacer"], ["Espacio", "Reproducir"], ["Arrastrar un personaje u objeto", "Izquierda/derecha lo mueve, arriba/abajo lo aleja"], ["Arrastrar rombos y bloques", "Cambiar el ritmo en la línea de tiempo"], ["F1", "Esta ayuda"], ["/", "Buscar un ajuste en el panel de la derecha"]],
+    montaje: [["Ctrl+Z / Ctrl+Y", "Deshacer / rehacer"], ["Espacio", "Reproducir"], ["Arrastrar el borde entre escenas", "Mover el corte"], ["Arrastrar una escena", "Cambiarla de hueco"], ["Clic en un subtítulo", "Corregirlo (| corta la línea)"], ["F1", "Esta ayuda"], ["/", "Buscar un ajuste en el panel de la derecha"]] };
   const RECORRIDO = {
     personajes: [["#lista", "El reparto: cada personaje es un JSON en shorts-flow/personajes que también puede editar Claude."], [".modo, [data-modo], button", "Diseño (cuerpo, colores, piezas) y Animación (posar, acciones con claves, asas del rig)."], ["#b-biblio", "Piezas: importa SVG, usa la biblioteca o dibuja con el taller de vectores."], ["#b-historial", "Versiones anteriores y papelera, por si algo sale mal."], ["#b-github", "Sube los cambios al repo privado de GitHub."]],
     escenas: [["#lista", "Las escenas: personajes sobre un fondo, con recorridos, acciones, cámara, rótulos y audio."], ["#panel", "Aquí se monta todo: fondo, reparto, atrezo, ambiente, cámara, rótulos, audio y el vídeo."], ["#pistas", "La línea de tiempo: clic para mover el cabezal; arrastra rombos y bloques."], ["#b-render", "Renderiza a MP4. Prueba antes la vista previa rápida o solo un fragmento."]],
@@ -69,5 +69,61 @@
   // la primera vez en cada página, el recorrido guiado (cuando ya ha cargado)
   let visto = "1"; try { visto = localStorage.getItem("recorrido-" + PAGINA); } catch {}
   if (!visto) setTimeout(recorrido, 2500);
+  // ---- DIÁLOGOS PROPIOS en vez de prompt() / confirm() del navegador (que algunos navegadores bloquean y que no siguen el estilo):
+  // await Dialogo.pedir("Nombre de la capa", { valor, ayuda }) → texto o null; await Dialogo.confirmar("¿Borrar…?", { peligro: true }) → true/false.
+  // Intro acepta y Esc cancela.
+  function preguntar(titulo, cuerpo, { aceptar = "Aceptar", peligro = false, valorDe = () => true } = {}) {
+    return new Promise((res) => { let hecho = false; const fin = (v) => { if (hecho) return; hecho = true; res(v); cerrar(); };
+      const ok = h("button", { class: peligro ? "primario peligro-fuerte" : "primario", onclick: () => fin(valorDe()) }, aceptar);
+      const no = h("button", { onclick: () => fin(null) }, "Cancelar"), caja = modal(titulo, cuerpo, [no, ok]); caja.classList.add("hm-dialogo");
+      caja.parentNode._alCerrar = () => { if (!hecho) { hecho = true; res(null); } };
+      // si lo que se confirma borra o pisa algo, Intro no lo acepta: el foco empieza en «Cancelar»
+      caja.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && !ev.shiftKey && ev.target.tagName === "INPUT") { ev.preventDefault(); ok.click(); } });
+      setTimeout(() => (caja.querySelector("input") || (peligro ? no : ok)).focus(), 0); }); }
+  const Dialogo = {
+    pedir: (titulo, { valor = "", ayuda = "", aceptar = "Aceptar", marcador = "" } = {}) => { const inp = h("input", { type: "text", placeholder: marcador }); inp.value = valor;
+      const cuerpo = h("div", { class: "hm-cuerpo" }, ...(ayuda ? [h("p", { class: "ayuda" }, ayuda)] : []), inp); setTimeout(() => inp.select(), 0);
+      return preguntar(titulo, cuerpo, { aceptar, valorDe: () => inp.value }); },
+    confirmar: async (texto, { titulo = "¿Seguro?", aceptar = "Sí, seguir", peligro = false } = {}) => (await preguntar(titulo, h("div", { class: "hm-cuerpo" }, h("p", {}, texto)), { aceptar, peligro })) === true,
+  };
+  window.Dialogo = Dialogo;
+
+  // ---- PANEL DE AJUSTES: secciones plegables (se recuerda cuáles están plegadas) y un buscador de ajustes arriba.
+  // Sirve a las tres páginas: cada <section> del #panel con un <h3> se pliega al pulsar su título.
+  const panel = $("#panel");
+  if (panel) {
+    const clave = "plegado-" + PAGINA; let est = {}; try { est = JSON.parse(localStorage.getItem(clave) || "{}"); } catch {}
+    const guarda = () => { try { localStorage.setItem(clave, JSON.stringify(est)); } catch {} };
+    const sin = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const titulo = (s) => sin((s.querySelector(":scope > h3")?.firstChild?.textContent || s.querySelector(":scope > h3")?.textContent || "").trim());
+    const secciones = () => [...panel.querySelectorAll("section")].filter((s) => s.querySelector(":scope > h3"));
+    const poner = (s, plegada) => { s.classList.toggle("plegada", plegada); s.querySelector(":scope > h3").setAttribute("aria-expanded", String(!plegada)); };
+    const n = {};   // cuántas van de cada modo (diseño, animación…): en cada uno, abiertas las tres primeras
+    const preparar = (s) => { if (s.dataset.plegable) return; s.dataset.plegable = "1"; const t = s.querySelector(":scope > h3"), k = titulo(s);
+      t.classList.add("plegable"); t.setAttribute("role", "button"); t.tabIndex = 0; t.title = "Plegar o desplegar esta sección";
+      // la primera vez, abiertas las tres primeras de cada modo; después, como las dejó el usuario
+      const modo = s.className.replace(/(plegada|no-coincide)/g, "").trim(); n[modo] = (n[modo] || 0) + 1; poner(s, k in est ? est[k] : n[modo] > 3);
+      const alternar = (ev) => { if (ev.target.closest("button, input, select, a, label")) return; const p = !s.classList.contains("plegada"); poner(s, p); est[k] = p; guarda(); };
+      t.addEventListener("click", alternar); t.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); alternar(ev); } }); };
+    // barra de arriba: buscar un ajuste y plegar o desplegar todo
+    const busca = h("input", { type: "search", placeholder: "Buscar un ajuste…  ( / )", "aria-label": "Buscar un ajuste en el panel" }), nada = h("p", { class: "tenue panel-nada", hidden: "" }, "Ningún ajuste coincide.");
+    const todo = h("button", { class: "pequeno", title: "Plegar o desplegar todas las secciones" }, "Plegar todo");
+    const pintaTodo = () => { todo.textContent = secciones().filter((s) => s.offsetParent || s.classList.contains("plegada")).every((s) => s.classList.contains("plegada")) ? "Desplegar todo" : "Plegar todo"; };
+    todo.addEventListener("click", () => { const plegar = todo.textContent === "Plegar todo"; for (const s of secciones()) { poner(s, plegar); est[titulo(s)] = plegar; } guarda(); pintaTodo(); });
+    const filtrar = () => { const q = sin(busca.value.trim()); let vistas = 0;
+      for (const s of secciones()) { const sí = !q || sin(s.textContent).includes(q); s.classList.toggle("no-coincide", !sí);
+        if (q && sí) s.classList.remove("plegada"); else if (!q) poner(s, est[titulo(s)] ?? s.classList.contains("plegada")); if (sí && getComputedStyle(s).display !== "none") vistas++; }
+      nada.hidden = !q || vistas > 0; };
+    busca.addEventListener("input", filtrar); busca.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { busca.value = ""; filtrar(); busca.blur(); } });
+    panel.prepend(h("div", { class: "panel-barra" }, busca, todo), nada);
+    document.addEventListener("keydown", (ev) => { if (ev.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName) && !document.activeElement?.isContentEditable && !document.querySelector(".hm-fondo, .taller")) { ev.preventDefault(); busca.focus(); } });
+    const todas = () => { secciones().forEach(preparar); pintaTodo(); };
+    todas(); new MutationObserver(() => { if (secciones().some((s) => !s.dataset.plegable)) todas(); }).observe(panel, { childList: true, subtree: true });
+    // al elegir algo (un personaje, un rótulo, un tramo) aparece su sub-panel: si cae en una sección plegada, se despliega sola (sin recordarlo)
+    new MutationObserver((ms) => { for (const m of ms) { const e = m.target; if (e.hasAttribute?.("hidden") || e.tagName === "SECTION") continue;
+        const sec = e.closest?.("section.plegada"); if (sec && sec.dataset.plegable && e !== sec.querySelector(":scope > h3")) { poner(sec, false); e.scrollIntoView?.({ block: "nearest", behavior: "smooth" }); } } })
+      .observe(panel, { attributes: true, attributeFilter: ["hidden"], subtree: true });
+  }
+
   window.Herramientas = { historial, github, ayuda, recorrido };
 })();

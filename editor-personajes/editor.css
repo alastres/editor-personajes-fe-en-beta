@@ -281,3 +281,25 @@ button.mini { padding: 2px 7px; margin-left: 4px; }
 .paleta .hex { width: 78px; font-size: 12px; padding: 3px 6px; font-family: monospace; }
 
 .taller .capas li.vacio { display: block; }
+
+/* ---- panel de ajustes: secciones plegables y buscador (herramientas.js) */
+.panel-barra { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; padding: 10px 0 8px; margin-top: -10px; background: var(--panel); border-bottom: 1px solid var(--borde); }
+.panel-barra input[type=search] { flex: 1; min-width: 0; background: var(--panel2); border: 1px solid var(--borde); color: var(--texto); border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 13px; }
+.panel-barra input[type=search]:focus { outline: 2px solid var(--acento); outline-offset: -1px; }
+.panel-barra button { white-space: nowrap; font-size: 12px; padding: 6px 10px; }
+.panel-nada { margin: 14px 0; }
+.panel h3.plegable { cursor: pointer; user-select: none; border-radius: 6px; margin-left: -6px; padding: 4px 6px; }
+.panel h3.plegable:hover { color: var(--texto); background: var(--panel2); }
+.panel h3.plegable:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+.panel h3.plegable::before { content: "▾"; font-size: 11px; transition: transform .15s ease; display: inline-block; width: 14px; margin-right: 4px; }
+.panel h3.plegable .tenue { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.panel section.plegada > h3.plegable::before { transform: rotate(-90deg); }
+.panel section.plegada { padding-bottom: 8px; }
+.panel section.plegada > h3 { margin-bottom: 0; }
+.panel section.plegada > :not(h3) { display: none !important; }
+.panel section.no-coincide { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .panel h3.plegable::before { transition: none; } }
+/* ---- diálogos propios (Dialogo.pedir / Dialogo.confirmar) */
+.hm-dialogo { max-width: 440px; }
+.hm-dialogo input[type=text] { width: 100%; box-sizing: border-box; margin-top: 6px; }
+button.peligro-fuerte { background: var(--acento2); border-color: var(--acento2); color: #fff; }

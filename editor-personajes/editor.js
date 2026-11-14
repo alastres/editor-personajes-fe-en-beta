@@ -406,7 +406,7 @@
       referencia: (g) => { const NSv = "http://www.w3.org/2000/svg", r = document.createElementNS(NSv, "g"); r.setAttribute("opacity", "0.45"); r.setAttribute("pointer-events", "none"); const i0 = v.capas.findIndex((x) => x.id === id); r.innerHTML = v.capas.filter((x, i) => i < i0).map((x) => x.svg).join(""); g.append(r); },
       referenciaEncima: (g) => { const NSv = "http://www.w3.org/2000/svg", r = document.createElementNS(NSv, "g"); r.setAttribute("opacity", "0.25"); const i0 = v.capas.findIndex((x) => x.id === id); r.innerHTML = v.capas.filter((x, i) => i > i0).map((x) => x.svg).join("") + (v.vivas || ""); g.append(r); },
       alGuardar: (out) => { const r = out.frente; if (!r) return; cambio((x) => { const q = x.vector.cabeza.capas.find((y) => y.id === id); q.dibujo = r.dibujo; q.svg = Taller.aSVG(r.dibujo).replace(/\{(\w+)\}/g, (m0, k) => P.colores(x)[k] || "#888888"); }); aviso(`«${c.nombre}» guardada`); } }); }
-  $("#vec-cabeza").addEventListener("click", () => { if (j.vector?.cabeza && !confirm("Se vuelve a copiar la cabeza del muñeco y se pierden los retoques. ¿Seguir?")) return;
+  $("#vec-cabeza").addEventListener("click", async () => { if (j.vector?.cabeza && !(await Dialogo.confirmar("Se vuelve a copiar la cabeza del muñeco y se pierden los retoques hechos a mano.", { titulo: "¿Volver a copiar la cabeza?", aceptar: "Copiar de nuevo", peligro: true }))) return;
     const cab = exportarCabeza(); cambio((x) => { x.vector = Object.assign({ activo: false, juntas: null, capas: [] }, x.vector, { cabeza: cab }); }); aviso("Cabeza convertida en vectores: edita cada capa con ✎"); pintarVector(); });
   $("#vec-cabeza-activo").addEventListener("click", () => { if (!j.vector?.cabeza) return; cambio((x) => { x.vector.cabeza.activo = !x.vector.cabeza.activo; }); pintarVector(); });
   // ---- CORRECCIONES POR ÁNGULO (fase 3, como los Smart Bones de Moho): una parte vectorial se corrige a mano en una pose (codo o
@@ -423,7 +423,7 @@
     const ul = $("#vc-lista"); ul.replaceChildren();
     for (const c of v?.correcciones || []) { const nom = cs.find((x) => x[0] === c.capa)?.[1] || c.capa;
       ul.append(h("li", {}, h("span", {}, "◇"), h("span", {}, `${nom}: ${CONTROLES_V[c.control] || c.control} ${Math.round(c.angulo)}°`), h("button", { onclick: () => abrirCorreccion(c) }, "✎"),
-        h("button", { title: "Borrar la corrección", onclick: () => { if (!confirm("¿Borrar esta corrección?")) return; cambio((x) => { x.vector.correcciones = x.vector.correcciones.filter((y) => y.id !== c.id); }); pintarCorr(); } }, "✕"))); } }
+        h("button", { title: "Borrar la corrección", onclick: async () => { if (!(await Dialogo.confirmar(`Se borra la corrección de «${nom}».`, { titulo: "¿Borrar la corrección?", aceptar: "Borrar", peligro: true }))) return; cambio((x) => { x.vector.correcciones = x.vector.correcciones.filter((y) => y.id !== c.id); }); pintarCorr(); } }, "✕"))); } }
   $("#vc-nueva").addEventListener("click", () => { const capa = $("#vc-capa").value, control = $("#vc-control").value, A = +$("#vc-angulo").value || 0; if (!capa || !control) return;
     abrirCorreccion({ id: "corr-" + Date.now().toString(36), capa, control, pedido: A }); });
   // la pose del muñeco con ese control a A grados (la rodilla se dobla levantando el pie: se busca la altura que más se acerca)
@@ -494,7 +494,7 @@
       referencia: (g) => { const NSv = "http://www.w3.org/2000/svg", r = document.createElementNS(NSv, "g"); r.setAttribute("opacity", "0.3"); r.setAttribute("pointer-events", "none"); r.innerHTML = v.capas.filter((x) => x.id !== id && (x.vista == null || x.vista === 0) && (c.vista == null || c.vista === 0)).map((x) => x.svg).join(""); g.append(r);
         for (const [k, q] of Object.entries(v.juntas)) { const cc = document.createElementNS(NSv, "circle"); for (const [a, b] of Object.entries({ cx: q[0], cy: q[1], r: 5, fill: "#f0a33a" })) cc.setAttribute(a, b); const t = document.createElementNS(NSv, "title"); t.textContent = k; cc.append(t); g.append(cc); } },
       alGuardar: (out) => { const r = out.frente; if (!r) return; cambio((x) => { const q = x.vector.capas.find((y) => y.id === id); q.dibujo = r.dibujo; q.svg = Taller.aSVG(r.dibujo).replace(/\{(\w+)\}/g, (m0, k) => P.colores(x)[k] || "#888888"); }); aviso(`«${c.nombre}» guardada`); } }); }
-  $("#vec-convertir").addEventListener("click", () => { if (j.vector?.capas?.length && !confirm("Se vuelve a copiar el cuerpo del muñeco y se pierden los retoques hechos a mano. ¿Seguir?")) return;
+  $("#vec-convertir").addEventListener("click", async () => { if (j.vector?.capas?.length && !(await Dialogo.confirmar("Se vuelve a copiar el cuerpo del muñeco y se pierden los retoques hechos a mano.", { titulo: "¿Volver a copiar el cuerpo?", aceptar: "Copiar de nuevo", peligro: true }))) return;
     const v = exportarCuerpo(); cambio((x) => { x.vector = Object.assign(v, x.vector?.cabeza ? { cabeza: x.vector.cabeza } : {}); }); aviso("Cuerpo convertido en vectores: edita cada parte con ✎"); pintarVector(); });
   $("#vec-activo").addEventListener("click", () => { if (!j.vector) return; cambio((x) => { x.vector.activo = !x.vector.activo; }); pintarVector(); });
   // REDIBUJAR UNA PARTE DEL MUÑECO: crea una pieza en el hueso de esa parte que oculta la original y abre el taller para dibujarla

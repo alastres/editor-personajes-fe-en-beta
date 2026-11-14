@@ -32,7 +32,7 @@
     caja.querySelector(".ea-guardar").onclick = guardar;
     caja.querySelector(".ea-usar").onclick = () => { op.alElegir && op.alElegir(sel); estado("Puesta en el personaje elegido."); };
     caja.querySelector(".ea-borrar").onclick = async () => { if (Andares.BASE[sel]) return estado("Las formas de serie no se borran: haz una copia y cambia esa.");
-      if (!confirm("¿Mandar «" + (borr.nombre || sel) + "» a la papelera?")) return; await fetch(`/api/andares/${sel}/papelera`, { method: "POST" }).catch(() => {});
+      if (!(await Dialogo.confirmar("«" + (borr.nombre || sel) + "» va a la papelera (se puede recuperar desde Historial).", { titulo: "¿Mandar a la papelera?", aceptar: "A la papelera", peligro: true }))) return; await fetch(`/api/andares/${sel}/papelera`, { method: "POST" }).catch(() => {});
       const o = Object.assign({}, window.ANDARES); delete o[sel]; window.ANDARES = o; elegir("normal"); estado("Enviada a la papelera (se puede recuperar)."); };
     caja.querySelector(".ea-nombre").oninput = (ev) => { borr.nombre = ev.target.value; aplicar(); pintarLista(); };
   }

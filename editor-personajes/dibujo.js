@@ -341,7 +341,7 @@
       const candado = h("button", { class: "ojo" + (fo.bloqueada ? "" : " apagado"), title: fo.bloqueada ? "Bloqueada: no se puede tocar en el lienzo. Clic para desbloquear" : "Bloquear (no se toca en el lienzo)", onclick: (ev) => { ev.stopPropagation(); guardarHist(); fo.bloqueada = !fo.bloqueada || undefined; pintar(); } }, fo.bloqueada ? "🔒" : "🔓");
       const tipoN = fo.tipo === "texto" ? `Texto «${(fo.texto || "").slice(0, 18)}»` : fo.agujero ? (fo.cerrada ? "Agujero" : "Goma") : `${fo.cerrada ? "Forma" : "Trazo"} · ${fo.puntos.length} puntos`;
       const nom = h("span", { title: "Doble clic para ponerle nombre" }, fo.nombre ? `${fo.nombre}` : `${tipoN}`);
-      nom.ondblclick = (ev) => { ev.stopPropagation(); const n = prompt("Nombre de la forma", fo.nombre || tipoN); if (n === null) return; guardarHist(); fo.nombre = n.trim() || undefined; pintar(); };
+      nom.ondblclick = async (ev) => { ev.stopPropagation(); const n = window.Dialogo ? await Dialogo.pedir("Nombre de la forma", { valor: fo.nombre || tipoN, aceptar: "Cambiar" }) : prompt("Nombre de la forma", fo.nombre || tipoN); if (n === null) return; guardarHist(); fo.nombre = n.trim() || undefined; pintar(); };
       ul.append(h("li", { class: i === sel ? "activo" : "", onclick: () => { sel = i; ponerHerr("sel"); pintar(); } }, ojo, candado, mini, nom)); }); }
 
   // ---- ratón
