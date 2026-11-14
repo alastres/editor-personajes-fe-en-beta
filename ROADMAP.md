@@ -298,6 +298,9 @@ Por hacer:
   - Barra con las secciones y un menú ⋯; lista con buscador y ＋; panel en pestañas.
   - En el teléfono, el lienzo con la lista y los ajustes como hojas.
   - [ ] Pendiente: el taller de dibujo y las ventanas (curvas, correcciones) con el mismo aspecto, y la línea de tiempo de Escenas más cómoda en el teléfono.
+- [ ] **Formas líquidas** (como las *liquid shapes* de Moho): unir, restar e intersecar formas sin perderlas.
+  - Cada una sigue siendo una forma con sus puntos, que se anima y se dobla con los huesos.
+  - Se combinan al dibujar, con máscaras y recortes SVG, y el contorno de la unión se saca con el truco de pintar los trazos debajo de los rellenos.
 - [x] **Pinceles y tableta gráfica** en el taller (15 nov 2026): trazos con presión convertidos en formas vectoriales.
   - Seis pinceles (tinta, rotulador, lápiz con grano, pincel seco, pluma caligráfica, relleno) y pinceles propios.
   - Estabilizador en vivo, todos los puntos del lápiz, inclinación y goma en el otro extremo del lápiz.
@@ -308,6 +311,7 @@ Por hacer:
   - Instalador de Windows de 93 MB.
   - Arranca el servidor por dentro, guarda los datos en Documentos/Fe en Beta Editor y la primera vez copia los ejemplos.
   - Sin GitHub y solo visible desde ese ordenador.
+  - [x] Versión 0.3: actualizaciones automáticas desde GitHub Releases. El repositorio se hizo público para eso, y el menú ⋯ tiene «Buscar actualizaciones».
   - [x] Versión 0.2: render a MP4 sin nada instalado. HyperFrames, su Chrome y ffmpeg van dentro; instalador de 237 MB.
   - [ ] Pendiente: montar la música sin el Python de VoiceStudio (pasarlo a Node), el detector de caras sin internet, el instalador para Mac y la firma de código.
 

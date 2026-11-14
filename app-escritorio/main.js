@@ -44,7 +44,7 @@ function arrancarServidor(puerto) { return new Promise((ok, mal) => {
 
 function crearVentana(puerto) {
   ventana = new BrowserWindow({ width: 1440, height: 900, minWidth: 360, minHeight: 480, backgroundColor: "#121018", title: "Fe en Beta Editor", show: false,
-    icon: path.join(__dirname, "icono.png"), autoHideMenuBar: true, webPreferences: { contextIsolation: true, sandbox: true } });
+    icon: path.join(__dirname, "icono.png"), autoHideMenuBar: true, webPreferences: { contextIsolation: true, sandbox: true, preload: path.join(__dirname, "preload.js") } });
   const base = `http://127.0.0.1:${puerto}`;
   // enlaces: los del propio editor (otra página, un JSON del historial) en otra ventana de la app; los de fuera, en el navegador
   ventana.webContents.setWindowOpenHandler(({ url }) => { if (url.startsWith(base)) return { action: "allow", overrideBrowserWindowOptions: { autoHideMenuBar: true, backgroundColor: "#121018" } }; shell.openExternal(url); return { action: "deny" }; });
@@ -59,7 +59,7 @@ else {
   app.on("second-instance", () => { if (ventana) { if (ventana.isMinimized()) ventana.restore(); ventana.focus(); } });
   app.whenReady().then(async () => {
     if (EMPAQUETADA) Menu.setApplicationMenu(null);
-    try { prepararDatos(); const puerto = (await libre(PUERTO_PREFERIDO)) ? PUERTO_PREFERIDO : await cualquiera(); await arrancarServidor(puerto); crearVentana(puerto); }
+    try { prepararDatos(); const puerto = (await libre(PUERTO_PREFERIDO)) ? PUERTO_PREFERIDO : await cualquiera(); await arrancarServidor(puerto); crearVentana(puerto); require("./actualizar").iniciar(() => ventana); }
     catch (e) { dialog.showErrorBox("Fe en Beta Editor no pudo arrancar", String(e.message || e)); app.quit(); } });
   app.on("before-quit", () => { app.isQuitting = true; if (servidor && !servidor.killed) servidor.kill(); });
   app.on("window-all-closed", () => app.quit());

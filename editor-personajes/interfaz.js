@@ -39,10 +39,13 @@
     if (hist) hist.replaceChildren(ico("reloj"), h("span", {}, "Historial y papelera")); if (git) git.replaceChildren(ico("nube"), h("span", {}, "Subir a GitHub"));
     // en la app de escritorio (Electron) no se sube a GitHub: es solo para el repo del autor
     const enApp = /Electron/.test(navigator.userAgent); if (git && enApp) git.remove();
+    // en la app de escritorio: buscar actualizaciones (app-escritorio/actualizar.js) y ver la versión instalada
+    const actualizar = window.feApp ? h("button", { onclick: () => window.feApp.buscarActualizaciones() }, ico("nube"), h("span", {}, "Buscar actualizaciones")) : null;
+    if (actualizar) window.feApp.version().then((v) => { actualizar.querySelector("span").textContent = `Buscar actualizaciones (versión ${v})`; }).catch(() => {});
     // lo propio de la página que estaba en la barra (el selector Diseño/Animación de Personajes) se guarda para recolocarlo
     const modo = $("#modo"), otros = $$(":scope > *", barra).filter((e) => !e.matches(".marca, .acciones, .enlace-pagina") && e !== modo);
     barra.replaceChildren(h("div", { class: "marca" }, h("i"), h("b", {}, "Fe en Beta")), nav, ...otros,
-      h("div", { class: "derecha" }, estado || "", deshacer || "", rehacer || "", ayuda || "", menu(enApp ? "Más: historial y papelera" : "Más: historial, papelera y GitHub", [hist, enApp ? null : git])));
+      h("div", { class: "derecha" }, estado || "", deshacer || "", rehacer || "", ayuda || "", menu(enApp ? "Más: historial, papelera y actualizaciones" : "Más: historial, papelera y GitHub", [hist, enApp ? null : git, actualizar])));
     if (modo) { modo.classList.add("seg-modo"); window.__modo = modo; }
   }
 
@@ -88,7 +91,9 @@
       barraP.replaceChildren(...P.filter(([k]) => conVista.has(k)).map(([k, n]) => h("button", { role: "tab", class: k === activa ? "activo" : "", "aria-selected": String(k === activa), onclick: () => elegir(k) }, n)));
       barraP.hidden = conVista.size < 2;
       for (const s of ss) s.classList.toggle("otra-pestana", s.dataset.pestana !== activa); }
-    function elegir(k) { activa = k; guardado(clave + (document.body.classList.contains("modo-anim") ? "-anim" : ""), k); pintar(); panel.scrollTop = 0; }
+    // al pulsar una pestaña se empieza arriba; si cambia sola (al elegir algo en el lienzo), se va a lo que se acaba de mostrar
+    function elegir(k, mostrar) { activa = k; guardado(clave + (document.body.classList.contains("modo-anim") ? "-anim" : ""), k); pintar();
+      if (mostrar) requestAnimationFrame(() => mostrar.scrollIntoView({ block: "nearest" })); else { tClic = 0; ultScroll = 0; panel.scrollTop = 0; } }
     const pb = $(".panel-barra", panel); (pb || panel.firstChild)?.after ? (pb ? pb.after(barraP) : panel.prepend(barraP)) : panel.prepend(barraP);
     // al buscar, se ignoran las pestañas
     const busca = pb && $("input[type=search]", pb); busca?.addEventListener("input", () => panel.classList.toggle("buscando", !!busca.value.trim()));
@@ -96,7 +101,15 @@
     new MutationObserver(() => { activa = guardado(clave + (document.body.classList.contains("modo-anim") ? "-anim" : "")) || activa; pintar(); }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
     // si aparece un sub-panel (al elegir un actor, un rótulo…) en otra pestaña, se cambia a esa
     new MutationObserver((ms) => { for (const m of ms) { const e = m.target; if (e.hasAttribute?.("hidden") || e.tagName === "SECTION") continue; const s = e.closest?.("section[data-pestana]");
-        if (s && s.dataset.pestana !== activa && !panel.classList.contains("buscando")) { elegir(s.dataset.pestana); break; } } }).observe(panel, { attributes: true, attributeFilter: ["hidden"], subtree: true });
+        if (s && s.dataset.pestana !== activa && !panel.classList.contains("buscando")) { elegir(s.dataset.pestana, e); break; } } }).observe(panel, { attributes: true, attributeFilter: ["hidden"], subtree: true });
+    // EL PANEL NO SALTA ARRIBA SOLO: si justo después de un clic dentro del panel (al repintar una lista, por ejemplo) el scroll cae
+    // de golpe al principio sin que lo haya movido el usuario, vuelve a donde estaba
+    let ultScroll = 0, tClic = 0, tUsuario = 0;
+    panel.addEventListener("pointerdown", () => { tClic = performance.now(); ultScroll = panel.scrollTop; }, true);
+    for (const t of ["wheel", "touchmove", "keydown"]) panel.addEventListener(t, () => { tUsuario = performance.now(); }, { passive: true });
+    panel.addEventListener("scroll", () => { const ahora = performance.now();
+      if (panel.scrollTop < 8 && ultScroll > 80 && ahora - tClic < 900 && ahora - tUsuario > 400 && !panel.classList.contains("buscando")) { const v = ultScroll; requestAnimationFrame(() => { panel.scrollTop = v; }); return; }
+      if (ahora - tClic > 900 || panel.scrollTop > 8) ultScroll = panel.scrollTop; }, { passive: true });
     new MutationObserver(() => { if (secciones().some((s) => !s.dataset.pestana)) pintar(); }).observe(panel, { childList: true });
     pintar(); setTimeout(pintar, 600); }
 

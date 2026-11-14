@@ -9,7 +9,7 @@
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; }
     body.vt { display: grid; grid-template-columns: 330px 1fr; }
-    body.vt.sin-panel { grid-template-columns: 0 1fr; }
+    body.vt.sin-panel { grid-template-columns: 1fr; }   /* una sola columna: con «0 1fr» el escenario caía en la de ancho 0 y desaparecía */
     body.vt.sin-panel #vt-panel { display: none; }
     body.salida { background: transparent !important; display: block; }
     #vt-escena { position: relative; min-width: 0; height: 100vh; }

@@ -39,3 +39,22 @@ El render a MP4 funciona sin tener nada instalado (probado con un PATH sin Node)
 - **Transcribir la voz:** necesita VoiceStudio. Sin él, los tiempos se estiman desde el guion.
 - **Detector de caras del modo VTuber:** se descarga de internet la primera vez. Siguiente paso: incluirlo en la app.
 - **Firma del instalador:** sin certificado, Windows avisa «Windows protegió su PC». Se instala con «Más información → Ejecutar de todas formas».
+
+## Actualizaciones (versión 0.3)
+La app se actualiza sola con **electron-updater**, desde las publicaciones (Releases) de GitHub del repositorio `alastres/editor-personajes-fe-en-beta`. Es público desde el 15 nov 2026 para que la app pueda leer las versiones sin contraseña.
+- **Al abrirse**, y luego cada 6 horas, mira en silencio si hay una versión nueva.
+- **Si la hay**, pregunta si descargarla. La descarga se ve en la barra de tareas y en el título de la ventana, y gracias al `.blockmap` solo baja lo que ha cambiado.
+- **Al terminar**, ofrece «Reiniciar ahora» o «Al cerrar la app». Los datos de Documentos no se tocan.
+- **A mano:** menú **⋯ → Buscar actualizaciones (versión X)**. Avisa también si ya está al día o si no hay conexión.
+- **Código:** `actualizar.js` (proceso principal) y `preload.js` (expone `window.feApp` a la página: `version()` y `buscarActualizaciones()`).
+- La versión 0.2.0 no tenía actualizaciones: quien la tenga instala la 0.3.0 a mano una vez y, desde ahí, ya se actualiza sola.
+
+### Publicar una versión nueva
+1. Sube `version` en `package.json`, por ejemplo de 0.3.0 a 0.3.1.
+2. Ejecuta `npm run dist`.
+3. Crea la publicación con **los tres archivos** de `dist/`: el `.exe`, su `.exe.blockmap` y `latest.yml`.
+   ```bash
+   gh release create v0.3.1 dist/Fe-en-Beta-Editor-0.3.1.exe dist/Fe-en-Beta-Editor-0.3.1.exe.blockmap dist/latest.yml --title "Fe en Beta Editor 0.3.1" --notes "…"
+   ```
+4. Sin `latest.yml`, las apps instaladas no se enteran de la versión nueva.
+

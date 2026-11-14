@@ -58,6 +58,7 @@ Monta un short a partir de una voz:
 1. Descarga el instalador de la última versión en [Releases](https://github.com/alastres/editor-personajes-fe-en-beta/releases): `Fe-en-Beta-Editor-<versión>.exe`, unos 240 MB.
 2. No está firmado, así que Windows avisará con «Windows protegió su PC». Pulsa **Más información → Ejecutar de todas formas**.
 3. Abre **Fe en Beta Editor** desde el acceso directo.
+4. Desde la versión 0.3.0 **se actualiza sola**: al abrirse avisa si hay una versión nueva. También desde el menú **⋯ → Buscar actualizaciones**.
 
 Lo que hay que saber de la app:
 - Los datos van en **Documentos/Fe en Beta Editor**. La primera vez se copian ahí los personajes, escenas y láminas de ejemplo.

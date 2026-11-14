@@ -766,3 +766,8 @@ Con la herramienta **Pincel** (B), arriba del panel del taller aparecen los pinc
 - **Texturas:** el grano del lápiz y el pincel seco son filtros SVG (`tx-grano`, `tx-seco`) que van en los `<defs>` de la pieza. Se ven igual en Escenas y en el vídeo.
 - **Datos:** la forma lleva `pincel: "tinta" | "lapiz" | …` y, si lo tiene, `textura`. Los trazos antiguos, que son líneas con `grosor`, no cambian. El cálculo está en `pinceles.js` (`Pinceles.contorno`), que se carga antes de `dibujo.js` en Personajes y Escenas.
 
+## Arreglos del 15 nov 2026
+- **VTuber:** la tecla **H** escondía también el personaje. Al esconder el panel, la rejilla dejaba la primera columna a 0 y el escenario caía en ella. Ahora queda una sola columna.
+- **Panel de ajustes:** si cambia solo de pestaña (al elegir algo en el lienzo), ya no sube arriba, sino que muestra lo que se acaba de elegir. Además, si el panel salta al principio justo después de un clic sin que lo haya movido el usuario, por ejemplo al repintar la lista de piezas, vuelve a donde estaba (`interfaz.js`).
+- **App de escritorio:** menú ⋯ → «Buscar actualizaciones» (ver `app-escritorio/LEEME.md`).
+
