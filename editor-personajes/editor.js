@@ -121,7 +121,7 @@
   let tPapelera = 0;
   async function papelera() {
     const b = $("#b-papelera"); if (!actual) return;
-    if (Date.now() - tPapelera > 3000) { tPapelera = Date.now(); b.textContent = "¿Seguro?"; b.classList.add("armado"); setTimeout(() => { b.textContent = "Papelera"; b.classList.remove("armado"); }, 3000); return; }
+    if (Date.now() - tPapelera > 6000) { tPapelera = Date.now(); b.textContent = "¿Seguro? Pulsa otra vez"; b.classList.add("armado"); setTimeout(() => { b.textContent = "Papelera"; b.classList.remove("armado"); }, 6000); return; }
     tPapelera = 0; b.textContent = "Papelera"; b.classList.remove("armado"); aviso(`«${j.nombre}» movido a personajes/papelera`);
     await fetch(`/api/personajes/${actual}/papelera`, { method: "POST" }); await cargarLista(); if (lista[0]) abrir(lista[0].id);
   }

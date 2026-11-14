@@ -325,7 +325,7 @@
     paleta("#tl-relleno", f ? (f.cerrada ? f.relleno : "none") : estilo.relleno, (c) => { estilo.relleno = c || "none"; if (f) editarForma((x) => { x.relleno = c || "none"; if (c) x.cerrada = true; }); else pintarPanel(); }, true);
     const tr = $("#tl-tipo-rell", raiz); tr.replaceChildren(); for (const [k, n] of [["", "Liso"], ["lineal", "Degradado"], ["radial", "Degradado redondo"]]) tr.append(h("button", { class: (f?.degradado?.tipo || "") === k ? "activo" : "", disabled: !f || !f.cerrada || f.tipo === "texto" ? "" : null, onclick: () => editarForma((x) => { if (k) x.degradado = Object.assign({ a: "#1d1a26", angulo: 90 }, x.degradado, { tipo: k }); else delete x.degradado; }) }, n));
     tr.querySelectorAll("button").forEach((b) => { if (b.getAttribute("disabled") === "null") b.removeAttribute("disabled"); });
-    $("#tl-deg", raiz).hidden = !f?.degradado; if (f?.degradado) { paleta("#tl-deg-c", f.degradado.a, (c) => editarForma((x) => { x.degradado.a = c || "#000000"; })); const da = $("#tl-deg-ang", raiz); if (document.activeElement !== da) da.value = f.degradado.angulo ?? 90; da.nextElementSibling.textContent = (f.degradado.angulo ?? 90) + "°"; }
+    $("#tl-deg", raiz).hidden = !f?.degradado; $("#tl-deg-ang", raiz).closest(".deslizador").hidden = f?.degradado?.tipo === "radial"; if (f?.degradado) { paleta("#tl-deg-c", f.degradado.a, (c) => editarForma((x) => { x.degradado.a = c || "#000000"; })); const da = $("#tl-deg-ang", raiz); if (document.activeElement !== da) da.value = f.degradado.angulo ?? 90; da.nextElementSibling.textContent = (f.degradado.angulo ?? 90) + "°"; }
     paleta("#tl-trazo-c", f ? (f.grosor ? f.trazo : null) : estilo.trazo, (c) => { estilo.trazo = c; if (f) editarForma((x) => { x.trazo = c; if (c && !x.grosor) x.grosor = estilo.grosor || 4; if (!c) x.grosor = 0; }); else pintarPanel(); }, true);
     const g = $("#tl-grosor", raiz); if (document.activeElement !== g) g.value = f ? f.grosor || 0 : estilo.grosor; g.nextElementSibling.textContent = (+g.value).toFixed(1);
     const o = $("#tl-opac", raiz); if (document.activeElement !== o) o.value = f?.opacidad ?? 1; o.nextElementSibling.textContent = Math.round((+o.value) * 100) + "%";
@@ -341,7 +341,7 @@
       const candado = h("button", { class: "ojo" + (fo.bloqueada ? "" : " apagado"), title: fo.bloqueada ? "Bloqueada: no se puede tocar en el lienzo. Clic para desbloquear" : "Bloquear (no se toca en el lienzo)", onclick: (ev) => { ev.stopPropagation(); guardarHist(); fo.bloqueada = !fo.bloqueada || undefined; pintar(); } }, fo.bloqueada ? "🔒" : "🔓");
       const tipoN = fo.tipo === "texto" ? `Texto «${(fo.texto || "").slice(0, 18)}»` : fo.agujero ? (fo.cerrada ? "Agujero" : "Goma") : `${fo.cerrada ? "Forma" : "Trazo"} · ${fo.puntos.length} puntos`;
       const nom = h("span", { title: "Doble clic para ponerle nombre" }, fo.nombre ? `${fo.nombre}` : `${tipoN}`);
-      nom.ondblclick = (ev) => { ev.stopPropagation(); const n = prompt("Nombre de la forma", fo.nombre || ""); if (n === null) return; guardarHist(); fo.nombre = n.trim() || undefined; pintar(); };
+      nom.ondblclick = (ev) => { ev.stopPropagation(); const n = prompt("Nombre de la forma", fo.nombre || tipoN); if (n === null) return; guardarHist(); fo.nombre = n.trim() || undefined; pintar(); };
       ul.append(h("li", { class: i === sel ? "activo" : "", onclick: () => { sel = i; ponerHerr("sel"); pintar(); } }, ojo, candado, mini, nom)); }); }
 
   // ---- ratón
@@ -433,6 +433,7 @@
   function abrir(op) {
     if (!raiz) construir(); cfg = Object.assign({ vistas: null, vista: "frente", dibujos: {} }, op); colores = op.colores || {};
     // fondos y láminas: sin colores del personaje ({piel}, {ropa}…); se dibuja con colores de verdad
+    $("#tl-verref", raiz).closest("label").hidden = !!op.sinTokens;
     if (op.sinTokens) { if (!estilo.relleno || estilo.relleno.startsWith("{")) estilo.relleno = "#7a9a5a"; if (!estilo.trazo || estilo.trazo.startsWith("{")) estilo.trazo = "#1d1a26"; }
     // un dibujo por vista; si la pieza venía de un SVG (biblioteca o importado), se convierte en vectores editables
     for (const v of Object.keys(cfg.vistas || { frente: 1 })) if (!cfg.dibujos[v] && cfg.svgs?.[v]) { try { cfg.dibujos[v] = deSVG(cfg.svgs[v]); } catch { cfg.dibujos[v] = { formas: [] }; } }

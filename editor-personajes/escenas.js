@@ -137,7 +137,7 @@
     const sel = $("#f-imagen"), v = f.imagen?.archivo || ""; sel.replaceChildren(h("option", { value: "" }, "— sin imagen —"), ...IMAGENES.map((a) => h("option", { value: a }, a))); sel.value = v;
     $("#f-cubre").checked = !!f.imagen?.cubre; deslizar("f-imop", f.imagen?.opacidad ?? 1, (x) => Math.round(x * 100) + "%");
     const ul = $("#f-capas"); ul.replaceChildren(); if (!(f.capas || []).length) ul.append(h("li", { class: "vacio" }, "Dibuja montañas, un templo, árboles lejanos…"));
-    (f.capas || []).forEach((c, i) => { const par = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: c.par || 0, title: "Lejanía (parallax)" });
+    (f.capas || []).forEach((c, i) => { const par = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: c.par || 0, title: "Cuánto se mueve con la cámara (1 = muy lejos, casi quieta)" });
       par.addEventListener("input", () => cambiaFondo((x) => { x.capas[i].par = +par.value; }, "fcpar" + i));
       ul.append(h("li", {}, h("span", {}, "≋"), h("span", {}, c.nombre || "Capa " + (i + 1)), par, h("button", { class: "x", title: "Editar el dibujo", onclick: () => dibujarCapa(i) }, "✎"),
         h("button", { class: "x", title: "Quitar", onclick: () => cambiaFondo((x) => { x.capas.splice(i, 1); }) }, "✕"))); }); }
@@ -167,11 +167,11 @@
     for (const id of Object.keys(L.capas)) { const c = (f.capas || []).find((x) => x.id === id), usada = !!c;
       const ch = h("input", { type: "checkbox", title: "Usar esta capa en la escena" }); ch.checked = usada;
       ch.addEventListener("change", () => cambiaFondo((v) => { v.capas = v.capas || []; if (ch.checked) { const orden = Object.keys(L.capas); v.capas.push({ id, par: CAPAS_PAR[id] ?? 0 }); v.capas.sort((a, b) => orden.indexOf(a.id) - orden.indexOf(b.id)); } else v.capas = v.capas.filter((x) => x.id !== id); }));
-      const par = h("input", { type: "range", min: -0.6, max: 1, step: 0.05, value: c?.par ?? 0, title: "Cuánto se mueve con la cámara" }); par.disabled = !usada;
+      const par = h("input", { type: "range", min: -0.6, max: 1, step: 0.05, value: c?.par ?? 0, title: "Cuánto se mueve con la cámara: 1 = muy lejos, 0 = como el suelo, negativo = más cerca" }); par.disabled = !usada;
       const out = h("output", {}, (c?.par ?? 0).toFixed(2)); par.addEventListener("input", () => { out.textContent = (+par.value).toFixed(2); cambiaFondo((v) => { const k = v.capas.find((x) => x.id === id); if (k) k.par = +par.value; }, "lmpar" + id); });
       const del = h("label", { class: "chk", title: "Se dibuja delante de los personajes (ramas, marcos, primer término)" }, h("input", { type: "checkbox" }), " delante"); del.firstChild.checked = !!c?.delante; del.firstChild.disabled = !usada;
       del.firstChild.addEventListener("change", (ev) => cambiaFondo((v) => { const k = v.capas.find((x) => x.id === id); if (k) { if (ev.target.checked) k.delante = true; else delete k.delante; } }));
-      ul.append(h("li", { class: "fila-capa" }, ch, h("span", {}, id), par, out, del, h("button", { title: "Redibujar esta capa en el taller", onclick: () => editarCapaLamina(f.lamina, id) }, "✎ Editar"))); } }
+      ul.append(h("li", { class: "fila-capa" }, ch, h("span", {}, id), h("span", { class: "tenue" }, "Cuánto se mueve con la cámara"), par, out, del, h("button", { title: "Redibujar esta capa en el taller", onclick: () => editarCapaLamina(f.lamina, id) }, "✎ Editar"))); } }
   async function recargarLamina(n) { const L = await (await fetch("/api/laminas/" + n)).json(); window.LAMINAS = Object.assign({}, window.LAMINAS, { [n]: { ancho: L.ancho, alto: L.alto, capas: L.capas } }); return L; }
   async function editarCapaLamina(n, id) { if (!window.Taller) return aviso("El taller de dibujo no está cargado"); estado("Abriendo la capa en el taller…");
     const L = await recargarLamina(n), otras = Object.entries(L.capas).filter(([k]) => k !== id), NS = "http://www.w3.org/2000/svg";
@@ -330,7 +330,8 @@
   const claveRec = (a) => (a?.recorrido || []).find((k) => Math.abs(k.t - tiempo) < 0.02);
   const editaClave = (fn, clave) => { const a = actor(); if (!a) return; cambio((x) => { const r = x.actores.find((y) => y.id === a.id).recorrido, k = r.find((q) => Math.abs(q.t - tiempo) < 0.02); if (k) fn(k, r); }, clave ? clave + "@" + tiempo.toFixed(2) : null, false); };
   function pintarTramo(a, ESTILOS) { const k = claveRec(a), ks = [...(a.recorrido || [])].sort((m, n) => m.t - n.t), i = k ? ks.indexOf(k) : -1, sig = i >= 0 ? ks[i + 1] : null;
-    $("#k-fuera").hidden = !!k; $("#k-det").hidden = !k; $("#k-titulo").textContent = k ? (sig ? `de ${fmtT(k.t)} a ${fmtT(sig.t)}` : `${fmtT(k.t)} · última clave`) : "";
+    $("#k-fuera").textContent = k ? (sig ? "" : "Es la última clave: no hay tramo hasta otra.") : "Pon el cabezal en una clave del recorrido (un rombo en su pista, o «Clave anterior / siguiente») para decidir cómo va hasta la siguiente.";
+    $("#k-det").style.visibility = k ? "visible" : "hidden"; for (const id of ["k-giromodo", "k-sentido", "k-vel", "k-andar"]) $("#" + id).closest(".campo").style.opacity = k && !sig ? 0.4 : 1; $("#k-titulo").textContent = k ? (sig ? `de ${fmtT(k.t)} a ${fmtT(sig.t)}` : `${fmtT(k.t)} · última clave`) : "";
     if (!k) return; if (document.activeElement !== $("#k-t")) $("#k-t").value = k.t;
     seg("#k-giromodo", { todo: "Durante todo el tramo", inicio: "Al empezar", final: "Al llegar" }, k.giroModo || (a.orientar ? "inicio" : "todo"), (v) => editaClave((kk) => { if (v === "todo") delete kk.giroModo; else kk.giroModo = v; }));
     $("#k-girodur-f").hidden = (k.giroModo || (a.orientar ? "inicio" : "todo")) === "todo"; deslizar("k-girodur", k.giroDur ?? (a.orientar ? 0.35 : 0.5), (v) => v.toFixed(2) + " s");
@@ -339,7 +340,8 @@
     deslizar("k-cabeza", k.giroCabeza ?? 0.15, (v) => v.toFixed(2) + " s"); deslizar("k-pies", k.giroPies ?? 0.12, (v) => v.toFixed(2) + " s"); $("#k-pasitos").checked = k.giroPasitos ?? true;
     seg("#k-andar", Object.assign({ "-": "Como el personaje" }, ESTILOS), k.andar ?? "-", (v) => editaClave((kk) => { if (v === "-") delete kk.andar; else kk.andar = v || "normal"; }));
     const dist = sig ? Math.hypot((sig.x ?? 0) - (k.x ?? 0), ((sig.p ?? 0) - (k.p ?? 0)) * 500) : 0;
-    seg("#k-vel", dist > 20 ? { 90: "Despacio", 150: "Normal", 240: "Deprisa", 420: "Corriendo" } : { _: "Sin desplazamiento en este tramo" }, "", (v) => { if (v === "_") return; const dur = Math.max(0.3, dist / +v);
+    const velAct = sig && dist > 20 ? [90, 150, 240, 420].reduce((m, v) => (Math.abs(v - dist / (sig.t - k.t)) < Math.abs(m - dist / (sig.t - k.t)) ? v : m)) : null;
+    seg("#k-vel", dist > 20 ? { 90: "Despacio", 150: "Normal", 240: "Deprisa", 420: "Corriendo" } : { _: "Sin desplazamiento en este tramo" }, velAct ? String(velAct) : "", (v) => { if (v === "_") return; const dur = Math.max(0.3, dist / +v);
       editaClave((kk, r) => { const s2 = [...r].sort((m, n) => m.t - n.t), j = s2.indexOf(kk), nx = s2[j + 1]; if (!nx) return; const dd = +(kk.t + dur - nx.t).toFixed(2); for (const q of s2.slice(j + 1)) q.t = +(q.t + dd).toFixed(2);
         const ult = s2[s2.length - 1].t; return ult; }); aviso(`Tramo ajustado a ${dur.toFixed(1)} s`); }); }
   $("#k-ant").addEventListener("click", () => { const a = actor(); if (!a) return; const k = [...a.recorrido].map((q) => q.t).filter((t) => t < tiempo - 0.02).pop(); if (k != null) { tiempo = k; dibujar(); pintarPistas(); pintarPanel(); } });
@@ -402,9 +404,10 @@
     seg("#tx-estilo", { "": "Rótulo", titulo: "Título grande", cita: "Cita bíblica" }, tx.estilo || "", (v) => editaTexto((t) => { if (v) t.estilo = v; else delete t.estilo; }));
     for (const [id, v] of [["tx-t", tx.t], ["tx-dur", tx.dur || 2]]) if (document.activeElement !== $("#" + id)) $("#" + id).value = v;
     const tamDef = tx.estilo === "titulo" ? 104 : tx.estilo === "cita" ? 66 : 52; deslizar("tx-tam", tx.tam || tamDef, (v) => Math.round(v) + " px");
-    $("#tx-y").max = Escena.ALTO - 80; const posAct = tx.y != null ? (tx.y === Math.round(Escena.ALTO / 2) ? "centro" : "libre") : tx.arriba ? "arriba" : "abajo";
+    $("#tx-y").max = Escena.ALTO - 80; const grande = !!tx.estilo, yAbajo = Math.round(Escena.ALTO * 0.72);   // título y cita van arriba si no se dice otra cosa
+    const posAct = tx.y != null ? (tx.y === Math.round(Escena.ALTO / 2) ? "centro" : grande && tx.y === yAbajo ? "abajo" : "libre") : tx.arriba || grande ? "arriba" : "abajo";
     seg("#tx-pos", { arriba: "Arriba", centro: "En el centro", abajo: "Abajo", libre: "Altura exacta" }, posAct, (v) => editaTexto((t) => { delete t.y; delete t.arriba;
-      if (v === "arriba") t.arriba = true; else if (v === "centro") t.y = Math.round(Escena.ALTO / 2); else if (v === "libre") t.y = Math.round(Escena.ALTO * 0.3); }));
+      if (v === "arriba") t.arriba = true; else if (v === "centro") t.y = Math.round(Escena.ALTO / 2); else if (v === "libre") t.y = Math.round(Escena.ALTO * 0.3); else if (v === "abajo" && t.estilo) t.y = yAbajo; }));
     deslizar("tx-y", tx.y ?? Math.round(Escena.ALTO * (tx.arriba ? 0.18 : 0.75)), (v) => Math.round(v) + " px");
     const pc = $("#tx-color"); pc.replaceChildren(); for (const c of COLORES_TX) { const b = h("button", { class: "sw" + ((tx.color || "#f7f1e5") === c ? " activo" : ""), title: c, onclick: () => editaTexto((t) => { if (c === "#f7f1e5") delete t.color; else t.color = c; }) }); b.style.background = c; pc.append(b); }
     const otro = h("input", { type: "color", value: tx.color || "#f7f1e5", title: "Otro color" }); otro.addEventListener("change", () => editaTexto((t) => { t.color = otro.value; })); pc.append(otro);
@@ -415,7 +418,7 @@
   $("#tx-tam").addEventListener("input", (ev) => editaTexto((t) => { t.tam = +ev.target.value; }, "txtam"));
   $("#tx-y").addEventListener("input", (ev) => editaTexto((t) => { t.y = +ev.target.value; delete t.arriba; }, "txy"));
   $("#tx-caja").addEventListener("change", (ev) => editaTexto((t) => { if (ev.target.checked) delete t.caja; else t.caja = false; }));
-  $("#tx-ref").addEventListener("change", (ev) => editaTexto((t) => { if (ev.target.value.trim()) t.ref = ev.target.value.trim(); else delete t.ref; }));
+  $("#tx-ref").addEventListener("input", (ev) => editaTexto((t) => { if (ev.target.value.trim()) t.ref = ev.target.value.trim(); else delete t.ref; }, "txref"));
   // COPIAR Y PEGAR CLAVES del recorrido (posición, dirección y cómo gira y anda en su tramo)
   let portapapeles = null;
   const copiarClave = () => { const k = claveRec(actor()); if (!k) return aviso("Pon el cabezal sobre una clave del recorrido para copiarla"); portapapeles = Object.assign({}, k); delete portapapeles.t; aviso("Clave copiada"); };

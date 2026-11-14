@@ -279,3 +279,5 @@ button.mini { padding: 2px 7px; margin-left: 4px; }
 .taller { position: fixed; }
 .taller .capas li { grid-template-columns: 20px 22px 18px 1fr; }
 .paleta .hex { width: 78px; font-size: 12px; padding: 3px 6px; font-family: monospace; }
+
+.taller .capas li.vacio { display: block; }

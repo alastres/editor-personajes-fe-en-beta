@@ -399,6 +399,7 @@ http.createServer(async (req, res) => {
     if (url.startsWith("/video-short/")) { const id = path.basename(url, ".mp4"); if (!idValido(id)) { res.writeHead(400); return res.end(); } const o = path.join(RAIZ, "short-" + id, "out"); return servir(res, path.join(o, ultimoRender(o, id) || id + ".mp4"), req); }
     if (url.startsWith("/video/")) { const id = path.basename(url, ".mp4"); if (!idValido(id)) { res.writeHead(400); return res.end(); } const o = path.join(RAIZ, "escena-" + id, "out"); return servir(res, path.join(o, ultimoRender(o, id) || id + ".mp4"), req); }
     if (url.startsWith("/audio/")) { const f = path.resolve(RAIZ, url.slice(7)); if (!f.startsWith(RAIZ)) { res.writeHead(403); return res.end(); } return servir(res, f, req); }
+    if (url.startsWith("/comun/vendor/")) return servir(res, path.join(COMUN, "vendor", path.basename(url)), req);
     if (url.startsWith("/comun/")) return servir(res, path.join(COMUN, path.basename(url)), req);
     if (url.startsWith("/personajes/")) return servir(res, path.join(DIRS.personajes, path.basename(url)), req);
     if (url.startsWith("/acciones/")) return servir(res, path.join(DIRS.acciones, path.basename(url)), req);

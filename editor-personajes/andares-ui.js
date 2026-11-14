@@ -12,7 +12,7 @@
     ["hombros", "Hombros (encogidos − / sueltos +)", -12, 12, 1, 0, (v) => Math.round(v)],
     ["arranque", "Tarda en arrancar", 0, 1.2, 0.05, 0.25, (v) => v.toFixed(2) + " s"],
     ["frenada", "Tarda en frenar", 0, 1.2, 0.05, 0.25, (v) => v.toFixed(2) + " s"],
-    ["correrDesde", "Corre a partir de (velocidad)", 150, 700, 10, 330, (v) => Math.round(v)],
+    ["correrDesde", "Corre a partir de esta velocidad", 150, 700, 10, 330, (v) => Math.round(v) + " px/s"],
   ];
   const CARAS = ["alegre", "triste", "enfado", "miedo", "sorpresa", "pensativo"];
   let caja = null, sel = null, borr = null, motor = null, raf = null, op = {};
@@ -53,7 +53,8 @@
     const c = caja.querySelector(".ea-caras"); c.replaceChildren();
     for (const k of CARAS) { const v = borr.cara?.[k] || 0, o = h("output", {}, Math.round(v * 100) + "%");
       c.append(h("div", { class: "deslizador" }, h("label", {}, k), h("input", { type: "range", min: 0, max: 1, step: 0.05, value: v, oninput: (ev) => { borr.cara = Object.assign({}, borr.cara, { [k]: +ev.target.value }); o.textContent = Math.round(ev.target.value * 100) + "%"; aplicar(); } }), o)); } }
-  function elegir(id) { sel = id; borr = JSON.parse(JSON.stringify(Andares.todos()[id] || {})); pintarLista(); pintarParams(); vista(); }
+  function elegir(id) { sel = id; borr = JSON.parse(JSON.stringify(Andares.todos()[id] || {})); pintarLista(); pintarParams(); vista();
+    caja.querySelector(".ea-borrar").disabled = !!Andares.BASE[id] && !(window.ANDARES || {})[id]; }   // las de serie no se borran
   function vista() { const svg = caja.querySelector(".ea-prev svg"); svg.replaceChildren(); cancelAnimationFrame(raf);
     const PJS = op.personajes || window.PERSONAJES || {}, pj = op.personaje && PJS[op.personaje] ? op.personaje : Object.keys(PJS)[0]; if (!pj || !window.Escena) return;
     // mismo formato que la escena abierta: el motor tiene un solo formato a la vez (cambiarlo aquí estropearía la escena de detrás)

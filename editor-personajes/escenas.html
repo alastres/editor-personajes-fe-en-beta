@@ -41,7 +41,7 @@
     <section class="escenario esc">
       <div class="marco-cont" id="marco-cont">
         <svg id="lienzo" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid meet"><defs></defs><g id="capa-escena"></g><g id="guias"></g></svg>
-        <div class="planta" id="planta-caja" title="Vista de planta: el espacio visto desde arriba. Arrastra un punto para moverlo en x y en profundidad; el triángulo es lo que ve la cámara.">
+        <div class="planta plegada" id="planta-caja" title="Vista de planta: el espacio visto desde arriba. Arrastra un punto para moverlo en x y en profundidad; el triángulo es lo que ve la cámara.">
           <div class="planta-cab">Planta <span class="tenue">(desde arriba)</span><button class="x" id="b-rejilla" title="Rejilla de profundidad sobre la escena: líneas del suelo (p) y el horizonte de la cámara">#</button><button class="x" id="b-planta" title="Ocultar o mostrar">–</button></div>
           <svg id="planta" viewBox="0 0 300 230"></svg></div>
       </div>
@@ -207,7 +207,7 @@
         <button id="b-render" class="primario ancho">Renderizar vídeo</button>
         <div id="render-estado" class="ayuda"></div>
         <video id="render-video" controls hidden></video>
-        <button id="b-exportar" class="enlace">Solo exportar el proyecto HyperFrames</button>
+        <button id="b-exportar" class="enlace" title="Prepara la carpeta del vídeo sin hacerlo (para retocarlo a mano)">Solo preparar la carpeta del vídeo</button>
         <button id="b-png" class="enlace">Guardar este fotograma como PNG</button>
       </section>
     </aside>

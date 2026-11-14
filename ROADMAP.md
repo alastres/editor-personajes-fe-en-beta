@@ -199,3 +199,27 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
 - [x] Ayuda sin jerga ni archivos: controles explicados con palabras de animador, la música sin `montar-musica.py`, la ayuda remite a la visita guiada (? / F1) y el código «para programadores» va plegado.
 - [x] Piezas repetidas (copias en el mismo hueso): se numeran («Rodillera 2») y avisan al pasar el ratón.
 - [x] Cada parte de la marioneta redibujable: «Redibujar una parte del muñeco» (cabeza entera, pelo, melena, barba, ojos, cejas, nariz, boca, orejas, torso y túnica, cinturón, brazos y piernas enteros que se doblan, manos). Crea la pieza en su hueso, oculta la original y abre el taller.
+- [x] Segunda auditoría (pulido):
+  - la cita y el título bajan de verdad con «Abajo»;
+  - la fuente de las citas (`/comun/vendor/`) daba 404;
+  - ya no se pierde el primer clic tras escribir la referencia;
+  - el «¿Seguro?» de la papelera de Personajes dura 6 s y lo dice;
+  - las pruebas del muñeco vuelven a coincidir (ocultar partes no cambia el dibujo si no se oculta nada);
+  - el panel Tramo y los botones de dirección no saltan;
+  - en la última clave el Tramo lo avisa;
+  - se marca la velocidad del tramo;
+  - las barras de capa de la lámina dicen qué hacen;
+  - la planta empieza plegada y los avisos van arriba;
+  - el panel ya no se desplaza de lado;
+  - formas de andar: botones siempre a la vista, velocidad en px/s, las de serie no se borran;
+  - taller: renombrar con el nombre actual, sin dirección en el degradado redondo y sin «Ver el personaje» en láminas;
+  - quitada la jerga que quedaba (parallax, HyperFrames, VoiceStudio, nombres de archivo).
+- [ ] Pendiente de la segunda auditoría:
+  - «Unir» falló una vez a la primera (no reproducido);
+  - lo que sale de unir toma el estilo de la forma de abajo;
+  - posar arrastrando solo funciona sobre el círculo (podría tener un radio mayor);
+  - la lámina nueva sale cortada arriba con los valores por defecto;
+  - los bloques de acción comparten pista con los rombos del recorrido;
+  - la lista de audios muestra rutas largas.
+- [ ] Demo piezas: 16 casos de «Pruebas» cambian por los cambios hechos a ese personaje (chibi, calvo, ropa moderna). Si son a propósito, «Guardar como referencia».
+

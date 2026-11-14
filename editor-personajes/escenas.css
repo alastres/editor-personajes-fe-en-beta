@@ -85,3 +85,13 @@ button.pequeno { font-size: 12px; padding: 4px 10px; }
 #lm-capas .fila-capa { display: grid; grid-template-columns: 18px 1fr; grid-template-areas: 'c n' 'p p' 'o d' 'e e'; gap: 4px 8px; align-items: center; }
 #lm-capas .fila-capa > input[type=range] { grid-column: 1 / -1; width: 100%; }
 #lm-capas .fila-capa > button { grid-column: 1 / -1; }
+
+/* pulido tras la segunda auditoría: nada salta al usarlo */
+#a-dir { display: grid; grid-template-columns: repeat(3, 1fr); }
+.fila-dos input { width: 100%; min-width: 0; box-sizing: border-box; }
+#panel { overflow-x: hidden; }
+#aviso { top: 70px; bottom: auto; }
+.editor-andares .ea-estado { min-height: 2.6em; }
+.editor-andares .ea-params .fila-botones { position: sticky; bottom: 0; background: var(--panel, #1e1a2c); padding: 6px 0; }
+label.chk[for], #panel label.chk { display: flex; gap: 6px; align-items: center; margin: 6px 0; }
+#tramo #k-fuera:empty { display: none; }
