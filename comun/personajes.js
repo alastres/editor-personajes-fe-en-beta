@@ -19,7 +19,7 @@
   function colores(j) { const c = Object.assign({}, j.colores || {}); const auto = c.auto || {}; delete c.auto;
     for (const g in DERIVA) if (auto[g] && c[g]) Object.assign(c, DERIVA[g](c[g]));
     return c; }
-  function op(j, extra = {}) { const o = Object.assign({ id: j.id }, j.opciones || {}, { colores: colores(j), piezas: j.piezas || [], variantes: j.variantes || {}, emociones: j.emociones || {} }, extra);
+  function op(j, extra = {}) { const o = Object.assign({ id: j.id }, j.opciones || {}, { colores: colores(j), piezas: j.piezas || [], variantes: j.variantes || {}, emociones: j.emociones || {}, vector: j.vector || null }, extra);
     for (const k of Object.keys(o)) if (o[k] === null) delete o[k];   // null = «lo que diga el tipo de cuerpo»
     return o; }
   // =================================================================================================

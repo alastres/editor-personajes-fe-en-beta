@@ -136,6 +136,12 @@
         </div>
         <div class="campo"><label>Redibujar una parte del muñeco <span class="tenue">(tu dibujo la sustituye; se mueve con su hueso)</span></label>
           <div class="fila-anadir"><select id="b-parte"></select><button id="b-redibujar">✎ Redibujar</button></div></div>
+      </section>
+      <section class="diseno-solo">
+        <h3>Marioneta vectorial <span class="tenue">(fase 1: cuerpo)</span></h3>
+        <p class="ayuda" id="vec-estado">El cuerpo (torso, brazos y piernas) se dibuja solo. Conviértelo en dibujos vectoriales para editar sus formas: seguirán a los huesos (brazos y piernas se doblan, el torso se estrecha al girar). La cabeza sigue automática.</p>
+        <div class="fila-botones dos"><button id="vec-convertir" class="primario">Convertir el cuerpo en vectores</button><button id="vec-activo">Usar el muñeco automático</button></div>
+        <ul id="vec-capas" class="piezas"></ul>
         <div id="biblio" class="biblio" hidden></div>
         <ul id="piezas" class="piezas"></ul>
         <div id="detalle-pieza" class="detalle" hidden>

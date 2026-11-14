@@ -183,6 +183,8 @@
     // desde abajo (contrapicado) las piernas solo se ven por debajo del borde delantero del bajo: se recortan con esta forma
     const clipPiernas = el("path", { d: "" }, el("clipPath", { id: id + "-piernas" }, defs));
     const cuerpo = el("g", {}, raiz);
+    let J3 = {}, ANG_T = 0; const JUNTAS = {};
+    const VEC = op.vector?.activo && op.vector.juntas && (op.vector.capas || []).length ? { juntas: op.vector.juntas, listas: op.vector.capas.filter((c) => c.svg && c.grupo).map((c) => ({ id: c.id, grupo: c.grupo, huesos: c.huesos || [], svg: c.svg, vista: c.vista, juntas: c.juntas })) } : null;
     const pieza = () => el("g", { transform: escalaCuerpo }, cuerpo);
     const traz = (g, c, w, o = 1) => el("path", { fill: "none", stroke: c, "stroke-width": w, "stroke-linecap": "round", "stroke-linejoin": "round", opacity: o }, g);
     const rell = (g, c, o = 1) => el("path", { fill: c, opacity: o }, g);
@@ -490,7 +492,7 @@
       sombra.setAttribute("cx", f1(qS[0] * KBX)); sombra.setAttribute("cy", f1(qS[1] * KBY));
       sombra.setAttribute("rx", 135 * KBX * kP * (1 - cl(subir / 500) * 0.45)); sombra.setAttribute("ry", 135 * kP * Math.max(0.04, TILT) * 0.6);
 
-      const orden = [], bajoDf = {}, tobillos = {};
+      const orden = [], bajoDf = {}, tobillos = {}; J3 = {};
       for (const L of piernas) {
         // paso propio de cada pie (rig de piernas): lado (hacia fuera), alto (levantarlo) y frente (adelantarlo); las rodillas siguen por IK
         const sg = L.sg, ap = aPie[sg], pz = pisada(p + (sg > 0 ? 0 : 0.5), A, R), pp = (sg > 0 ? e.pasoIzq : e.pasoDer) || {}, alza = pz.alza + alzaGiro[sg] + 55 * REC + (pp.alto || 0);
@@ -500,6 +502,7 @@
         const P3 = (ds, df, dy) => { const [lf, ly] = local(df, dy); return W(sg * (20 + (pp.lado || 0)) + ds, ly - alza, pz.f + lf + (pp.frente || 0), ap); };
         const tobillo = P3(0, 0, -18), cad = W(sg * 22 + sway, -192 + bob, 0, aCad - tau); tobillos[sg] = tobillo;
         const rod = ik3(cad, tobillo, 92, 90, W(0, 0, 1, ap));
+        { const ld = sg > 0 ? "Izq" : "Der"; J3["cadera" + ld] = cad; J3["rodilla" + ld] = rod; J3["tobillo" + ld] = tobillo; }
         L.muslo.setAttribute("d", `M${P2(cad)} L ${P2(rod)}`); L.muslo.setAttribute("stroke-width", f1(38 * KG * escalaEn(mul(add(cad, rod), 0.5))));
         L.canilla.setAttribute("d", tubo(PR(rod), PR(tobillo), (moderno ? 21 : 17) * KG * escalaEn(rod), (moderno ? 18 : 12) * KG * escalaEn(tobillo)));
         L.luz.setAttribute("d", `M${P2(add(rod, W(9, 6, 0, ap)))} L ${P2(add(tobillo, W(9, -8, 0, ap)))}`);
@@ -583,7 +586,7 @@
         let nL = sub(hL, mul(uL, dot(hL, uL))); if (len(nL) < 0.15) nL = [-sg * 0.3, -1, 0.2]; nL = nrm(nL);
         const fL = add(mul(uL, Math.cos(Cb)), mul(nL, Math.sin(Cb)));
         const dU = W(uL[0], uL[1], uL[2], ang), dF = W(fL[0], fL[1], fL[2], ang);
-        const codo = add(hom, mul(nrm(dU), 88)), mun = add(codo, mul(nrm(dF), 70)), mano = add(mun, mul(nrm(dF), 16)), puno = add(codo, mul(nrm(dF), moderno ? 62 : 36));   // sudadera: manga hasta la muñeca
+        const codo = add(hom, mul(nrm(dU), 88)), mun = add(codo, mul(nrm(dF), 70)), mano = add(mun, mul(nrm(dF), 16)), _j = (() => { const ld = sg > 0 ? "Izq" : "Der"; J3["hombro" + ld] = hom; J3["codo" + ld] = codo; J3["muneca" + ld] = mun; J3["mano" + ld] = mano; })(), puno = add(codo, mul(nrm(dF), moderno ? 62 : 36));   // sudadera: manga hasta la muñeca
         // manga en dos tramos (hombro → codo → puño) con el codo redondo: con el codo muy doblado (saludar, correr) el tramo
         // único tapaba el codo y el antebrazo parecía salir de un bloque recto
         const S0 = PR(hom), E0 = PR(codo), Cp = PR(puno), dd = n2(E0[0] - S0[0], E0[1] - S0[1]), pp = [-dd[1], dd[0]];
@@ -764,9 +767,70 @@
       puntos.pieIzq = Q(tobillos[1]); puntos.pieDer = Q(tobillos[-1]); puntos.cadera = Q(W(sway, -192 + bob, 0, aCad - tau));
       mejillas.forEach((m) => m.setAttribute("opacity", (0.45 + 0.45 * EXP.rubor).toFixed(2)));
       orden.sort((a, b) => a.z - b.z).forEach((o) => cuerpo.appendChild(o.g));
+      J3.cintura = W(sway, -266 + bob, lean(-266), aT); J3.cuello = W(sway, -420 + bob, lean(-420), aT);
+      for (const k in J3) JUNTAS[k] = PR(J3[k]);
+      ANG_T = aT; if (VEC) vectorial();
     }
+    // ---------------------------------------------------------------- MARIONETA VECTORIAL (op.vector)
+    // Las partes del cuerpo (torso, brazos, piernas) son dibujos vectoriales guardados en el personaje (vector.capas, hechos al
+    // «Convertir a marioneta vectorial» en el editor y editables en el taller). Cada punto de cada trazo va atado a los huesos con
+    // pesos (los que tiene más cerca en reposo) y sigue a las juntas de este fotograma; el torso sigue a la cintura y los hombros
+    // (se estrecha al girar). La cabeza y las piezas propias siguen como siempre.
+    function vectorial() {
+      const Rj = VEC.juntas, Cj = JUNTAS, gT_ = ((ANG_T * 180) / Math.PI) % 360;
+      const torsos = VEC.listas.filter((L) => L.grupo === "torso" && L.vista != null), dif = (a, b) => { let x = (a - b) % 360; if (x > 180) x -= 360; if (x < -180) x += 360; return x; };
+      const vistaT = torsos.length ? torsos.reduce((m, L) => (Math.abs(dif(gT_, L.vista)) < Math.abs(dif(gT_, m.vista)) ? L : m)) : null;
+      for (const L of VEC.listas) {
+        if (!L.g) { L.g = { torso: gT, brazoIzq: brazos.find((b) => b.sg > 0).g, brazoDer: brazos.find((b) => b.sg < 0).g, piernaIzq: piernas.find((b) => b.sg > 0).g, piernaDer: piernas.find((b) => b.sg < 0).g }[L.grupo];
+          if (!L.g) continue; L.vg = el("g", { "data-vector": L.id }); L.vg.innerHTML = L.svg; L.paths = [...L.vg.querySelectorAll("path")].map((e) => ({ e, ...parsearV(e.getAttribute("d") || "") }));
+          for (const P of L.paths) P.w = P.pts.map((v) => pesosV(L.huesos, v)); }
+        if (!L.g) continue;
+        // lo dibujado por código se esconde; quedan las piezas propias (data-pieza) y la capa vectorial
+        for (const k of L.g.children) if (k !== L.vg && !k.hasAttribute("data-pieza") && !k.hasAttribute("data-vector")) k.setAttribute("display", "none");
+        if (L.vg.parentNode !== L.g) L.g.insertBefore(L.vg, L.g.firstChild);
+        if (L.grupo === "torso" && L.vista != null) { if (L !== vistaT) { L.vg.setAttribute("display", "none"); continue; } L.vg.removeAttribute("display");
+          const giraT = cilindro(L, dif(gT_, L.vista), Cj); for (const P of L.paths) P.e.setAttribute("d", escribirV(P.cmds, P.pts.map(giraT))); continue; }
+        const T = L.grupo === "torso" ? afin3([Rj.cintura, Rj.hombroIzq, Rj.hombroDer], [Cj.cintura, Cj.hombroIzq, Cj.hombroDer]) : null;
+        for (const P of L.paths) { const out = P.pts.map((v, i) => { if (T) return [T[0] * v[0] + T[2] * v[1] + T[4], T[1] * v[0] + T[3] * v[1] + T[5]];
+            let x = 0, y = 0; for (const [b, w] of P.w[i]) { const q = huesoV(b, v); x += w * q[0]; y += w * q[1]; } return [x, y]; });
+          P.e.setAttribute("d", escribirV(P.cmds, out)); } } }
+    // torso de una vista girado Δ grados: cada punto está sobre un cilindro alrededor de la columna (de la cintura al cuello);
+    // al girar se desliza con la profundidad (x·cos Δ + z·sin Δ), y la columna sigue a la de este fotograma (inclinarse, agacharse)
+    function cilindro(L, delta, Cj) { const J = L.juntas || {}, o = J.cintura, e = J.cuello, o2 = Cj.cintura, e2 = Cj.cuello; if (!o || !e || !o2 || !e2) return (v) => v;
+      if (L.R == null) { let m = 0; for (const P of L.paths) for (const v of P.pts) { const dx = v[0] - o[0]; m = Math.max(m, Math.abs(dx)); } L.R = Math.max(30, m); }
+      const ax = e[0] - o[0], ay = e[1] - o[1], La = Math.hypot(ax, ay) || 1, ux = ax / La, uy = ay / La, bx = e2[0] - o2[0], by = e2[1] - o2[1], Lb = Math.hypot(bx, by) || 1, wx = bx / Lb, wy = by / Lb;
+      const c = Math.cos((delta * Math.PI) / 180), s = Math.sin((delta * Math.PI) / 180), k = Lb / La, Rr = L.R;
+      return (v) => { const dx = v[0] - o[0], dy = v[1] - o[1], a = dx * ux + dy * uy, x = -dx * uy + dy * ux;   // a: a lo largo de la columna; x: a lo ancho
+        const z = Math.sqrt(Math.max(0, Rr * Rr - x * x)) * 0.6, x2 = x * c + z * s;
+        return [o2[0] + a * k * wx - x2 * wy, o2[1] + a * k * wy + x2 * wx]; }; }
+    // huesos de la marioneta vectorial: [junta de origen, junta de la punta]; el pie no gira (se queda plano en el suelo)
+    const HV = { brazoIzq: ["hombroIzq", "codoIzq"], antebrazoIzq: ["codoIzq", "munecaIzq"], manoIzq: ["munecaIzq", "manoIzq"], brazoDer: ["hombroDer", "codoDer"], antebrazoDer: ["codoDer", "munecaDer"], manoDer: ["munecaDer", "manoDer"],
+      musloIzq: ["caderaIzq", "rodillaIzq"], piernaIzq: ["rodillaIzq", "tobilloIzq"], pieIzq: ["tobilloIzq", null], musloDer: ["caderaDer", "rodillaDer"], piernaDer: ["rodillaDer", "tobilloDer"], pieDer: ["tobilloDer", null] };
+    function huesoV(b, v) { const [a, z] = HV[b], o = VEC.juntas[a], o2 = JUNTAS[a]; if (!o || !o2) return v;
+      if (!z) return [v[0] - o[0] + o2[0], v[1] - o[1] + o2[1]];
+      const e = VEC.juntas[z], e2 = JUNTAS[z], dx = e[0] - o[0], dy = e[1] - o[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+      const dx2 = e2[0] - o2[0], dy2 = e2[1] - o2[1], L2 = Math.hypot(dx2, dy2) || 1, ux2 = dx2 / L2, uy2 = dy2 / L2;
+      const u = (v[0] - o[0]) * ux + (v[1] - o[1]) * uy, n = -(v[0] - o[0]) * uy + (v[1] - o[1]) * ux, k = L2 / L;   // a lo largo se estira con el hueso (escorzo), a lo ancho no
+      return [o2[0] + u * k * ux2 - n * uy2, o2[1] + u * k * uy2 + n * ux2]; }
+    function pesosV(huesos, v) { const ws = huesos.map((b) => { const [a, z] = HV[b], o = VEC.juntas[a], e = z ? VEC.juntas[z] : [o[0], o[1] + 40];
+        const dx = e[0] - o[0], dy = e[1] - o[1], L2 = dx * dx + dy * dy || 1, t = Math.max(0, Math.min(1, ((v[0] - o[0]) * dx + (v[1] - o[1]) * dy) / L2));
+        const d = Math.hypot(v[0] - o[0] - t * dx, v[1] - o[1] - t * dy); return [b, 1 / Math.pow(d + 6, 4)]; });
+      const s = ws.reduce((m, x) => m + x[1], 0); return ws.map(([b, w]) => [b, w / s]).filter((x) => x[1] > 0.01); }
+    // transformación afín que lleva tres puntos a otros tres (el torso: cintura y hombros)
+    function afin3(a, b) { const [p0, p1, p2] = a, [q0, q1, q2] = b; if (!p0 || !p1 || !p2 || !q0 || !q1 || !q2) return [1, 0, 0, 1, 0, 0];
+      const d = (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1]) || 1e-6;
+      const sol = (r0, r1, r2) => { const A = ((r1 - r0) * (p2[1] - p0[1]) - (r2 - r0) * (p1[1] - p0[1])) / d, B = ((p1[0] - p0[0]) * (r2 - r0) - (p2[0] - p0[0]) * (r1 - r0)) / d; return [A, B, r0 - A * p0[0] - B * p0[1]]; };
+      const [a1, c1, e1] = sol(q0[0], q1[0], q2[0]), [b1, d1, f1_] = sol(q0[1], q1[1], q2[1]); return [a1, b1, c1, d1, e1, f1_]; }
+    const TOKV = /[MLCQZ]|-?\d*\.?\d+(?:e-?\d+)?/g;
+    function parsearV(d) { const t = d.match(TOKV) || [], cmds = [], pts = [], n = { M: 1, L: 1, C: 3, Q: 2, Z: 0 }; let k = 0, cmd = null;
+      while (k < t.length) { if (/[A-Z]/.test(t[k])) { cmd = t[k++]; if (cmd === "Z") { cmds.push(["Z", 0]); continue; } } else if (cmd === "M") cmd = "L";
+        const c = n[cmd] ?? 0; if (!c) { k++; continue; } for (let j = 0; j < c; j++) { pts.push([+t[k], +t[k + 1]]); k += 2; } cmds.push([cmd, c]); }
+      return { cmds, pts }; }
+    function escribirV(cmds, pts) { let s = "", p = 0; for (const [c, m] of cmds) { s += c; for (let j = 0; j < m; j++, p++) s += (j ? " " : "") + pts[p][0].toFixed(1) + " " + pts[p][1].toFixed(1); s += " "; } return s; }
 
-    return { g: raiz, dibujar, escala: [KBX, KBY], puntos };
+    // partes del cuerpo y juntas: para convertir el muñeco en marioneta vectorial desde el editor
+    const partes = () => ({ torso: gT, brazoIzq: brazos.find((b) => b.sg > 0).g, brazoDer: brazos.find((b) => b.sg < 0).g, piernaIzq: piernas.find((b) => b.sg > 0).g, piernaDer: piernas.find((b) => b.sg < 0).g });
+    return { g: raiz, dibujar, escala: [KBX, KBY], puntos, juntas: JUNTAS, partes };
   }
 
   // ---------------------------------------------------------------- encuadres

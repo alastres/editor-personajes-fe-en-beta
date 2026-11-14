@@ -277,7 +277,7 @@
     const r = await fetch("/api/piezas/" + id, { method: "PUT", body: JSON.stringify(c) }); if (r.ok) { aviso(`«${pz.nombre}» está en la biblioteca común (★ en «Biblioteca»)`); pintarBiblio(); } else aviso("No se pudo compartir"); });
 
   function pintarPiezas() {
-    if (!j) return; const ul = $("#piezas"); ul.replaceChildren();
+    if (!j) return; pintarVector(); const ul = $("#piezas"); ul.replaceChildren();
     if (!j.piezas.length) ul.append(h("li", { class: "vacio" }, "Aún no tiene piezas. Importa un SVG o prueba la biblioteca."));
     if (sel && !pieza()) sel = null;
     // piezas con el mismo nombre (copias): se numeran para distinguirlas («Rodillera 2») y se avisa de que son copias
@@ -370,6 +370,38 @@
     var campos0 = {};
   }
   $("#b-dibujar").addEventListener("click", () => abrirTaller(null));
+  // ---- MARIONETA VECTORIAL (fase 1: el cuerpo). Se dibuja el muñeco en reposo y de frente, se copian sus partes como vectores
+  // editables (torso, brazos, piernas) con las juntas del esqueleto en reposo; el motor (comun/titere25d.js) las ata a los huesos.
+  const CAPAS_VEC = { torso: ["Torso y túnica", []], brazoIzq: ["Brazo izquierdo", ["brazoIzq", "antebrazoIzq", "manoIzq"]], brazoDer: ["Brazo derecho", ["brazoDer", "antebrazoDer", "manoDer"]],
+    piernaIzq: ["Pierna izquierda", ["musloIzq", "piernaIzq", "pieIzq"]], piernaDer: ["Pierna derecha", ["musloDer", "piernaDer", "pieDer"]] };
+  // el torso se copia en cuatro vistas (frente, perfil derecho, espaldas, perfil izquierdo): cada una gira ±45° sobre un cilindro
+  const VISTAS_TORSO = [[0, "de frente"], [90, "de perfil (mira a la derecha)"], [180, "de espaldas"], [-90, "de perfil (mira a la izquierda)"]];
+  function exportarCuerpo() { const NSv = "http://www.w3.org/2000/svg", svg = document.createElementNS(NSv, "svg"); svg.style.cssText = "position:absolute;left:-9999px;width:10px;height:10px"; document.body.append(svg);
+    const jj = JSON.parse(JSON.stringify(j)); delete jj.vector; jj.piezas = [];
+    const copia = (g) => { const txt = [...g.children].filter((k) => !k.hasAttribute("data-pieza") && k.getAttribute("display") !== "none").map((k) => k.outerHTML).join("");
+      let dib; try { dib = Taller.deSVG(txt); } catch { dib = { formas: [] }; } return dib; };
+    const m = P.crear(svg, jj, { id: "exportar" }), capas = [];
+    for (const [giro, txt] of VISTAS_TORSO) { m.dibujar(Object.assign(P.pose(P.completa({}), { giro }), { parpadeo: 1 })); const dib = copia(m.partes().torso);
+      capas.push({ id: "torso" + (giro < 0 ? "m" : "") + Math.abs(giro), nombre: "Torso " + txt, grupo: "torso", vista: giro, juntas: { cintura: m.juntas.cintura.slice(), cuello: m.juntas.cuello.slice() }, huesos: [], dibujo: dib, svg: Taller.aSVG(dib) }); }
+    m.dibujar(Object.assign(P.pose(P.completa({}), { giro: 0 }), { parpadeo: 1 })); const partes = m.partes();
+    for (const [grupo, [nombre, huesos]] of Object.entries(CAPAS_VEC)) { if (grupo === "torso") continue; const g = partes[grupo]; if (!g) continue; const dib = copia(g);
+      capas.push({ id: grupo, nombre, grupo, huesos, dibujo: dib, svg: Taller.aSVG(dib) }); }
+    const juntas = JSON.parse(JSON.stringify(m.juntas)); svg.remove(); return { activo: true, juntas, capas }; }
+  function pintarVector() { const v = j?.vector, ul = $("#vec-capas"); if (!ul) return; ul.replaceChildren();
+    $("#vec-convertir").textContent = v ? "Volver a copiar del muñeco" : "Convertir el cuerpo en vectores";
+    $("#vec-activo").hidden = !v; $("#vec-activo").textContent = v?.activo ? "Usar el muñeco automático" : "Usar los vectores";
+    $("#vec-estado").textContent = !v ? "El cuerpo (torso, brazos y piernas) se dibuja solo. Conviértelo en dibujos vectoriales para editar sus formas: seguirán a los huesos (brazos y piernas se doblan, el torso se estrecha al girar). La cabeza sigue automática."
+      : v.activo ? "El cuerpo es vectorial: edita cada parte con ✎. Ojo: si cambias la ropa o las proporciones arriba, no se actualiza solo (usa «Volver a copiar del muñeco», que borra tus retoques)." : "Los vectores están guardados pero ahora se usa el muñeco automático.";
+    for (const c of v?.capas || []) ul.append(h("li", {}, h("span", {}, "◆"), h("span", {}, c.nombre), h("span", { class: "hueso" }, `${c.dibujo?.formas?.length || 0} formas`), h("button", { onclick: () => editarCapaVec(c.id) }, "✎ Editar"))); }
+  function editarCapaVec(id) { const v = j.vector, c = v.capas.find((x) => x.id === id); if (!c) return;
+    Taller.abrir({ titulo: `Marioneta vectorial · ${c.nombre}`, textoGuardar: "Guardar", colores: P.colores(j), dibujos: { frente: c.dibujo || { formas: [] } }, vistas: null, vista: "frente",
+      encuadre: (() => { const xs = [], ys = []; for (const q of Object.values(Object.assign({}, v.juntas, c.juntas || {}))) { xs.push(q[0]); ys.push(q[1]); } return [Math.min(...xs) - 120, Math.min(...ys) - 160, Math.max(...xs) + 120, Math.max(...ys) + 60]; })(),
+      referencia: (g) => { const NSv = "http://www.w3.org/2000/svg", r = document.createElementNS(NSv, "g"); r.setAttribute("opacity", "0.3"); r.setAttribute("pointer-events", "none"); r.innerHTML = v.capas.filter((x) => x.id !== id && (x.vista == null || x.vista === 0) && (c.vista == null || c.vista === 0)).map((x) => x.svg).join(""); g.append(r);
+        for (const [k, q] of Object.entries(v.juntas)) { const cc = document.createElementNS(NSv, "circle"); for (const [a, b] of Object.entries({ cx: q[0], cy: q[1], r: 5, fill: "#f0a33a" })) cc.setAttribute(a, b); const t = document.createElementNS(NSv, "title"); t.textContent = k; cc.append(t); g.append(cc); } },
+      alGuardar: (out) => { const r = out.frente; if (!r) return; cambio((x) => { const q = x.vector.capas.find((y) => y.id === id); q.dibujo = r.dibujo; q.svg = Taller.aSVG(r.dibujo).replace(/\{(\w+)\}/g, (m0, k) => P.colores(x)[k] || "#888888"); }); aviso(`«${c.nombre}» guardada`); } }); }
+  $("#vec-convertir").addEventListener("click", () => { if (j.vector && !confirm("Se vuelve a copiar el cuerpo del muñeco y se pierden los retoques hechos a mano. ¿Seguir?")) return;
+    const v = exportarCuerpo(); cambio((x) => { x.vector = v; }); aviso("Cuerpo convertido en vectores: edita cada parte con ✎"); pintarVector(); });
+  $("#vec-activo").addEventListener("click", () => { if (!j.vector) return; cambio((x) => { x.vector.activo = !x.vector.activo; }); pintarVector(); });
   // REDIBUJAR UNA PARTE DEL MUÑECO: crea una pieza en el hueso de esa parte que oculta la original y abre el taller para dibujarla
   const PARTES = { cabeza: ["Cabeza entera", "cabeza"], pelo: ["Pelo", "cabeza"], melena: ["Melena", "cabeza"], barba: ["Barba", "cabeza"], ojos: ["Ojos", "cabeza"], cejas: ["Cejas", "cabeza"],
     nariz: ["Nariz", "cabeza"], boca: ["Boca", "cabeza"], orejas: ["Orejas", "cabeza"], torso: ["Torso y túnica", "pecho"], cinto: ["Cinturón", "cintura"],

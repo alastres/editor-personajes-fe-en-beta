@@ -221,3 +221,17 @@ Lo que falta para que el editor no solo sirva, sino que dé todo lo que puede. O
   - (hechos después: asas de pose más grandes, lámina nueva centrada, audios por nombre y proyecto)
 - [ ] Demo piezas: 16 casos de «Pruebas» cambian por los cambios hechos a ese personaje (chibi, calvo, ropa moderna). Si son a propósito, «Guardar como referencia».
 
+## Marioneta vectorial (como los Smart Bones de Moho), por fases (14 nov 2026)
+- [x] **Fase 1: el cuerpo en vectores.** En Personajes, «Convertir el cuerpo en vectores» copia del muñeco:
+  - el torso, en cuatro vistas (frente, perfil derecho, espaldas, perfil izquierdo);
+  - los brazos y las piernas.
+  
+  Quedan como dibujos editables (✎ en el taller) atados a las juntas del esqueleto: brazos y piernas se doblan con pesos por cercanía y se estiran con el escorzo; el torso gira ±45° sobre un cilindro y cambia de vista. La cabeza y las piezas propias siguen como siempre. Prueba: «Pedro (vectorial)».
+- [ ] Fase 1, retoques:
+  - en 3/4 el cinturón y la abertura de la túnica asoman un poco por el borde (el cilindro mueve igual los trazos que el contorno);
+  - quizá añadir vistas a 45°;
+  - las mangas no tienen todavía correcciones al doblar.
+- [ ] **Fase 2: la cabeza en capas vectoriales** (piel, pelo detrás/delante, barba, nariz, orejas) que giran con su profundidad sobre un solo dibujo; ojos, cejas y boca siguen automáticos.
+- [ ] **Fase 3: correcciones por ángulo (Smart Bones) en el editor:** elegir un hueso y un ángulo, corregir la forma a mano y que se aplique poco a poco.
+- [ ] **Fase 4: expresiones** como correcciones del mismo dibujo, con deslizadores.
+
