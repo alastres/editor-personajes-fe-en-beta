@@ -12,6 +12,10 @@
 !/piezas/
 !/escenas/
 !/shorts/
+# app de escritorio (Electron): el código, sin dependencias ni instaladores
+!/app-escritorio/
+/app-escritorio/node_modules/
+/app-escritorio/dist/
 
 # del motor común, solo lo que usa el editor
 !/comun/

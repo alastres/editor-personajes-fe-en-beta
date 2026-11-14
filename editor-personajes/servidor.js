@@ -23,7 +23,10 @@
 //   GET  /video-short/<id>.mp4                           el último render de un short
 const http = require("http"), fs = require("fs"), path = require("path"), { spawn } = require("child_process");
 const PUERTO = Number(process.env.PORT || 3170);
-const AQUI = __dirname, RAIZ = path.join(AQUI, ".."), COMUN = path.join(RAIZ, "comun");
+// CODIGO = donde están la interfaz y el motor (comun/); RAIZ = donde están los datos (personajes, escenas, láminas, renders…).
+// Son la misma carpeta (shorts-flow) salvo en la app de escritorio, que pone los datos en Documentos (FEB_DATOS, ver app-escritorio/).
+const AQUI = __dirname, CODIGO = path.join(AQUI, ".."), RAIZ = process.env.FEB_DATOS ? path.resolve(process.env.FEB_DATOS) : CODIGO, COMUN = path.join(CODIGO, "comun");
+const EN_APP = process.env.FEB_APP === "1";
 const DIRS = { personajes: path.join(RAIZ, "personajes"), escenas: path.join(RAIZ, "escenas"), acciones: path.join(RAIZ, "acciones"), andares: path.join(RAIZ, "andares"), shorts: path.join(RAIZ, "shorts"), piezas: path.join(RAIZ, "piezas") };   // acciones = biblioteca común
 const PY_VS = path.join(process.env.APPDATA || "", "VoiceStudio", "runtime", "project", ".venv", "Scripts", "python.exe");   // python con numpy y soundfile (montar-musica.py)
 const API_VS = "http://127.0.0.1:3900";   // VoiceStudio: transcripción con tiempos por palabra
@@ -373,6 +376,7 @@ http.createServer(async (req, res) => {
     if (url === "/api/pruebas/referencia") { const f = path.join(RAIZ, ".pruebas", "referencia.json");
       if (req.method === "PUT") { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, await cuerpo(req)); res.writeHead(200); return res.end("ok"); }
       if (!fs.existsSync(f)) return enviarJSON(res, {}); return servir(res, f, req); }
+    if (url === "/api/sincronizar" && EN_APP) return enviarJSON(res, { ok: false, error: "En la app de escritorio no se sube a GitHub: tus datos están en Documentos/Fe en Beta Editor." });
     if (url === "/api/sincronizar" && req.method === "POST") { let b = {}; try { b = JSON.parse(await cuerpo(req) || "{}"); } catch {} return enviarJSON(res, await sincronizar(String(b.mensaje || "").slice(0, 200))); }
     let mp = url.match(/^\/api\/(personajes|escenas|acciones|andares|shorts|piezas)\/papelera$/);
     if (mp && req.method === "GET") return enviarJSON(res, papelera(mp[1]));
@@ -417,4 +421,5 @@ http.createServer(async (req, res) => {
     const f = path.join(AQUI, url === "/" ? "index.html" : path.basename(url));
     return servir(res, f, req);
   } catch (e) { res.writeHead(500); res.end(String(e.message || e)); }
-}).listen(PUERTO, () => console.log(`Editor de personajes en http://localhost:${PUERTO}  ·  escenas en http://localhost:${PUERTO}/escenas.html`));
+}).listen(PUERTO, process.env.FEB_HOST || undefined, () => { console.log(`Editor de personajes en http://localhost:${PUERTO}  ·  escenas en http://localhost:${PUERTO}/escenas.html`);
+  if (process.send) process.send({ listo: true, puerto: PUERTO }); });   // la app de escritorio espera este aviso para abrir la ventana

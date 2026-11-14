@@ -37,10 +37,12 @@
     const estado = $("#estado"), deshacer = $("#b-deshacer"), rehacer = $("#b-rehacer"), hist = $("#b-historial"), git = $("#b-github"), ayuda = $("#b-ayuda");
     for (const [b, i, t] of [[deshacer, "undo", "Deshacer"], [rehacer, "redo", "Rehacer"], [ayuda, "help", "Ayuda"]]) if (b) { b.replaceChildren(ico(i)); b.classList.add("icono-btn"); b.setAttribute("aria-label", t); }
     if (hist) hist.replaceChildren(ico("reloj"), h("span", {}, "Historial y papelera")); if (git) git.replaceChildren(ico("nube"), h("span", {}, "Subir a GitHub"));
+    // en la app de escritorio (Electron) no se sube a GitHub: es solo para el repo del autor
+    const enApp = /Electron/.test(navigator.userAgent); if (git && enApp) git.remove();
     // lo propio de la página que estaba en la barra (el selector Diseño/Animación de Personajes) se guarda para recolocarlo
     const modo = $("#modo"), otros = $$(":scope > *", barra).filter((e) => !e.matches(".marca, .acciones, .enlace-pagina") && e !== modo);
     barra.replaceChildren(h("div", { class: "marca" }, h("i"), h("b", {}, "Fe en Beta")), nav, ...otros,
-      h("div", { class: "derecha" }, estado || "", deshacer || "", rehacer || "", ayuda || "", menu("Más: historial, papelera y GitHub", [hist, git])));
+      h("div", { class: "derecha" }, estado || "", deshacer || "", rehacer || "", ayuda || "", menu(enApp ? "Más: historial y papelera" : "Más: historial, papelera y GitHub", [hist, enApp ? null : git])));
     if (modo) { modo.classList.add("seg-modo"); window.__modo = modo; }
   }
 

@@ -298,4 +298,9 @@ Por hacer:
   - Barra con las secciones y un menú ⋯; lista con buscador y ＋; panel en pestañas.
   - En el teléfono, el lienzo con la lista y los ajustes como hojas.
   - [ ] Pendiente: el taller de dibujo y las ventanas (curvas, correcciones) con el mismo aspecto, y la línea de tiempo de Escenas más cómoda en el teléfono.
+- [x] **App de escritorio** (Electron, `app-escritorio/`, versión 0.1).
+  - Instalador de Windows de 93 MB.
+  - Arranca el servidor por dentro, guarda los datos en Documentos/Fe en Beta Editor y la primera vez copia los ejemplos.
+  - Sin GitHub y solo visible desde ese ordenador.
+  - [ ] Pendiente: HyperFrames y ffmpeg dentro del instalador (render sin Node instalado), el detector de caras sin internet, el instalador para Mac y la firma de código.
 
