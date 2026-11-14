@@ -24,9 +24,19 @@ function prepararDatos() { fs.mkdirSync(DATOS, { recursive: true });
 const libre = (p) => new Promise((ok) => { const s = net.createServer().once("error", () => ok(false)).once("listening", () => s.close(() => ok(true))).listen(p, "127.0.0.1"); });
 const cualquiera = () => new Promise((ok) => { const s = net.createServer().listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => ok(p)); }); });
 
+// RENDER sin nada instalado: HyperFrames (dependencia de la app, se ejecuta con su Node), su Chrome y ffmpeg (recursos/render,
+// copiados por preparar-render.js). Si falta alguno, el servidor vuelve a npx y a las herramientas del ordenador.
+function rutasRender() { const R = EMPAQUETADA ? path.join(process.resourcesPath, "render") : path.join(__dirname, "recursos", "render");
+  const app_ = EMPAQUETADA ? path.join(process.resourcesPath, "app") : __dirname, out = {};
+  const hf = path.join(app_, "node_modules", "hyperframes", "bin", "hyperframes.mjs"); if (fs.existsSync(hf)) out.FEB_HYPERFRAMES = hf;
+  const chromeDir = path.join(R, "chrome"); if (fs.existsSync(chromeDir)) { const exe = (function buscar(d, n = 0) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const f = path.join(d, e.name);
+      if (e.isFile() && /^chrome-headless-shell(\.exe)?$/.test(e.name)) return f; if (e.isDirectory() && n < 3) { const r = buscar(f, n + 1); if (r) return r; } } return null; })(chromeDir); if (exe) out.FEB_CHROME = exe; }
+  const ff = path.join(R, "ffmpeg", "ffmpeg.exe"), fp = path.join(R, "ffmpeg", "ffprobe.exe"); if (fs.existsSync(ff)) out.FEB_FFMPEG = ff; if (fs.existsSync(fp)) out.FEB_FFPROBE = fp;
+  return out; }
+
 function arrancarServidor(puerto) { return new Promise((ok, mal) => {
   servidor = fork(path.join(CODIGO, "editor-personajes", "servidor.js"), [], { cwd: DATOS, stdio: ["ignore", "pipe", "pipe", "ipc"],
-    env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: "1", PORT: String(puerto), FEB_DATOS: DATOS, FEB_APP: "1", FEB_HOST: "127.0.0.1" }) });
+    env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: "1", PORT: String(puerto), FEB_DATOS: DATOS, FEB_APP: "1", FEB_HOST: "127.0.0.1" }, rutasRender()) });
   let log = ""; const anota = (b) => { log = (log + b).slice(-4000); }; servidor.stdout.on("data", anota); servidor.stderr.on("data", anota);
   const t = setTimeout(() => mal(new Error("El servidor no arrancó a tiempo.\n\n" + log)), 20000);
   servidor.on("message", (m) => { if (m && m.listo) { clearTimeout(t); ok(); } });

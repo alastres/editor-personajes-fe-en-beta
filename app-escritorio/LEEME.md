@@ -24,8 +24,18 @@ El instalador lleva:
 - el motor de `comun/` (los mismos archivos que la lista blanca del repo);
 - como ejemplo: personajes, escenas, acciones, andares, piezas, shorts y láminas.
 
-## Lo que aún no va en la app (versión 0.1)
-- **Render a MP4:** usa HyperFrames con `npx`, así que hace falta tener Node instalado. ffmpeg, en cambio, se busca en `historia-en-cuatro-actos-tools`, que solo existe en el ordenador del autor. Siguiente paso: meter HyperFrames y ffmpeg dentro del instalador.
+## Render dentro de la app (versión 0.2)
+El render a MP4 funciona sin tener nada instalado (probado con un PATH sin Node). La app lleva todo lo necesario:
+- **HyperFrames 0.9.8**, como dependencia de la app. Se ejecuta con el Node de Electron 36, que es Node 22, el que pide HyperFrames.
+- **Su Chrome «headless shell»** y **ffmpeg con ffprobe** (este con sus DLL), en `resources/render`.
+  - Los copia `preparar-render.js` (lo lanza `npm run dist`): el Chrome desde `~/.cache/hyperframes/chrome` y ffmpeg desde `Videos/historia-en-cuatro-actos-tools`.
+- `main.js` le pasa las rutas al servidor (`FEB_HYPERFRAMES`, `FEB_CHROME`, `FEB_FFMPEG`, `FEB_FFPROBE`). El servidor las convierte en las variables de HyperFrames (`HYPERFRAMES_BROWSER_PATH`, `HYPERFRAMES_FFMPEG_PATH`, `HYPERFRAMES_FFPROBE_PATH`).
+- Fuera de la app no cambia nada: el render sigue con `npx`.
+- `asar` está desactivado para que HyperFrames y sus binarios (esbuild, sharp) se puedan ejecutar.
+- El instalador pasa de 93 MB a **237 MB**.
+
+## Lo que aún no va en la app
+- **Música de los shorts:** el montaje de la música (`montar-musica.py`) usa el Python de VoiceStudio; sin él, el short sale sin montar la música.
 - **Transcribir la voz:** necesita VoiceStudio. Sin él, los tiempos se estiman desde el guion.
 - **Detector de caras del modo VTuber:** se descarga de internet la primera vez. Siguiente paso: incluirlo en la app.
 - **Firma del instalador:** sin certificado, Windows avisa «Windows protegió su PC». Se instala con «Más información → Ejecutar de todas formas».

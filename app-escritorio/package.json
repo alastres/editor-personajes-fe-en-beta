@@ -1,35 +1,130 @@
 {
   "name": "fe-en-beta-editor",
   "productName": "Fe en Beta Editor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Editor de personajes, escenas y montaje de Fe en Beta, como app de escritorio",
   "main": "main.js",
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis"
+    "dist": "node preparar-render.js && electron-builder --win nsis"
   },
   "devDependencies": {
-    "electron": "33.2.1",
+    "electron": "36.9.5",
     "electron-builder": "25.1.8"
   },
   "build": {
     "appId": "com.feenbeta.editor",
     "productName": "Fe en Beta Editor",
-    "directories": { "output": "dist" },
-    "files": ["main.js", "icono.png", "package.json"],
-    "extraResources": [
-      { "from": "../editor-personajes", "to": "codigo/editor-personajes", "filter": ["**/*", "!LEEME.md", "!pruebas.html"] },
-      { "from": "../comun", "to": "codigo/comun", "filter": ["titere25d.js", "personajes.js", "escena.js", "montaje.js", "atrezo.js", "andares.js", "rig2d.js", "libre.js", "vendor/**"] },
-      { "from": "../personajes", "to": "ejemplo/personajes", "filter": ["**/*", "!papelera/**", "!*.bak"] },
-      { "from": "../escenas", "to": "ejemplo/escenas", "filter": ["**/*", "!papelera/**", "!*.bak"] },
-      { "from": "../acciones", "to": "ejemplo/acciones", "filter": ["**/*", "!papelera/**"] },
-      { "from": "../andares", "to": "ejemplo/andares", "filter": ["**/*", "!papelera/**"] },
-      { "from": "../piezas", "to": "ejemplo/piezas", "filter": ["**/*", "!papelera/**"] },
-      { "from": "../shorts", "to": "ejemplo/shorts", "filter": ["**/*", "!papelera/**"] },
-      { "from": "../ilustraciones", "to": "ejemplo/ilustraciones", "filter": ["**/*", "!papelera/**"] }
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "icono.png",
+      "package.json"
     ],
-    "win": { "target": "nsis", "icon": "icono.png" },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "shortcutName": "Fe en Beta Editor", "artifactName": "Fe-en-Beta-Editor-${version}.${ext}" }
+    "extraResources": [
+      {
+        "from": "../editor-personajes",
+        "to": "codigo/editor-personajes",
+        "filter": [
+          "**/*",
+          "!LEEME.md",
+          "!pruebas.html"
+        ]
+      },
+      {
+        "from": "../comun",
+        "to": "codigo/comun",
+        "filter": [
+          "titere25d.js",
+          "personajes.js",
+          "escena.js",
+          "montaje.js",
+          "atrezo.js",
+          "andares.js",
+          "rig2d.js",
+          "libre.js",
+          "vendor/**"
+        ]
+      },
+      {
+        "from": "../personajes",
+        "to": "ejemplo/personajes",
+        "filter": [
+          "**/*",
+          "!papelera/**",
+          "!*.bak"
+        ]
+      },
+      {
+        "from": "../escenas",
+        "to": "ejemplo/escenas",
+        "filter": [
+          "**/*",
+          "!papelera/**",
+          "!*.bak"
+        ]
+      },
+      {
+        "from": "../acciones",
+        "to": "ejemplo/acciones",
+        "filter": [
+          "**/*",
+          "!papelera/**"
+        ]
+      },
+      {
+        "from": "../andares",
+        "to": "ejemplo/andares",
+        "filter": [
+          "**/*",
+          "!papelera/**"
+        ]
+      },
+      {
+        "from": "../piezas",
+        "to": "ejemplo/piezas",
+        "filter": [
+          "**/*",
+          "!papelera/**"
+        ]
+      },
+      {
+        "from": "../shorts",
+        "to": "ejemplo/shorts",
+        "filter": [
+          "**/*",
+          "!papelera/**"
+        ]
+      },
+      {
+        "from": "../ilustraciones",
+        "to": "ejemplo/ilustraciones",
+        "filter": [
+          "**/*",
+          "!papelera/**"
+        ]
+      },
+      {
+        "from": "recursos/render",
+        "to": "render"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icono.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Fe en Beta Editor",
+      "artifactName": "Fe-en-Beta-Editor-${version}.${ext}"
+    },
+    "asar": false
+  },
+  "dependencies": {
+    "hyperframes": "0.9.8"
   }
 }

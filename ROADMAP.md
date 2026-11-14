@@ -302,5 +302,6 @@ Por hacer:
   - Instalador de Windows de 93 MB.
   - Arranca el servidor por dentro, guarda los datos en Documentos/Fe en Beta Editor y la primera vez copia los ejemplos.
   - Sin GitHub y solo visible desde ese ordenador.
-  - [ ] Pendiente: HyperFrames y ffmpeg dentro del instalador (render sin Node instalado), el detector de caras sin internet, el instalador para Mac y la firma de código.
+  - [x] Versión 0.2: render a MP4 sin nada instalado. HyperFrames, su Chrome y ffmpeg van dentro; instalador de 237 MB.
+  - [ ] Pendiente: montar la música sin el Python de VoiceStudio (pasarlo a Node), el detector de caras sin internet, el instalador para Mac y la firma de código.
 

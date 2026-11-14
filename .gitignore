@@ -39,3 +39,4 @@
 *.bak
 !/ilustraciones/
 !/comun/lamina-vectorizar.py
+/app-escritorio/recursos/

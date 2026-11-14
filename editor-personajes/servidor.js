@@ -33,7 +33,15 @@ const API_VS = "http://127.0.0.1:3900";   // VoiceStudio: transcripción con tie
 for (const d of Object.values(DIRS)) fs.mkdirSync(d, { recursive: true });
 const HERRAMIENTAS = path.join(RAIZ, "..", "historia-en-cuatro-actos-tools");   // ffmpeg para HyperFrames
 
-const FFMPEG = path.join(HERRAMIENTAS, process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
+const FFMPEG = process.env.FEB_FFMPEG || path.join(HERRAMIENTAS, process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
+// RENDER EN LA APP DE ESCRITORIO: HyperFrames va dentro (FEB_HYPERFRAMES = su bin/hyperframes.mjs) y se ejecuta con el Node de la
+// propia app; su Chrome y ffmpeg también van dentro (FEB_CHROME, FEB_FFMPEG, FEB_FFPROBE). Fuera de la app, npx como siempre.
+const HF_BIN = process.env.FEB_HYPERFRAMES && fs.existsSync(process.env.FEB_HYPERFRAMES) ? process.env.FEB_HYPERFRAMES : null;
+function entornoRender() { const env = Object.assign({}, process.env, { PATH: HERRAMIENTAS + path.delimiter + process.env.PATH });
+  if (process.env.FEB_FFMPEG) env.HYPERFRAMES_FFMPEG_PATH = process.env.FEB_FFMPEG; if (process.env.FEB_FFPROBE) env.HYPERFRAMES_FFPROBE_PATH = process.env.FEB_FFPROBE;
+  if (process.env.FEB_CHROME) env.HYPERFRAMES_BROWSER_PATH = process.env.FEB_CHROME; if (process.env.FEB_FFMPEG) env.PATH = path.dirname(process.env.FEB_FFMPEG) + path.delimiter + env.PATH;
+  return env; }
+const hyperframes = (args, cwd) => (HF_BIN ? spawn(process.execPath, [HF_BIN, ...args], { cwd, env: entornoRender() }) : spawn("npx", ["--yes", "hyperframes@0.9.8", ...args], { cwd, env: entornoRender(), shell: true }));
 const TIPOS = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".mp4": "video/mp4", ".wav": "audio/wav", ".mp3": "audio/mpeg", ".woff2": "font/woff2" };
 const idValido = (id) => /^[a-z0-9][a-z0-9-]{0,60}$/.test(id);
 const leerJSON = (f) => JSON.parse(fs.readFileSync(f, "utf8"));
@@ -191,11 +199,10 @@ function lanzarRender(clave, preparar, url, op = {}) {
   cola.push({ r, correr: async (hecho) => { r.estado = "preparando"; r.inicio = Date.now(); let dir; try { dir = await preparar(r); } catch (e) { r.estado = "error"; r.log = String(e.stack || e); r.fin = Date.now(); return hecho(); }
     // cada render a un archivo nuevo: el anterior puede estar abierto en el reproductor (Windows no deja sustituirlo)
     r.estado = "renderizando"; const id = path.basename(url, ".mp4"), salida = path.join("out", `${id}-${Date.now()}.mp4`);
-    const env = Object.assign({}, process.env, { PATH: HERRAMIENTAS + path.delimiter + process.env.PATH });
-    const args = ["--yes", "hyperframes@0.9.8", "render", "--quality", op.rapida ? "draft" : "delivery", "-o", salida];
+    const args = ["render", "--quality", op.rapida ? "draft" : "delivery", "-o", salida];
     if (op.rapida) args.push("--fps", "24");
     if (op.desde != null && op.desde !== "") args.push("--start", String(Math.max(0, +op.desde))); if (op.hasta != null && op.hasta !== "") args.push("--end", String(+op.hasta));
-    const p = spawn("npx", args, { cwd: dir, env, shell: true });
+    const p = hyperframes(args, dir);
     const leer = (b) => { r.log = (r.log + b.toString()).slice(-4000); };
     p.stdout.on("data", leer); p.stderr.on("data", leer);
     p.on("close", (cod) => { r.estado = cod === 0 && fs.existsSync(path.join(dir, salida)) ? "listo" : "error"; r.fin = Date.now(); r.ruta = path.relative(RAIZ, path.join(dir, salida)).replace(/\\/g, "/");
@@ -324,7 +331,7 @@ ${audios}    </div>
 }
 // envolvente de un audio para mover la boca: intensidad (RMS) 30 veces por segundo, normalizada a 0…1 (percentil 95)
 function envolvente(f) { return new Promise((ok, mal) => {
-  const ff = path.join(HERRAMIENTAS, process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
+  const ff = FFMPEG;
   const p = spawn(fs.existsSync(ff) ? ff : "ffmpeg", ["-v", "error", "-i", f, "-ac", "1", "-ar", "8000", "-f", "s16le", "-"]); const trozos = [];
   p.stdout.on("data", (c) => trozos.push(c)); p.on("error", mal);
   p.on("close", () => { const b = Buffer.concat(trozos), n = Math.floor(b.length / 2), paso = 8000 / 30, rms = [];
