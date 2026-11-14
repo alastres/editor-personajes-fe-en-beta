@@ -707,3 +707,30 @@ La página de control manda cada fotograma (unas 30 veces por segundo) a `POST /
 
 - Arreglado de paso: si a un personaje con cabeza vectorial se le cambia después el pelo, la barba o las proporciones, la cara salía sin piel. La cabeza guardada señala las formas por número y ese orden cambia. Ahora el motor lo detecta comparando colores y usa la cabeza automática (`m.cabezaDesfasada`). Hay que volver a exportar la cabeza en el taller para recuperarla. Le pasaba a «Pedro (vectorial)» tras pasarlo a chibi con pelo corto.
 
+## Interfaz nueva: limpia y para cualquier pantalla (14 nov 2026)
+Una capa común para Personajes, Escenas, Montaje y VTuber: `tema.css` (aspecto) e `interfaz.js` (colocación). No cambia ningún id, así que los scripts de cada página siguen igual.
+- **Barra de arriba:** la marca, las cuatro secciones con icono (Personajes · Escenas · Montaje · VTuber) y, a la derecha:
+  - el estado (punto verde = guardado);
+  - deshacer, rehacer y ayuda como iconos;
+  - un menú **⋯** con «Historial y papelera» y «Subir a GitHub».
+- **Lista de la izquierda:**
+  - un buscador y el botón **＋** para crear;
+  - duplicar, papelera, exportar e importar pasan al menú **⋯**.
+- **Personajes:** encima del lienzo, el nombre del personaje y **Diseño / Animación**.
+- **Panel de la derecha en pestañas:**
+  - Personajes, en Diseño: Ficha · Cuerpo · Color · Piezas;
+  - Personajes, en Animación: Acción · Pose · Controles;
+  - Escenas: Escena · Reparto · Atrezo · Rótulos · Audio · Vídeo;
+  - Montaje: Voz · Escena · Subtítulos · Sonido · Vídeo.
+- **Cómo se comporta el panel:**
+  - Se recuerda la pestaña de cada página.
+  - Al buscar un ajuste (tecla /) se ignoran las pestañas.
+  - Si al elegir algo en el lienzo aparece su panel en otra pestaña, se cambia sola: por ejemplo, un actor lleva a Reparto.
+  - Las secciones empiezan abiertas.
+- **Aspecto:** colores más tranquilos con un solo acento, deslizadores finos, desplegables iguales y textos sin mayúsculas forzadas.
+- **Tamaños de pantalla:**
+  - **ordenador:** tres columnas;
+  - **tableta:** columnas más estrechas, y las secciones solo con icono;
+  - **teléfono (hasta 860 px):** el lienzo ocupa la pantalla y abajo hay una barra **Lista · Lienzo · Ajustes**. La lista y los ajustes suben como hojas: al elegir un elemento de la lista, o al tocar el lienzo, se vuelve al lienzo.
+- Para dar una sección nueva a una pestaña, se añade su título a `PESTANAS` en `interfaz.js` (expresión sobre el título sin tildes). Una sección sin título va con la anterior.
+

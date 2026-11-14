@@ -294,5 +294,8 @@ Por hacer:
   - [ ] Pendiente: probarlo con una webcam de verdad y afinar las escalas (en el navegador de pruebas no hay cámara: los signos se comprobaron pasando al detector el propio personaje dibujado).
   - [ ] Pendiente: gestos propios del personaje en las teclas y manos con la cámara (seguimiento de manos de MediaPipe).
   - [ ] Pendiente: avisar en el editor cuando la cabeza vectorial queda desfasada (`m.cabezaDesfasada`) y ofrecer rehacerla.
-- [ ] **Interfaz limpia y adaptable** (pedido el 14 nov 2026): rediseñar Personajes, Escenas y Montaje para que se entiendan de un vistazo y funcionen en cualquier pantalla.
+- [x] **Interfaz limpia y adaptable** (pedido el 14 nov 2026): `tema.css` + `interfaz.js` en las cuatro páginas.
+  - Barra con las secciones y un menú ⋯; lista con buscador y ＋; panel en pestañas.
+  - En el teléfono, el lienzo con la lista y los ajustes como hojas.
+  - [ ] Pendiente: el taller de dibujo y las ventanas (curvas, correcciones) con el mismo aspecto, y la línea de tiempo de Escenas más cómoda en el teléfono.
 

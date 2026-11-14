@@ -102,7 +102,7 @@
     const preparar = (s) => { if (s.dataset.plegable) return; s.dataset.plegable = "1"; const t = s.querySelector(":scope > h3"), k = titulo(s);
       t.classList.add("plegable"); t.setAttribute("role", "button"); t.tabIndex = 0; t.title = "Plegar o desplegar esta sección";
       // la primera vez, abiertas las tres primeras de cada modo; después, como las dejó el usuario
-      const modo = s.className.replace(/(plegada|no-coincide)/g, "").trim(); n[modo] = (n[modo] || 0) + 1; poner(s, k in est ? est[k] : n[modo] > 3);
+      const modo = s.className.replace(/(plegada|no-coincide)/g, "").trim(); n[modo] = (n[modo] || 0) + 1; poner(s, false);   // con las pestañas (interfaz.js) hay pocas a la vista: abiertas
       const alternar = (ev) => { if (ev.target.closest("button, input, select, a, label")) return; const p = !s.classList.contains("plegada"); poner(s, p); est[k] = p; guarda(); };
       t.addEventListener("click", alternar); t.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); alternar(ev); } }); };
     // barra de arriba: buscar un ajuste y plegar o desplegar todo
