@@ -358,7 +358,10 @@
     // par: 1 = pegada a la cámara (muy lejos) … 0 = se mueve con el mundo … negativo = más cerca que los personajes (se mueve más).
     const LAM = (esc.fondo?.tipo === "lamina" && window.LAMINAS) ? window.LAMINAS[esc.fondo.lamina] : null, placas = [];
     if (LAM) for (const c of esc.fondo.capas || LAM.capasDef || Object.keys(LAM.capas).map((id, i, a) => ({ id, par: [0.85, 0.3, -0.3][i] ?? 0, delante: i === a.length - 1 && a.length > 2 })))
-      { const g = el("g", { "data-capa": c.id }, c.delante ? lamDelante : lamAtras); g.innerHTML = LAM.capas[c.id] || ""; placas.push({ c, g }); }
+      { const g = el("g", { "data-capa": c.id }, c.delante ? lamDelante : lamAtras); g.innerHTML = LAM.capas[c.id] || "";
+        // grupos con movimiento propio (data-anim, ver comun/formas.py: nubes que derivan, árboles y plantas que se mecen, estrellas, humo…)
+        const anims = [...g.querySelectorAll("[data-anim]")].map((e) => { try { return { e, ks: JSON.parse(e.getAttribute("data-anim")) }; } catch { return null; } }).filter(Boolean);
+        placas.push({ c, g, anims }); }
     let tPlacas = 0;
     // HORIZONTE DE LA LÁMINA: fondo.horizonte = altura del horizonte pintado (px de la referencia de 1376 de alto). Si está, la cámara toma
     // la altura que lo hace coincidir con el del espacio 2,5D: los personajes encogen y suben con la profundidad igual que el dibujo.
@@ -367,9 +370,21 @@
     const lamSc = () => Math.max(ANCHO / LAM.ancho, ALTO / LAM.alto) * (esc.fondo.escala ?? 1.15);
     const lamHorizonte = () => (LAM && esc.fondo.horizonte != null) ? (esc.fondo.centro?.y ?? -400) - LAM.alto * lamSc() / 2 + esc.fondo.horizonte * (LAM.alto / 1376) * lamSc() : null;
     let dAlto = 0;
+    // movimiento de un grupo de lámina en el instante t (coordenadas de la referencia de la lámina)
+    function animar(A, t) { let tf = "", op = null;
+      for (const k of A.ks) { const w = 2 * Math.PI * t / (k.periodo || 3) + (k.fase || 0), o = Math.sin(w);
+        if (k.tipo === "deriva") tf += ` translate(${((k.vx || 0) * t).toFixed(2)} ${((k.vy || 0) * t).toFixed(2)})`;
+        else if (k.tipo === "vaiven") { tf += ` translate(${((k.dx || 0) * o).toFixed(2)} ${((k.dy || 0) * o).toFixed(2)})`;
+          if (k.rot) tf += ` rotate(${(k.rot * o).toFixed(3)} ${k.px || 0} ${k.py || 0})`;
+          if (k.skew) tf += ` translate(0 ${k.py || 0}) skewX(${(k.skew * o).toFixed(3)}) translate(0 ${-(k.py || 0)})`; }
+        else if (k.tipo === "latido") op = (op ?? 1) * ((k.min ?? 0.4) + ((k.max ?? 1) - (k.min ?? 0.4)) * (0.5 + 0.5 * o));
+        else if (k.tipo === "sube") { const v = k.vida || 6, u = ((t + (k.fase || 0)) % v), e = 1 + (k.crece || 0) * u;
+          tf += ` translate(${((k.vx || 0) * u).toFixed(2)} ${((k.vy || 0) * u).toFixed(2)}) translate(${k.px || 0} ${k.py || 0}) scale(${e.toFixed(3)}) translate(${-(k.px || 0)} ${-(k.py || 0)})`;
+          op = (op ?? 1) * Math.min(1, u / 0.6, (v - u) / (v * 0.45)); } }
+      if (tf) A.e.setAttribute("transform", tf.trim()); if (op != null) A.e.setAttribute("opacity", op.toFixed(3)); }
     function pintarPlacas(c, tr) { if (!LAM) return; const z = c.zoom || 1, X0 = esc.fondo.centro?.x ?? 0, Y0 = esc.fondo.centro?.y ?? -400;
       const sc = Math.max(ANCHO / LAM.ancho, ALTO / LAM.alto) * (esc.fondo.escala ?? 1.15), W = LAM.ancho * sc, H = LAM.alto * sc;
-      for (const { c: k, g } of placas) { const par = k.par ?? 0, kz = Math.pow(z, -par), sL = k.p != null ? sDe(k.p) : k.delante ? sDe(-0.3) : par >= 0.3 ? 0 : sDe(0.3), oy = -dAlto * (1 - sL);
+      for (const { c: k, g, anims } of placas) { for (const A of anims) animar(A, tPlacas); const par = k.par ?? 0, kz = Math.pow(z, -par), sL = k.p != null ? sDe(k.p) : k.delante ? sDe(-0.3) : par >= 0.3 ? 0 : sDe(0.3), oy = -dAlto * (1 - sL);
         // opacidad de la capa en el tiempo (fundir dos versiones: el mar cerrado → abierto): k.claves = [{ t, op }]
         if (k.claves) { const q = claves(k.claves, tPlacas, ["op"]); g.setAttribute("opacity", (q?.op ?? 1).toFixed(3)); }
         g.setAttribute("transform", `${tr} translate(0 ${f1(oy)}) translate(${f1(c.x)} ${f1(c.y)}) scale(${kz.toFixed(4)}) translate(${f1(-c.x)} ${f1(-c.y)}) translate(${f1((c.x - X0) * par)} ${f1((c.y - Y0) * par)}) translate(${f1(X0 - W / 2)} ${f1(Y0 - H / 2)}) scale(${sc.toFixed(4)})`); } }

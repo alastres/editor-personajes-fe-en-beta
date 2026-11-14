@@ -377,6 +377,22 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
   - Picados y contrapicados (clave `alto`): con lámina, suben o bajan la cámara un poco (±200 aprox.) y cada capa se desplaza según su profundidad (`capa.p`; por defecto, las lejanas al horizonte, el suelo a 0,3 y lo de delante a −0,3).
   - El ángulo de los títeres sale de la altura de la cámara.
   - **Rejilla de profundidad:** botón **#** en la caja de la planta, o `esc.rejilla: true`. Pinta las líneas del suelo en p = −0,5 … 4 y el horizonte (línea amarilla discontinua). En ysi2, `REJILLA=1 node ysi2-evidencia/dirigir.js` la pone en todas las escenas para revisar el render.
+- **Láminas con vida** (14 nov 2026; el usuario: «los fondos son muy estáticos… hay efectos paralizados»):
+  - Cualquier grupo del SVG de una lámina puede llevar `data-anim` (lista JSON) y el motor lo anima en cada fotograma:
+    - `deriva {vx, vy}`;
+    - `vaiven {dx, dy, rot, skew, px, py, periodo, fase}`;
+    - `latido {min, max, periodo}` (opacidad);
+    - `sube {vx, vy, crece, px, py, vida}`: sube, crece y se desvanece en bucle (humo, brasas, burbujas).
+  - En `comun/formas.py`, `anim(svg, …)` lo envuelve. Las piezas ya traen su movimiento: nubes que derivan, olivos, cipreses, pitas, matas, hojas y hierba que se mecen, y estrellas y destellos que titilan. La fase sale de la posición, así que no altera el dibujo aleatorio.
+  - Cada lámina añade lo suyo:
+    - mar: olas, crestas, peces, burbujas y pájaros;
+    - desiertos: arena al viento;
+    - campamento: humo, brasas, bruma y nube;
+    - interior: llama, haz de la ventana y polvo;
+    - jardines y tumba: la luz de la puerta respira, estrellas y nubes.
+- **Escala y reparto en profundidad:**
+  - `PT(xr, yr)` da un punto del dibujo en el mundo; `PD(xr, yr)` da `{ x, p }` de un punto del suelo pintado, para poner a alguien justo ahí; `VE(xr, yr, zoom)` encuadra un punto del dibujo.
+  - Comprobación: un personaje en la puerta de una tumba debe medir como mucho unos 0,85 de la puerta. Por eso la tumba va a escala 2,6, el jardín 1 a 1,9 y el jardín 2 a 2,3.
 - **Ritmo** (14 nov 2026; con 46 planos en 63 s el usuario dijo que «no da tiempo a procesar las animaciones»):
   - `planos()` quita los planos de menos de 1,5 s, y el último debe durar al menos 1,2 s.
   - `PAUSAS` en `dirigir.js` mete silencios en la voz tras las líneas clave: corta el WAV con ffmpeg, desplaza las palabras y la envolvente, y parte de `sh.vozBase`.
