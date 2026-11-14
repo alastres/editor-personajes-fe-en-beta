@@ -475,3 +475,22 @@ Veredicto del usuario: «no llegas a dar un buen resultado con los backgrounds p
 - **Copiar y pegar claves** del recorrido: botones del panel Tramo, o Ctrl + C / Ctrl + V. Pega posición, dirección y cómo gira y anda en el cabezal del personaje elegido.
 - **Bloques de acción:** «Empieza en (s)» para escribir el tiempo exacto.
 
+## Fondos dibujados (láminas) editables en la app (14 nov 2026)
+- En Escena → Fondo, **«Lámina dibujada»** abre su panel:
+  - elegir la lámina, o **Nueva…** (crea una vacía con capas lejos, medio y delante);
+  - **tamaño**, **mover a los lados / arriba o abajo**;
+  - **altura del horizonte pintado** (la línea amarilla de la rejilla #).
+- **Capas:** por cada una,
+  - si se usa;
+  - **cuánto se mueve con la cámara** (1 = muy lejos, 0 = como el suelo, negativo = más cerca que los personajes);
+  - si va **delante** de los personajes;
+  - **✎ Editar**: la abre en el taller de dibujo, con el resto de capas como calco y el marco de la lámina.
+  
+  **+ Capa nueva** añade una.
+- **Al guardar:**
+  - se escribe `ilustraciones/<lámina>/<capa>.svg` y su dibujo editable `<capa>.dibujo.json`, y se regenera `ilustraciones/todas.js`;
+  - se conservan los degradados de la capa original;
+  - los movimientos automáticos (`data-anim`) de una capa hecha por script se pierden si se redibuja (lo avisa el título del taller).
+- En el taller de láminas no salen los colores del personaje: se dibuja con colores de verdad.
+- **API:** `GET /api/laminas`, `GET /api/laminas/<n>`, `POST /api/laminas/<n>` (nueva), `PUT /api/laminas/<n>/<capa>` (`{ svg, dibujo }`).
+

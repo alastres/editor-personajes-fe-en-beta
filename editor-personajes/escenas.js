@@ -7,7 +7,7 @@
   const fmtT = (t) => t.toFixed(2).replace(".", ",") + " s", cl = (x, a, b) => Math.max(a, Math.min(b, x));
   const aviso = (txt) => { const a = $("#aviso"); a.textContent = txt; a.classList.add("ver"); clearTimeout(aviso.t); aviso.t = setTimeout(() => a.classList.remove("ver"), 2800); };
   const estado = (txt, cls = "") => { const e = $("#estado"); e.textContent = txt; e.className = "estado " + cls; };
-  const FONDOS_N = { noche: "Noche", luna: "Luna", alba: "Amanecer", dia: "Día", atardecer: "Atardecer", desierto: "Desierto", mar: "Mar", tormenta: "Tormenta", interior: "Interior", color: "Color liso" };
+  const FONDOS_N = { noche: "Noche", luna: "Luna", alba: "Amanecer", dia: "Día", atardecer: "Atardecer", desierto: "Desierto", mar: "Mar", tormenta: "Tormenta", interior: "Interior", color: "Color liso", lamina: "Lámina dibujada" };
   const LEJOS_N = { montes: "Montes", ciudad: "Ciudad", roma: "Roma", olivar: "Olivar", nada: "Nada" };
   let IMAGENES = [];
   const PLANOS = { general: { n: "General", zoom: 0.8, dy: -60 }, medio: { n: "Medio", zoom: 1.45, dy: -40 }, primer: { n: "Primer plano", zoom: 2.5, dy: -130 } };
@@ -154,6 +154,51 @@
   $("#f-cubre").addEventListener("change", (ev) => cambiaFondo((v) => { if (v.imagen) v.imagen.cubre = ev.target.checked; }));
   $("#f-imop").addEventListener("input", (ev) => cambiaFondo((v) => { if (v.imagen) v.imagen.opacidad = +ev.target.value; }, "fimop"));
   $("#b-fondo-reset").addEventListener("click", () => cambio((x) => { x.fondo = { tipo: x.fondo?.tipo || "noche" }; }));
+  // ---- LÁMINAS: elegir una, colocarla (tamaño, posición, horizonte) y editar cada capa en el taller
+  const CAPAS_PAR = { lejos: 0.45, cielo: 0.6, medio: 0, sala: 0, cerrado: 0, delante: -0.25, arco: -0.25 };
+  function laminaPorDefecto(nombre) { const n = nombre && window.LAMINAS?.[nombre] ? nombre : Object.keys(window.LAMINAS || {}).find((k) => /formas/.test(k)) || Object.keys(window.LAMINAS || {})[0];
+    const L = window.LAMINAS?.[n]; const ids = L ? Object.keys(L.capas) : [];
+    return { tipo: "lamina", lamina: n, escala: 1.4, centro: { x: 0, y: -600 }, horizonte: 640, capas: ids.map((id, i) => ({ id, par: CAPAS_PAR[id] ?? (i === 0 ? 0.45 : i === ids.length - 1 && ids.length > 2 ? -0.25 : 0), delante: (id === "delante" || id === "arco") || undefined })) }; }
+  function pintarLamina() { const f = esc.fondo || {}, es = f.tipo === "lamina"; $("#lamina-det").hidden = !es; $("#f-mas").hidden = es; if (!es) return;
+    const sel = $("#lm-nombre"); if (document.activeElement !== sel) { sel.replaceChildren(...Object.keys(window.LAMINAS || {}).map((n) => h("option", { value: n }, n))); sel.value = f.lamina || ""; }
+    deslizar("lm-escala", f.escala ?? 1.15, (v) => Math.round(v * 100) + "%"); deslizar("lm-cx", f.centro?.x ?? 0, (v) => Math.round(v)); deslizar("lm-cy", f.centro?.y ?? -400, (v) => Math.round(v));
+    deslizar("lm-hz", f.horizonte ?? 640, (v) => Math.round(v) + " px");
+    const L = window.LAMINAS?.[f.lamina], ul = $("#lm-capas"); ul.replaceChildren(); if (!L) { ul.append(h("li", { class: "vacio" }, "Esta lámina no está cargada")); return; }
+    for (const id of Object.keys(L.capas)) { const c = (f.capas || []).find((x) => x.id === id), usada = !!c;
+      const ch = h("input", { type: "checkbox", title: "Usar esta capa en la escena" }); ch.checked = usada;
+      ch.addEventListener("change", () => cambiaFondo((v) => { v.capas = v.capas || []; if (ch.checked) { const orden = Object.keys(L.capas); v.capas.push({ id, par: CAPAS_PAR[id] ?? 0 }); v.capas.sort((a, b) => orden.indexOf(a.id) - orden.indexOf(b.id)); } else v.capas = v.capas.filter((x) => x.id !== id); }));
+      const par = h("input", { type: "range", min: -0.6, max: 1, step: 0.05, value: c?.par ?? 0, title: "Cuánto se mueve con la cámara" }); par.disabled = !usada;
+      const out = h("output", {}, (c?.par ?? 0).toFixed(2)); par.addEventListener("input", () => { out.textContent = (+par.value).toFixed(2); cambiaFondo((v) => { const k = v.capas.find((x) => x.id === id); if (k) k.par = +par.value; }, "lmpar" + id); });
+      const del = h("label", { class: "chk", title: "Se dibuja delante de los personajes (ramas, marcos, primer término)" }, h("input", { type: "checkbox" }), " delante"); del.firstChild.checked = !!c?.delante; del.firstChild.disabled = !usada;
+      del.firstChild.addEventListener("change", (ev) => cambiaFondo((v) => { const k = v.capas.find((x) => x.id === id); if (k) { if (ev.target.checked) k.delante = true; else delete k.delante; } }));
+      ul.append(h("li", { class: "fila-capa" }, ch, h("span", {}, id), par, out, del, h("button", { title: "Redibujar esta capa en el taller", onclick: () => editarCapaLamina(f.lamina, id) }, "✎ Editar"))); } }
+  async function recargarLamina(n) { const L = await (await fetch("/api/laminas/" + n)).json(); window.LAMINAS = Object.assign({}, window.LAMINAS, { [n]: { ancho: L.ancho, alto: L.alto, capas: L.capas } }); return L; }
+  async function editarCapaLamina(n, id) { if (!window.Taller) return aviso("El taller de dibujo no está cargado"); estado("Abriendo la capa en el taller…");
+    const L = await recargarLamina(n), otras = Object.entries(L.capas).filter(([k]) => k !== id), NS = "http://www.w3.org/2000/svg";
+    const tieneAnim = /data-anim/.test(L.capas[id] || "");
+    // los degradados y demás definiciones de la capa original se conservan al guardar (el taller no los convierte)
+    const defsOrig = ((L.capas[id] || "").match(/<defs>[\s\S]*?<\/defs>/g) || []).filter((x) => !/id="dg/.test(x)).join("");   // sin los degradados del taller (los vuelve a poner él)
+    Taller.abrir({ titulo: `Lámina «${n}» · capa «${id}»` + (tieneAnim && !L.dibujos[id] ? " (al guardar se pierden sus movimientos automáticos)" : ""), textoGuardar: "Guardar capa", colores: {}, sinTokens: true, encuadre: [0, 0, L.ancho, L.alto],
+      dibujos: L.dibujos[id] ? { frente: L.dibujos[id] } : {}, svgs: L.dibujos[id] ? {} : { frente: L.capas[id] || "" },
+      referencia: (g) => { const r = document.createElementNS(NS, "g"); r.setAttribute("opacity", "0.35"); r.setAttribute("pointer-events", "none"); r.innerHTML = otras.map(([, s]) => s).join(""); g.appendChild(r);
+        const marco = document.createElementNS(NS, "rect"); for (const [k, v] of Object.entries({ x: 0, y: 0, width: L.ancho, height: L.alto, fill: "none", stroke: "#f0a33a", "stroke-dasharray": "12 8", "stroke-width": 3 })) marco.setAttribute(k, v); g.appendChild(marco); },
+      alGuardar: async (out) => { const r = out.frente; estado("Guardando la capa…");
+        const ok = await fetch(`/api/laminas/${n}/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ svg: defsOrig + (r ? r.svg.replace(/\{[a-zA-Z]+\}/g, "#888888") : ""), dibujo: r ? r.dibujo : { formas: [] } }) }).then((x) => x.ok).catch(() => false);
+        if (!ok) return estado("No se pudo guardar la capa", "error"); await recargarLamina(n); reconstruir(); estado("Capa guardada", ""); aviso(`Capa «${id}» guardada en la lámina «${n}»`); } });
+    estado(""); }
+  $("#lm-nombre").addEventListener("change", (ev) => cambio((x) => { x.fondo = Object.assign(laminaPorDefecto(ev.target.value), { escala: x.fondo?.escala, centro: x.fondo?.centro, horizonte: x.fondo?.horizonte }); }));
+  $("#lm-escala").addEventListener("input", (ev) => cambiaFondo((v) => { v.escala = +ev.target.value; }, "lmesc"));
+  $("#lm-cx").addEventListener("input", (ev) => cambiaFondo((v) => { v.centro = Object.assign({ x: 0, y: -400 }, v.centro, { x: +ev.target.value }); }, "lmcx"));
+  $("#lm-cy").addEventListener("input", (ev) => cambiaFondo((v) => { v.centro = Object.assign({ x: 0, y: -400 }, v.centro, { y: +ev.target.value }); }, "lmcy"));
+  $("#lm-hz").addEventListener("input", (ev) => cambiaFondo((v) => { v.horizonte = +ev.target.value; }, "lmhz"));
+  $("#lm-recargar").addEventListener("click", async () => { const n = esc.fondo?.lamina; if (!n) return; await recargarLamina(n); reconstruir(); aviso("Lámina recargada"); });
+  $("#lm-nueva").addEventListener("click", async () => { const nom = prompt("Nombre de la lámina nueva (minúsculas y guiones, p. ej. «templo-noche»)"); if (!nom) return; const n = nom.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const r = await fetch("/api/laminas/" + n, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ capas: ["lejos", "medio", "delante"] }) });
+    if (!r.ok) return aviso(r.status === 409 ? "Ya hay una lámina con ese nombre" : "No se pudo crear"); await recargarLamina(n); cambio((x) => { x.fondo = laminaPorDefecto(n); }); aviso("Lámina creada: dibuja cada capa con ✎ Editar"); });
+  $("#lm-capa-nueva").addEventListener("click", async () => { const n = esc.fondo?.lamina; if (!n) return; const nom = prompt("Nombre de la capa (p. ej. «arboles» o «niebla»)"); if (!nom) return;
+    const id = nom.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const r = await fetch(`/api/laminas/${n}/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ svg: "" }) }); if (!r.ok) return aviso("No se pudo crear la capa");
+    await recargarLamina(n); cambiaFondo((v) => { v.capas = v.capas || []; v.capas.push({ id, par: 0 }); }); editarCapaLamina(n, id); });
   // dibujar una capa del fondo en el taller: referencia = suelo (y = 0) y la silueta de un personaje para la escala
   function dibujarCapa(i) { if (!window.Taller) return aviso("El taller de dibujo no está cargado"); const c = i === undefined ? null : esc.fondo?.capas?.[i];
     Taller.abrir({ titulo: c ? `Editar ${c.nombre || "capa " + (i + 1)} del fondo` : "Dibujar una capa del fondo (la línea es el suelo; la silueta, un personaje)", textoGuardar: "Guardar capa", dibujos: c?.dibujo ? { frente: c.dibujo } : {}, colores: {},
@@ -181,8 +226,8 @@
     deslizar("e-dur", D(), (v) => v.toFixed(1) + " s");
     seg("#e-formato", { "": "Vertical 9:16 (short)", "16:9": "Horizontal 16:9" }, esc.formato || "", (k) => cambio((x) => { if (k) x.formato = k; else delete x.formato; }));
     // al cambiar de fondo se quitan los retoques de color y clima, pero se conservan las capas dibujadas y la imagen
-    seg("#e-fondo", FONDOS_N, esc.fondo?.tipo || "noche", (k) => cambio((x) => { const v = x.fondo || {}; x.fondo = { tipo: k }; if (v.capas) x.fondo.capas = v.capas; if (v.imagen) x.fondo.imagen = v.imagen; if (k === "color") x.fondo.color = v.color; }));
-    pintarFondoPanel();
+    seg("#e-fondo", FONDOS_N, esc.fondo?.tipo || "noche", (k) => cambio((x) => { const v = x.fondo || {}; x.fondo = { tipo: k }; if (k === "lamina") { x.fondo = laminaPorDefecto(v.lamina); return; } if (v.capas) x.fondo.capas = v.capas; if (v.imagen) x.fondo.imagen = v.imagen; if (k === "color") x.fondo.color = v.color; }));
+    pintarFondoPanel(); pintarLamina();
     // actores
     const ul = $("#actores"); ul.replaceChildren(); if (!esc.actores.length) ul.append(h("li", { class: "vacio" }, "Añade personajes de tu reparto."));
     for (const a of esc.actores) ul.append(h("li", { class: a.id === selActor ? "activo" : "", onclick: () => { selActor = a.id; selBloque = null; pintarPanel(); pintarPistas(); } },

@@ -297,7 +297,7 @@
   function aplicarVista() { $("#tl-svg", raiz).setAttribute("viewBox", `${f2(vista.x)} ${f2(vista.y)} ${f2(vista.w)} ${f2(vista.h)}`); pintarAsas(); }
   function zoom(k, cx, cy) { const s = $("#tl-svg", raiz), r = s.getBoundingClientRect(); cx = cx ?? vista.x + vista.w / 2; cy = cy ?? vista.y + vista.h / 2;
     const ar = r.width / Math.max(1, r.height); vista.w *= k; vista.h = vista.w / ar; vista.x = cx - (cx - vista.x) * k; vista.y = cy - (cy - vista.y) * k; aplicarVista(); }
-  function encajar() { const s = $("#tl-svg", raiz), r = s.getBoundingClientRect(), ar = r.width / Math.max(1, r.height); let x0 = -150, y0 = -150, x1 = 150, y1 = 150;
+  function encajar() { const s = $("#tl-svg", raiz), r = s.getBoundingClientRect(), ar = r.width / Math.max(1, r.height); let [x0, y0, x1, y1] = cfg?.encuadre || [-150, -150, 150, 150];
     for (const f of D.formas) for (const p of f.puntos) { x0 = Math.min(x0, p.x - 40); y0 = Math.min(y0, p.y - 40); x1 = Math.max(x1, p.x + 40); y1 = Math.max(y1, p.y + 40); }
     let w = x1 - x0, hh = y1 - y0; if (w / hh > ar) hh = w / ar; else w = hh * ar; vista = { x: (x0 + x1) / 2 - w / 2, y: (y0 + y1) / 2 - hh / 2, w, h: hh }; aplicarVista(); }
   const escalaPx = () => vista.w / Math.max(1, $("#tl-svg", raiz).getBoundingClientRect().width);   // unidades por píxel de pantalla
@@ -315,7 +315,7 @@
       el("rect", { x: p.x - 5 * k, y: p.y - 5 * k, width: 10 * k, height: 10 * k, fill: p.esquina ? "#f0a33a" : "#fff", stroke: "#1b1830", "stroke-width": 1.5 * k, "data-p": i, class: "punto" }, g); }); }
   function paleta(cont, actual, alElegir, conNinguno) { const c = $(cont, raiz); c.replaceChildren();
     if (conNinguno) c.append(h("button", { class: "sw ninguno" + (!actual || actual === "none" ? " activo" : ""), title: "Sin color", onclick: () => alElegir(null) }, "∅"));
-    for (const [tk, n] of TOKENS) { const b = h("button", { class: "sw token" + (actual === tk ? " activo" : ""), title: n + " (color del personaje)", onclick: () => alElegir(tk) }); b.style.background = res(tk); c.append(b); }
+    for (const [tk, n] of cfg?.sinTokens ? [] : TOKENS) { const b = h("button", { class: "sw token" + (actual === tk ? " activo" : ""), title: n + " (color del personaje)", onclick: () => alElegir(tk) }); b.style.background = res(tk); c.append(b); }
     for (const col of LIBRES) { const b = h("button", { class: "sw" + (actual === col ? " activo" : ""), title: col, onclick: () => alElegir(col) }); b.style.background = col; c.append(b); }
     const otro = h("input", { type: "color", value: actual && actual.startsWith("#") ? actual : "#888888", title: "Otro color" }); otro.oninput = () => alElegir(otro.value); c.append(h("label", { class: "sw otro", title: "Otro color" }, "+", otro));
     // color escrito en hexadecimal (#a8c4ff): para copiar colores exactos de la marca o de una referencia
@@ -432,6 +432,8 @@
     for (const [k, n] of Object.entries(cfg.vistas)) c.append(h("button", { class: k === cfg.vista ? "activo" : "", onclick: () => { if (k === cfg.vista) return; cfg.dibujos[cfg.vista] = D; D = cfg.dibujos[k] || { formas: [] }; sel = null; hist = []; fut = []; ponerVista(k); pintar(); } }, n)); }
   function abrir(op) {
     if (!raiz) construir(); cfg = Object.assign({ vistas: null, vista: "frente", dibujos: {} }, op); colores = op.colores || {};
+    // fondos y láminas: sin colores del personaje ({piel}, {ropa}…); se dibuja con colores de verdad
+    if (op.sinTokens) { if (!estilo.relleno || estilo.relleno.startsWith("{")) estilo.relleno = "#7a9a5a"; if (!estilo.trazo || estilo.trazo.startsWith("{")) estilo.trazo = "#1d1a26"; }
     // un dibujo por vista; si la pieza venía de un SVG (biblioteca o importado), se convierte en vectores editables
     for (const v of Object.keys(cfg.vistas || { frente: 1 })) if (!cfg.dibujos[v] && cfg.svgs?.[v]) { try { cfg.dibujos[v] = deSVG(cfg.svgs[v]); } catch { cfg.dibujos[v] = { formas: [] }; } }
     D = clon(cfg.dibujos[cfg.vista] || { formas: [] }); Object.keys(cfg.dibujos).forEach((k) => (cfg.dibujos[k] = clon(cfg.dibujos[k])));

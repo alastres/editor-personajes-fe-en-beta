@@ -80,3 +80,8 @@ button.pequeno { font-size: 12px; padding: 4px 10px; }
 .paleta-mini .sw.activo { border-color: var(--acento, #f0a33a); }
 .paleta-mini input[type=color] { width: 30px; height: 24px; padding: 0; border: none; background: none; }
 .fila-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* lámina: una fila por capa (usar, nombre, cuánto se mueve, delante, editar) */
+#lm-capas .fila-capa { display: grid; grid-template-columns: 18px 1fr; grid-template-areas: 'c n' 'p p' 'o d' 'e e'; gap: 4px 8px; align-items: center; }
+#lm-capas .fila-capa > input[type=range] { grid-column: 1 / -1; width: 100%; }
+#lm-capas .fila-capa > button { grid-column: 1 / -1; }

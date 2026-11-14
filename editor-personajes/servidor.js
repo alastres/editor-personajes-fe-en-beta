@@ -85,6 +85,15 @@ async function sincronizar(mensaje) { const log = []; const paso = async (args) 
   r = await paso(["commit", "-m", mensaje || "Actualizar editor de personajes y escenas"]); if (r.cod !== 0) return { ok: false, log: log.join("\n\n"), error: "No se pudo guardar el commit" };
   r = await paso(["push"]); return { ok: r.cod === 0, log: log.join("\n\n"), error: r.cod === 0 ? "" : "No se pudo subir a GitHub" }; }
 
+// LÁMINAS editables desde el editor: lista, leer una (con el dibujo editable de cada capa si lo hay), guardar una capa, crear una nueva
+const DIR_LAM = path.join(RAIZ, "ilustraciones");
+function leerLamina(n) { const d = path.join(DIR_LAM, n), f = path.join(d, "lamina.json"); if (!fs.existsSync(f)) return null; const j = leerJSON(f), capas = {}, dibujos = {};
+  for (const c of j.capas) { const fs1 = path.join(d, c + ".svg"); capas[c] = fs.existsSync(fs1) ? fs.readFileSync(fs1, "utf8").replace(/^<svg[^>]*>|<\/svg>\s*$/g, "") : "";
+    const fd = path.join(d, c + ".dibujo.json"); if (fs.existsSync(fd)) try { dibujos[c] = leerJSON(fd); } catch {} }
+  return { nombre: n, ancho: j.ancho, alto: j.alto, capas, dibujos, origen: j.origen || "", paleta: j.paleta || null, orden: j.capas }; }
+function regenerarLaminas() { const todo = {};   // ilustraciones/todas.js (window.LAMINAS), igual que comun/lamina-vectorizar.py
+  for (const n of fs.readdirSync(DIR_LAM).sort()) { const L = leerLamina(n); if (L) todo[n] = { ancho: L.ancho, alto: L.alto, capas: L.capas }; }
+  fs.writeFileSync(path.join(DIR_LAM, "todas.js"), "window.LAMINAS = " + JSON.stringify(todo) + ";\n"); }
 // láminas vectoriales (ilustraciones/<nombre>/) que usan unas escenas → objeto para window.LAMINAS del vídeo
 function laminasDe(escenas) { const L = {};
   for (const esc of escenas) { const n = esc?.fondo?.tipo === "lamina" && esc.fondo.lamina; if (!n || L[n]) continue; const d = path.join(RAIZ, "ilustraciones", n), f = path.join(d, "lamina.json"); if (!fs.existsSync(f)) continue;
@@ -333,6 +342,18 @@ http.createServer(async (req, res) => {
   try {
     if (url === "/api/eventos") { res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive" }); res.write(": hola\n\n"); clientes.add(res); req.on("close", () => clientes.delete(res)); return; }
     if (url === "/api/audios") return enviarJSON(res, audios());
+    if (url === "/api/laminas" && req.method === "GET") return enviarJSON(res, fs.readdirSync(DIR_LAM).filter((n) => fs.existsSync(path.join(DIR_LAM, n, "lamina.json"))).map((n) => { const j = leerJSON(path.join(DIR_LAM, n, "lamina.json")); return { nombre: n, capas: j.capas, origen: j.origen || "" }; }));
+    { const ml = url.match(/^\/api\/laminas\/([a-z0-9][a-z0-9-]{0,60})(?:\/([a-z0-9][a-z0-9-]{0,40}))?$/);
+      if (ml) { const [, n, capa] = ml, d = path.join(DIR_LAM, n), fj = path.join(d, "lamina.json");
+        if (!capa && req.method === "GET") { const L = leerLamina(n); return L ? enviarJSON(res, L) : (res.writeHead(404), res.end()); }
+        if (!capa && req.method === "POST") { if (fs.existsSync(fj)) { res.writeHead(409); return res.end("ya existe"); } const b = JSON.parse(await cuerpo(req) || "{}"), capas = (b.capas || ["lejos", "medio", "delante"]).filter(idValido);
+          fs.mkdirSync(d, { recursive: true }); for (const c of capas) fs.writeFileSync(path.join(d, c + ".svg"), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 2752"></svg>');
+          fs.writeFileSync(fj, JSON.stringify({ nombre: n, ancho: 1536, alto: 2752, capas, origen: "dibujada en el editor" }, null, 2)); regenerarLaminas(); return enviarJSON(res, leerLamina(n)); }
+        if (capa && req.method === "PUT") { if (!fs.existsSync(fj)) { res.writeHead(404); return res.end(); } const b = JSON.parse(await cuerpo(req) || "{}"), j = leerJSON(fj);
+          fs.writeFileSync(path.join(d, capa + ".svg"), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${j.ancho} ${j.alto}">${b.svg || ""}</svg>`);
+          if (b.dibujo) fs.writeFileSync(path.join(d, capa + ".dibujo.json"), JSON.stringify(b.dibujo));
+          if (!j.capas.includes(capa)) { j.capas.push(capa); fs.writeFileSync(fj, JSON.stringify(j, null, 2)); }
+          regenerarLaminas(); return enviarJSON(res, leerLamina(n)); } } }
     if (url === "/api/imagenes") return enviarJSON(res, imagenes());
     if (url === "/api/envolvente") { const q = new URL(req.url, "http://x").searchParams.get("archivo") || "", f = path.resolve(RAIZ, q);
       if (!f.startsWith(path.resolve(RAIZ, "..")) || !fs.existsSync(f)) { res.writeHead(404); return res.end("no existe"); }
