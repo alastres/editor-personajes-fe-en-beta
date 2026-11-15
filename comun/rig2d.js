@@ -130,7 +130,15 @@
       const piv = top.length > 1 ? (top[0].prof >= top[1].prof ? top[0].o : top[1].o) : top[0].o;
       return { v, ws, piv };
     });
+    const v0 = info.map((x) => x.v.slice());
     return {
+      // SMART BONES (comun/libre.js): mover los puntos de reposo sin recalcular sus pesos (la deformación se escribe en el reposo)
+      fijar(P) { P.forEach((p, i) => { if (info[i] && p) info[i].v = [p[0], p[1]]; }); },
+      base: () => v0.map((p) => p.slice()),
+      // posición posada y giro de cada punto (para editar los puntos sobre el lienzo y pasar un arrastre al reposo)
+      poses(T) { return info.map(({ v, ws, piv }) => { let th = 0, cx = 0, cy = 0;
+        for (const [nm, w] of ws) { th += w * T[nm].th; const q = sk.punto(T, nm, piv); cx += w * q[0]; cy += w * q[1]; }
+        const r = rot(sub(v, piv), th); return [r[0] + cx, r[1] + cy, th]; }); },
       d(T) {
         const out = info.map(({ v, ws, piv }) => {
           let th = 0, cx = 0, cy = 0;
