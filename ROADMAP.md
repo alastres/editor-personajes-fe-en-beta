@@ -345,6 +345,30 @@ Por hacer:
   - Sin palma, y con dos dedos se mueve y se acerca la vista.
   - [ ] Pendiente: probarlo con una tableta real (Wacom, Huion, iPad con Sidecar) y afinar las curvas de presión. En el navegador de pruebas se simuló el lápiz.
   - [ ] Pendiente: más texturas (acuarela vectorial, carboncillo) y editar el grosor de un trazo ya hecho.
+  - [ ] *(pedido el 15 nov 2026)* **Brochas avanzadas sobre vectores, como las de Moho.**
+    - **Qué es:** la brocha es un estilo que se aplica sobre el trazado vectorial. El trazo sigue siendo una curva con sus puntos, que se edita, se anima y se dobla con los huesos, y la brocha lo «pinta» al dibujarlo. Cambiar de brocha no rehace el dibujo.
+    - **Brochas que simulen dibujo a mano**, empezando por las más útiles para el canal:
+      - lápiz de grafito, con grano, borde irregular y presión que oscurece;
+      - lápiz de color;
+      - carboncillo y difumino;
+      - tiza y pastel;
+      - cera;
+      - tinta con plumilla, con grosor por velocidad y presión;
+      - pincel seco;
+      - acuarela, con borde más oscuro y transparencia;
+      - rotulador;
+      - aerógrafo suave para sombras.
+    - **Ajustes de cada brocha**, como en Moho:
+      - textura o «sello» que se repite a lo largo del trazo;
+      - espaciado;
+      - ángulo, que siga la dirección del trazo o vaya fijo;
+      - variación al azar de tamaño, ángulo, posición y opacidad;
+      - mezcla del color con la textura del papel;
+      - semilla fija, para que no «hierva» en cada fotograma, o hervor a propósito para el estilo dibujado a mano;
+      - grosor variable a lo largo del trazo, editable después.
+    - **Biblioteca:** guardar brochas propias e importar texturas (PNG en escala de grises).
+    - **Que salga igual en el vídeo:** con filtros SVG o un patrón por trazo, y sin hacer lento el lienzo.
+    - Que sirva también en los rellenos: relleno sombreado a lápiz y trama.
 - [x] **App de escritorio** (Electron, `app-escritorio/`, versión 0.1).
   - Instalador de Windows de 93 MB.
   - Arranca el servidor por dentro, guarda los datos en Documentos/Fe en Beta Editor y la primera vez copia los ejemplos.
