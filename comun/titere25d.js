@@ -255,6 +255,14 @@
         for (const k in em) if (typeof em[k] === "number") EXP[k] += (em[k] - (k === "ancho" || k === "ojoK" ? 1 : 0)) * w; }
     }
     const KAP = 0.5523, RC = 58;
+    // MEDIA ANCHURA DE LA CARA a cada altura (el cráneo en «U»: recta de -30 a 26, curva arriba y barbilla abajo). Los rasgos que la
+    // usan (cara: true) se apoyan en ESTE contorno al girar y no en una esfera: antes, en perfil, la boca (a la altura de la mandíbula,
+    // donde la cara ya se estrecha) quedaba flotando por delante de la cara
+    const WCARA = (() => { const bz = (p, t) => { const u = 1 - t; return u * u * u * p[0] + 3 * u * u * t * p[1] + 3 * u * t * t * p[2] + t * t * t * p[3]; };
+      const tab = (xs, ys) => { const o = []; for (let i = 0; i <= 40; i++) o.push([bz(ys, i / 40), bz(xs, i / 40)]); return o.sort((a, b) => a[0] - b[0]); };
+      const abajo = tab([58, 58, 32, 0], [26, 56, 78, 78]), arriba = tab([58, 58, 34, 0], [-30, -58, -78, -78]);
+      const en = (t, y) => { for (let i = 1; i < t.length; i++) if (y <= t[i][0]) { const [y0, x0] = t[i - 1], [y1, x1] = t[i]; return y1 > y0 ? x0 + (x1 - x0) * (y - y0) / (y1 - y0) : x1; } return t[t.length - 1][1]; };
+      return (y) => (y >= -30 && y <= 26 ? RC : y > 26 ? (y >= 78 ? 0 : en(abajo, y)) : (y <= -78 ? 0 : en(arriba, y))); })();
     const elD = (cx, cy, rx, ry) => `M${cx + rx} ${cy} C ${cx + rx} ${cy + ry * KAP} ${cx + rx * KAP} ${cy + ry} ${cx} ${cy + ry} C ${cx - rx * KAP} ${cy + ry} ${cx - rx} ${cy + ry * KAP} ${cx - rx} ${cy} C ${cx - rx} ${cy - ry * KAP} ${cx - rx * KAP} ${cy - ry} ${cx} ${cy - ry} C ${cx + rx * KAP} ${cy - ry} ${cx + rx} ${cy - ry * KAP} ${cx + rx} ${cy} Z`;
     const CABF = []; let OCULTO = new Set();
     // prof: k (cuánto sigue la superficie), z (profundidad extra), w (cuánto se queda quieto: la silueta no gira),
@@ -328,7 +336,7 @@
     const formaBoca = (x, y) => { const L = labios();
       if (Math.abs(x) > 6) return [Math.sign(x) * L.an, L.com];                                // comisuras: suben al sonreír, bajan tristes
       return y < 51 ? [0, L.arriba] : [0, L.abajo]; };                                         // labio de arriba (más recto si ríe) y de abajo
-    const BOCA = { k: 1, z: 6 }, bocaIn = barba ? mix(C.boca, "#b0404e", 0.45) : C.boca;
+    const BOCA = { k: 1, z: 6, cara: true, zP: -7 }, bocaIn = barba ? mix(C.boca, "#b0404e", 0.45) : C.boca;
     const clipBoca = el("path", { d: "" }, el("clipPath", { id: id + "-boca" }, defs));
     const bocaF = CF("M-12 48 Q 0 50 12 48 Q 0 52 -12 48 Z", BOCA, { fill: bocaIn, stroke: bocaIn, "stroke-width": barba ? 3 : 6, "stroke-linejoin": "round" }, gC, formaBoca);
     bocaF._copia = clipBoca;
@@ -338,8 +346,8 @@
     CF(elD(0, 60, 9, 5), BOCA, R_("#d0606e"), gDentro, (x, y) => { const L = labios(); return [x * EXP.ancho, L.abajo - 1 + (y - 60) * 0.9]; });   // lengua
     if (barba) CF("M-12 48 Q 0 50 12 48 Q 0 52 -12 48 Z", BOCA, T_(mix(C.piel, C.mejilla, 0.35), 3.5), gC, (x, y) => { const L = labios();
       if (Math.abs(x) > 6) return [Math.sign(x) * (L.an + 1.5), L.com]; return y < 51 ? [0, L.arriba - 1] : [0, L.abajo + 1.5]; });   // labios
-    if (barba) CF("M-26 38 C -13 29 13 29 26 38", { k: 1, z: 9 }, T_(C.pelo, 12));
-    CF(elD(0, 25, 10, 7.5), { k: 1, z: 12 }, R_(C.nariz));
+    if (barba) CF("M-26 38 C -13 29 13 29 26 38", { k: 1, z: 9, cara: true, zP: 2 }, T_(C.pelo, 12));
+    CF(elD(0, 25, 10, 7.5), { k: 1, z: 12, cara: true, zP: 6 }, R_(C.nariz));   // de perfil asoma pegada al contorno, no suelta
     // la oreja del lado cercano, ENCIMA de la barba (en perfil la barba la tapaba entera) y debajo del flequillo
     for (const o of lados) gC.appendChild(o.oreja);
     // 8 · flequillo: anclado arriba, su borde (la línea de la frente, ~⅓) corre con la cara sin salirse del cráneo
@@ -491,9 +499,22 @@
         let rig = null; if ((pr === OREJA || pr === PATILLA) && fz.pts.length) { const cx = fz.pts.reduce((s, p) => s + p[0], 0) / fz.pts.length, sup = Math.sqrt(Math.max(0, RC * RC - cx * cx)), z = pr.k * sup + pr.z;
           rig = { dx: cx * Math.cos(aa) + z * Math.sin(aa) - cx, dy: TILT_H * (-cx * Math.sin(aa) + z * Math.cos(aa)) }; }
         const pts = rig ? fz.pts.map(([x, y]) => [c[0] + x + rig.dx, c[1] + y + rig.dy]) : fz.pts.map(([x, y]) => { if (fz.pre) [x, y] = fz.pre(x, y);
-          const sup = Math.sqrt(Math.max(0, RC * RC - x * x)), z = pr.f ? pr.f(x, sup) : pr.k * sup + pr.z;
-          const zr = -x * Math.sin(aa) + z * Math.cos(aa), w = typeof pr.w === "function" ? pr.w(x, y) : pr.w || 0;
+          // cara: apoyado en el contorno real a su altura; zP: cuánto sobresale de perfil (de frente sobresale z)
+          const R0 = pr.cara ? WCARA(y) : RC, s2 = Math.sin(aa) * Math.sin(aa), z0 = pr.zP == null ? pr.z : pr.z + (pr.zP - pr.z) * s2;
+          const sup = Math.sqrt(Math.max(0, R0 * R0 - x * x)), z = pr.f ? pr.f(x, sup) : pr.k * sup + z0;
+          let w = typeof pr.w === "function" ? pr.w(x, y) : pr.w || 0; const zr = -x * Math.sin(aa) + z * Math.cos(aa);
+          // la barba se queda medio quieta en 3/4 (que no adelgace), pero cerca del perfil gira entera: si no, su frente se quedaba
+          // atrás y la boca y el bigote flotaban delante de ella
+          if (pr === BARBA) w *= Math.min(1, Math.max(0, (Math.abs(Math.cos(aa)) - 0.3) / 0.4071));
           let xg = x * Math.cos(aa) + z * Math.sin(aa);          // lo que gira; el límite solo frena esto, no el contorno fijo
+          // BARBA: el borde del lado que se aleja se convertía en perfil en el frente de la barba y se metía hacia dentro (barba como una
+          // tira y la boca por delante); al esconderse va hacia el frente real de la barba (su línea del centro), nunca hacia atrás
+          if (pr === BARBA && zr < 0) { const sg = Math.sign(Math.sin(aa)) || 1, xc = (pr.k * R0 + z0) * Math.sin(aa), t = Math.min(1, -zr / RC);
+            xg = sg * Math.max(sg * xg, sg * (xg + (xc - xg) * t)); }
+          // y el borde del lado cercano, por debajo de la oreja, se va hacia atrás hasta el ángulo de la mandíbula: en perfil quedaba una
+          // cuña de piel entre la patilla y la barba (que bajaba en diagonal hasta la barbilla)
+          if (pr === BARBA && zr > 0 && y > 20) { const sg = Math.sign(Math.sin(aa)) || 1, s4 = s2 * s2, t = Math.min(1, Math.abs(x) / RC) * s4 * Math.min(1, (y - 20) / 30), xb = -78 * Math.sin(aa);   // (los puntos son de control: la curva queda bastante más adelante)
+            xg = sg * Math.min(sg * xg, sg * (xg + (xb - xg) * t)); }
           if (pr.lim) { const l0 = pr.lim * 0.75, ax = Math.abs(xg); if (ax > l0) xg = Math.sign(xg) * (l0 + (pr.lim - l0) * Math.tanh((ax - l0) / (pr.lim - l0))); }
           const xr = lerp(xg, x, w) + (pr.desp || 0) * Math.sin(aa);
           // BARBA: el rincón de arriba del lado que se aleja (junto a la oreja lejana) quedaba en perfil delante de la cara, como una

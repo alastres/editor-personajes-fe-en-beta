@@ -887,6 +887,13 @@ Arreglos en la cabeza (`comun/titere25d.js`). Valen para todos los personajes co
 **Barba**
 - El rincón del lado que se aleja ya no sube hasta el ojo como una astilla en perfil: baja hacia la mandíbula según se esconde.
 
+**Nariz, boca y barba en perfil** (corregido tras verlo el usuario)
+- La nariz, la boca y el bigote quedaban fuera de la cara. Se colocaban sobre una esfera, pero la cara se estrecha hacia la barbilla. Ahora se apoyan en el contorno real de la cara a su altura (`cara: true`). De perfil se meten hacia el borde (`zP`): la nariz asoma pegada y la boca queda dentro.
+- La barba gira entera cerca del perfil, en vez de quedarse medio quieta y retrasada.
+- Su borde del lado que se aleja va hacia el frente real de la barba. Así ya no es una tira con la boca delante.
+- Su borde cercano baja de la patilla al ángulo de la mandíbula y cubre la quijada, sin cuña de piel.
+- En 3/4 apenas cambia.
+
 **«Pedro (vectorial)»**
 - Se ha vuelto a copiar el cuerpo en vectores. La copia era anterior a los últimos cambios del motor y el cinturón colgaba como un aro.
 - Se ha vuelto a copiar la cabeza. Estaba desfasada tras cambiar el pelo a corto.

@@ -311,6 +311,7 @@ Por hacer:
   - orejas y patillas que se desplazan enteras en vez de aplastarse;
   - la barba ya no sube como una astilla hasta el ojo en perfil;
   - más pelo en la nuca.
+  - nariz, boca y bigote apoyados en el contorno real de la cara (de perfil ya no flotan fuera); la barba de perfil cubre la quijada y llega a la boca.
   - [ ] Pendiente, por el estilo 2,5D: a 67,5° el ojo lejano queda cortado por el borde de la cara.
 - [x] **Cada forma, su hueso** en la marioneta libre (15 nov 2026): dentro de una capa, cada forma puede seguir a un hueso sin doblarse (mandíbula, ojo, ala), también en grupos líquidos y con formas clave.
 - [x] **Formas clave** (animar los puntos de un dibujo, como en Moho; 15 nov 2026).
