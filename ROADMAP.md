@@ -74,6 +74,16 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 - [x] *(13 nov 2026: restar con «Agujero», que hace de máscara; unir = agrupar formas del mismo color)* **Unir y restar formas** (operaciones booleanas) y agrupar formas.
 - [x] *(13 nov 2026)* **Calco:** importar un PNG o un boceto de Flow como plantilla semitransparente para dibujar encima.
 - [x] *(13 nov 2026: herramienta Texto con tamaño y color; va como texto, no convertido en curvas)* **Texto** convertido en formas (carteles, inscripciones).
+- [ ] *(pedido el 15 nov 2026)* **Selección de puntos con lazo:**
+  - rodear a mano alzada un grupo de puntos y tiradores, de una o varias formas, para moverlos, girarlos o escalarlos juntos;
+  - sumar con Mayús y restar con Alt.
+  - El lazo de ahora dibuja una forma nueva; este selecciona puntos de lo ya dibujado.
+- [ ] *(pedido el 15 nov 2026)* **Imán (selección suave, como licuar):**
+  - se arrastra un punto y los vecinos le siguen menos cuanto más lejos están;
+  - el grosor o radio del imán marca hasta dónde llega la influencia, con una caída suave;
+  - se cambia con la rueda o con [ ] y, con tableta, con la presión;
+  - un círculo en el lienzo enseña el alcance.
+  - Que sirva en el taller, en las formas clave, en las correcciones por ángulo y en el editor de Smart Bones.
 
 ### Render
 - [x] *(13 nov 2026)* **Vista previa rápida** a baja resolución y render solo de un fragmento.
