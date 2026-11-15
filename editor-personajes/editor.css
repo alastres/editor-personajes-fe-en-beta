@@ -371,3 +371,13 @@ body:not(.es-libre) .libre-solo, body:not(.es-libre) details.libre-bloque { disp
 .lb-fc-fila { display: flex !important; flex-wrap: wrap; gap: 4px 6px; }
 .lb-fc-fila > span:first-child { flex: 0 1 auto; max-width: 45%; font-weight: 600; }
 .lb-fc-fila select { flex: 1 1 110px; }
+
+/* Smart Bones (editor-smart.js) */
+.lb-smart { border: 1px solid var(--acento); border-radius: 10px; padding: 10px; margin: 6px 0 12px; background: var(--acento-t, #f2a5411c); display: grid; gap: 8px; }
+.lb-smart .sb-cab { display: flex; align-items: center; gap: 8px; } .lb-smart .sb-cab .sb-salir { margin-left: auto; }
+.lb-smart .sb-linea { width: 100%; height: 46px; display: block; cursor: ew-resize; touch-action: none; }
+.lb-smart .sb-fila { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+.lb-smart .sb-fila input[type=range] { flex: 1; min-width: 90px; }
+.lb-smart .sb-fila button { padding: 5px 9px; font-size: 12px; }
+#lb-huesos li { grid-template-columns: 18px minmax(0, 1fr) minmax(0, 1fr) auto auto auto !important; }
+.lb-smart-b { opacity: .5; } .lb-smart-b.con { opacity: 1; color: var(--acento); } .lb-smart-b.activo { opacity: 1; background: var(--acento); color: #1d1408; border-color: var(--acento); }

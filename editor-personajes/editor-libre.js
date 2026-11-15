@@ -22,7 +22,8 @@
       pad.value = b.padre || ""; pad.addEventListener("change", () => E.cambio((x) => { const q = x.libre.huesos.find((y) => y.nombre === b.nombre); q.padre = pad.value || null; ordenar(x.libre); }));
       const clav = (l.clavados || []).includes(b.nombre), pin = h("button", { class: "lb-pin" + (clav ? " activo" : ""), title: b.padre ? (clav ? "Clavado: su punta se queda en el suelo. Pulsa para soltarlo" : "Clavar: su punta se queda quieta (un pie en el suelo) y él y su padre se doblan solos") : "Solo se clava un hueso con padre (la pata de una pierna)", ...(b.padre ? {} : { disabled: "" }),
         onclick: () => E.cambio((x) => { const c = new Set(x.libre.clavados || []); c.has(b.nombre) ? c.delete(b.nombre) : c.add(b.nombre); x.libre.clavados = [...c]; if (!x.libre.clavados.length) delete x.libre.clavados; }) }, "📌");
-      return h("li", { class: b.nombre === sel ? "activo" : "", onclick: (ev) => { if (ev.target.closest("input,select,button")) return; sel = b.nombre; pintar(); fotograma(E.m); } }, h("span", {}, "╱"), nom, pad, pin,
+      const nk = b.smart?.claves?.length || 0, smart = h("button", { class: "lb-smart-b" + (window.EPS?.estado?.hueso === b.nombre ? " activo" : nk ? " con" : ""), title: `Smart Bone: al girar este hueso, el dibujo cambia como tú lo dibujes en cada ángulo (como en Moho)${nk ? ` · ${nk} clave${nk > 1 ? "s" : ""}` : ""}${b.dial ? " · dial" : ""}`, onclick: () => window.EPS?.editar(b.nombre) }, b.dial ? "🎛" : "⚡");
+      return h("li", { class: b.nombre === sel ? "activo" : "", onclick: (ev) => { if (ev.target.closest("input,select,button")) return; sel = b.nombre; pintar(); fotograma(E.m); } }, h("span", {}, "╱"), nom, pad, smart, pin,
         h("button", { title: "Borrar el hueso (sus hijos pasan a su padre)", onclick: () => borrarHueso(b.nombre) }, "✕")); }));
     uc.replaceChildren(...l.capas.map((c, i) => { const hs = h("select", { title: "Con qué hueso se mueve" }, h("option", { value: "" }, c.imagen ? "Rígida, al hueso más cercano" : "Se dobla con todos los huesos"), ...l.huesos.map((x) => h("option", { value: x.nombre }, "Pegada a «" + x.nombre + "»")));
       hs.value = c.hueso || ""; hs.addEventListener("change", () => E.cambio((x) => { const q = x.libre.capas[i]; if (hs.value) q.hueso = hs.value; else delete q.hueso; }));
@@ -81,7 +82,7 @@
   // coordenadas del personaje (las del grupo del cuerpo) desde el ratón
   const local = (ev) => { const g = E.m?.g?.lastChild; if (!g) return [0, 0]; const pt = $("#lienzo").createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const q = pt.matrixTransform(g.getScreenCTM().inverse()); return [q.x, q.y]; };
   const lienzo = $("#lienzo");
-  lienzo.addEventListener("pointerdown", (ev) => { if (!esLibre()) return; const anim = document.body.classList.contains("modo-anim"), t = ev.target.closest("[data-hueso]"), p = local(ev);
+  lienzo.addEventListener("pointerdown", (ev) => { if (!esLibre() || window.EPS?.activo?.()) return; const anim = document.body.classList.contains("modo-anim"), t = ev.target.closest("[data-hueso]"), p = local(ev);
     if (!anim && modo === "hueso") { ev.preventDefault(); ev.stopPropagation(); arr = { tipo: "nuevo", o: p, e: p }; try { lienzo.setPointerCapture(ev.pointerId); } catch {} return; }
     if (!t) return; ev.preventDefault(); ev.stopPropagation(); sel = t.dataset.hueso; try { lienzo.setPointerCapture(ev.pointerId); } catch {}
     arr = anim ? { tipo: "girar", n: sel } : { tipo: "punto", n: sel, punto: t.dataset.punto || "e", p0: p }; pintar(); fotograma(E.m); }, true);
@@ -122,5 +123,5 @@
   $("#lb-capa-dibujo")?.addEventListener("click", () => editarCapa(null));
   $("#lb-capa-png")?.addEventListener("click", () => $("#lb-png").click());
   $("#lb-png")?.addEventListener("change", (ev) => { const f = ev.target.files?.[0]; if (f) traerPNG(f); ev.target.value = ""; });
-  window.EPL = { reconstruir: () => { document.body.classList.toggle("es-libre", esLibre()); pintar(); pintarPosar(); fotograma(E.m); }, fotograma: (m) => { fotograma(m); pintarPosar(); }, EJEMPLO };
+  window.EPL = { pintar: () => pintar(), reconstruir: () => { document.body.classList.toggle("es-libre", esLibre()); pintar(); pintarPosar(); fotograma(E.m); }, fotograma: (m) => { fotograma(m); pintarPosar(); }, EJEMPLO };
 })();

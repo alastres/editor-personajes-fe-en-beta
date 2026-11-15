@@ -27,7 +27,7 @@
       const opM = c.hueso && sk.H[c.hueso] ? { rigido: c.hueso } : { huesos: nombres };
       // cada trazado puede ir atado a su propio hueso (data-hueso, puesto en el taller por forma): lo sigue sin doblarse
       const opDe = (e) => { const hz = e.closest("[data-hueso]")?.getAttribute("data-hueso"); return hz && sk.H[hz] ? { rigido: hz } : opM; };
-      const mallas = [...g.querySelectorAll("path")].map((e, idx) => { const d = e.getAttribute("d") || "", op = opDe(e); try { const m = Rig2D.malla(sk, d, op); return { e, idx, d0: d, op, m, P0: m.base() }; } catch { return null; } }).filter(Boolean);
+      const mallas = [...g.querySelectorAll("path")].map((e, idx) => { const d = e.getAttribute("d") || "", op = opDe(e); try { const m = Rig2D.malla(sk, d, op), anc = []; for (const [, n] of Rig2D.parsear(d).cmds) for (let k = 0; k < n; k++) anc.push(k === n - 1); return { e, idx, d0: d, op, m, P0: m.base(), anc }; } catch { return null; } }).filter(Boolean);
       // FORMAS CLAVE (comun/titere25d.js, morfo): con otros pesos, la malla de cada trazado se rehace sobre su forma mezclada
       const morf = c.formasClave?.length && window.Titere25D?.morfo ? Titere25D.morfo(g, c.formasClave) : null;
       return { g, mallas, morf, opM, id: c.id, firma: "", fcs: c.formasClave || [] }; });
@@ -98,7 +98,7 @@
     // para el editor: giros (en grados) de un hueso y su padre para que la punta llegue a `obj`, desde la pose de ahora
     const ikGrados = (hs, b, obj) => { const pose = poseDe(hs); if (!ik2(pose, b, obj)) return null; const a = sk.H[b].padre, g = (r) => +((r * 180) / Math.PI).toFixed(1); return { [a]: g(pose[a]), [b]: g(pose[b]) }; };
     // para el editor de Smart Bones: cada punto de cada trazado, posado (coordenadas del cuerpo) y con el giro que le dan sus huesos
-    const editables = () => !T ? [] : capas.filter((c) => c.mallas?.length).flatMap((c) => c.mallas.map((M) => ({ capa: c.id, idx: M.idx, puntos: M.m.poses(T) })));
+    const editables = () => !T ? [] : capas.filter((c) => c.mallas?.length).flatMap((c) => c.mallas.map((M) => ({ capa: c.id, idx: M.idx, puntos: M.m.poses(T), anclas: M.anc, n: M.P0.length })));
     return { g: raiz, dibujar, escala: [1, 1], puntos, libre: true, esqueleto: juntas, ikGrados, clavados, editables, smart: () => ultimoSmart, juntas: {}, partes: () => ({}), controles: () => ({}) };
   }
   window.Libre = { crear, BASE };
