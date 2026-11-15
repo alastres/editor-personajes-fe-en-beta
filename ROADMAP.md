@@ -340,6 +340,27 @@ Por hacer:
 - [x] **Formas clave** (animar los puntos de un dibujo, como en Moho; 15 nov 2026).
   - Otras versiones de una pieza o capa con los mismos puntos movidos, que se mezclan con deslizadores, claves y curvas. Las formas líquidas se recalculan con ellas: una boca que resta se abre.
   - [ ] Pendiente: en las piezas que se doblan (`doblar`); en las capas de las láminas y en el atrezo dibujado; y un modo «animar puntos» directamente en la línea de tiempo, sin pasar por el taller.
+- [x] **Marionetas complejas** (15 nov 2026), generadas por `editor-personajes/generadores/marioneta-compleja.js`. Hoja de revisión: `/audio/editor-personajes/generadores/prueba-compleja.html?id=…`. Escena de prueba: `prueba-marioneta-compleja`.
+  - **Eliab, pastor:** 63 huesos.
+    - Columna en tres tramos, cuello y clavículas: los hombros suben.
+    - Dedos de perfil con tres falanges y pulgar de dos, con diales `puno` y `senala`.
+    - Tobillo y dedos del pie.
+    - Cara con 18 formas clave: párpados, cejas en tres puntos, mejillas, boca, barbilla, miradas y guiño.
+    - Ropa por capas: túnica con cenefa, faja con colas, correa y zurrón, cinta con colas. El cayado es una variante.
+    - Cinco acciones: esperar, saludar, contar con los dedos, no sé y señalar.
+  - **Oveja:** 22 huesos.
+    - Patas de tres tramos.
+    - Mandíbula que bala con la voz.
+    - Orejas y cola con física.
+    - Dial «pacer».
+    - Tres acciones: andar, pacer y balar.
+  - **Motor (`comun/libre.js`):**
+    - `hueso.fisica` (péndulo, con `colgar`). También precalcula el segundo anterior en Escenas.
+    - Cara automática: las formas clave `parpadeo`, `abre`, `ancha`, `estrecha`, `dientes` y las que se llaman como una emoción se mueven solas.
+    - `hueso.habla` (mandíbula).
+    - Pesos limitados con `capa.huesos` o `data-huesos`.
+    - Variantes con `capa.grupo`, que también salen en la fila de Variantes del editor.
+  - [ ] Pendiente: el giro de espaldas solo refleja la tarjeta (la cara sigue delante); una vista de espaldas o de 3/4 propia como variante.
 - [x] **Formas líquidas** (como las *liquid shapes* de Moho, hecho el 15 nov 2026): unir, restar e intersecar formas sin perderlas.
   - Cada una sigue siendo una forma con sus puntos, que se anima y se dobla con los huesos.
   - Se combinan al dibujar, con máscaras y recortes SVG, y el contorno de la unión se saca con el truco de pintar los trazos debajo de los rellenos.

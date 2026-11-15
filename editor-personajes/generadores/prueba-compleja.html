@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Prueba · marionetas complejas</title>
+<style>
+  body { margin: 0; background: #1c1230; color: #eee; font: 13px system-ui, sans-serif; }
+  h2 { font-size: 14px; margin: 14px 10px 4px; color: #ffd08a; }
+  .fila { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px; }
+  figure { margin: 0; background: #2a2148; border-radius: 6px; }
+  figcaption { font-size: 11px; padding: 2px 6px; color: #cfc6e6; }
+  svg { display: block; }
+</style></head>
+<body>
+<script src="/comun/titere25d.js"></script>
+<script src="/comun/rig2d.js"></script>
+<script src="/comun/libre.js"></script>
+<script src="/comun/personajes.js"></script>
+<script>
+// /generadores/prueba-compleja.html?id=eliab-pastor : reposo, acciones a varios tiempos, cada forma clave en grande y los diales
+(async function () {
+  const NS = "http://www.w3.org/2000/svg", q = new URLSearchParams(location.search), id = q.get("id") || "eliab-pastor";
+  const j = await (await fetch("/api/personajes/" + id)).json();
+  const caja = (t, vb, w, h) => { const f = document.createElement("figure"), s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", vb); s.setAttribute("width", w); s.setAttribute("height", h);
+    const c = document.createElement("figcaption"); c.textContent = t; f.append(s, c); return { f, s }; };
+  const fila = (titulo) => { const h = document.createElement("h2"); h.textContent = titulo; const d = document.createElement("div"); d.className = "fila"; document.body.append(h, d); return d; };
+  const libre = j.tipo === "libre", VB = id.startsWith("oveja") ? "-140 -300 330 310" : "-230 -760 460 780", W = id.startsWith("oveja") ? 260 : 230, Hh = id.startsWith("oveja") ? 244 : 390;
+  const dibuja = (cont, t, e, vb = VB, w = W, h = Hh) => { const { f, s } = caja(t, vb, w, h); cont.append(f); const m = Personajes.crear(s, j); m.dibujar(Object.assign({ t: 0 }, e)); return m; };
+  const desdePose = (p) => Personajes.pose ? Personajes.pose(p, {}) : p;
+  let F = fila("Reposo y variantes");
+  dibuja(F, "reposo", {}); dibuja(F, "con cayado", { variantes: { cayado: "con-cayado" } });
+  dibuja(F, "girado 180° (espaldas)", { torso: Math.PI });
+  for (const a of j.acciones || []) { F = fila("Acción · " + a.nombre); const D = a.duracion || 1;
+    for (let i = 0; i < 6; i++) { const t = (D * i) / 5; dibuja(F, t.toFixed(2) + " s", desdePose(Personajes.accionPose(a, t))); } }
+  // diales y huesos con smart
+  const diales = (j.libre?.huesos || []).filter((h) => h.dial);
+  if (diales.length) { F = fila("Diales (Smart Bones) a 0°, 45° y 90°");
+    for (const d of diales) for (const g of [45, 90]) dibuja(F, d.nombre + " " + g + "°", { huesos: { [d.nombre]: g } }, id.startsWith("oveja") ? VB : (d.nombre.endsWith("Der") ? "-150 -270 90 80" : "60 -270 90 80"), 180, 160); }
+  // formas clave en grande (la cara)
+  for (const c of j.libre?.capas || []) if (c.formasClave?.length) { F = fila("Formas clave · " + c.nombre);
+    const vb = id.startsWith("oveja") ? "95 -235 100 90" : "-80 -620 160 190";
+    dibuja(F, "base", {}, vb, 170, id.startsWith("oveja") ? 150 : 200);
+    for (const k of c.formasClave) dibuja(F, k.nombre, { formas: { [c.id + "/" + k.id]: 1 } }, vb, 170, id.startsWith("oveja") ? 150 : 200); }
+  // cara automática: voz y emociones por la vía de la escena (e.cara, e.boca, e.visema, e.parpadeo)
+  F = fila("Cara automática (como en Escenas)");
+  const vbC = id.startsWith("oveja") ? "95 -235 100 90" : "-80 -620 160 190";
+  for (const [t, e] of [["parpadeo 0,1", { parpadeo: 0.1 }], ["voz boca 0,8", { boca: 0.8 }], ["visema O", { visema: { abre: 0.7, ancho: 0.6, dientes: 0 } }], ["visema E", { visema: { abre: 0.4, ancho: 1.25, dientes: 0.8 } }], ["alegre + voz", { cara: { alegre: 1 }, boca: 0.5 }], ["enfado 1", { cara: { enfado: 1 } }]])
+    dibuja(F, t, e, vbC, 170, id.startsWith("oveja") ? 150 : 200);
+  // física: el cuerpo frena en seco (mundo de 0 a 300 en 0,5 s y para) y se dibuja a 0,6 s
+  F = fila("Física: frenazo tras correr a la derecha");
+  for (const tf of [0.55, 0.65, 0.8]) { const { f, s } = caja("t = " + tf + " s", VB, W, Hh); F.append(f); const m = Personajes.crear(s, j);
+    for (let t = 0; t <= tf + 1e-6; t += 1 / 30) m.dibujar({ t, mundo: [Math.min(300, t * 600), 0] }); }
+  document.title = "LISTO";
+})().catch((e) => { document.body.append("ERROR: " + e.message); console.error(e); document.title = "ERROR"; });
+// ver([["Contar", 0], ["Contar", 2]], "x y w h", columnas): amplía casillas de la hoja en una capa encima, para revisar de cerca
+window.ver = (lista, vb, cols) => { let o = document.getElementById("zz"); if (!o) { o = document.createElement("div"); o.id = "zz"; o.style.cssText = "position:fixed;inset:0;background:#1c1230;z-index:9;display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start"; o.onclick = () => o.remove(); document.body.append(o); }
+  o.replaceChildren(); const figs = lista.map(([sec, i]) => [...document.querySelectorAll("h2")].find((x) => x.textContent.includes(sec)).nextElementSibling.children[i]), n = cols || figs.length;
+  for (const f of figs) { const s = f.querySelector("svg").cloneNode(true); if (vb) s.setAttribute("viewBox", vb); s.setAttribute("width", 790 / n - 4); s.setAttribute("height", cols ? 790 / n - 4 : 600);
+    const w = document.createElement("div"), c = document.createElement("span"); w.style.position = "relative"; c.textContent = f.querySelector("figcaption").textContent; c.style.cssText = "position:absolute;left:3px;top:2px;font-size:10px;color:#ffd08a"; w.append(s, c); o.append(w); }
+  return figs.length; };
+</script>
+</body></html>

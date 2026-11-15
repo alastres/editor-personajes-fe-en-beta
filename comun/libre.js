@@ -24,9 +24,13 @@
         const hb = c.hueso && sk?.H[c.hueso] ? c.hueso : sk ? nombres.reduce((m, n) => (Rig2D.distSeg([cx, cy], sk.H[n].o, sk.H[n].e).d < Rig2D.distSeg([cx, cy], sk.H[m].o, sk.H[m].e).d ? n : m)) : null;
         return { g, im, hueso: hb, rigida: true }; }
       g.innerHTML = c.svg || ""; window.Titere25D?.idsUnicos?.(g); if (!sk) return { g, mallas: [] };
-      const opM = c.hueso && sk.H[c.hueso] ? { rigido: c.hueso } : { huesos: nombres };
+      // capa.huesos (lista) o data-huesos="a,b" en una forma o grupo: los pesos automáticos solo se reparten entre esos huesos (una pierna
+      // que no se deja arrastrar por la mano que cuelga al lado, una manga que solo sigue al brazo y al hombro)
+      const lista = (v) => { const xs = (Array.isArray(v) ? v : String(v || "").split(",")).map((s) => String(s).trim()).filter((s) => sk.H[s]); return xs.length ? xs : null; };
+      const opM = c.hueso && sk.H[c.hueso] ? { rigido: c.hueso } : { huesos: lista(c.huesos) || nombres };
       // cada trazado puede ir atado a su propio hueso (data-hueso, puesto en el taller por forma): lo sigue sin doblarse
-      const opDe = (e) => { const hz = e.closest("[data-hueso]")?.getAttribute("data-hueso"); return hz && sk.H[hz] ? { rigido: hz } : opM; };
+      const opDe = (e) => { const hz = e.closest("[data-hueso]")?.getAttribute("data-hueso"); if (hz && sk.H[hz]) return { rigido: hz };
+        const hs = lista(e.closest("[data-huesos]")?.getAttribute("data-huesos")); return hs ? { huesos: hs } : opM; };
       const mallas = [...g.querySelectorAll("path")].map((e, idx) => { const d = e.getAttribute("d") || "", op = opDe(e); try { const m = Rig2D.malla(sk, d, op), anc = []; for (const [, n] of Rig2D.parsear(d).cmds) for (let k = 0; k < n; k++) anc.push(k === n - 1); return { e, idx, d0: d, op, m, P0: m.base(), anc }; } catch { return null; } }).filter(Boolean);
       // FORMAS CLAVE (comun/titere25d.js, morfo): con otros pesos, la malla de cada trazado se rehace sobre su forma mezclada
       const morf = c.formasClave?.length && window.Titere25D?.morfo ? Titere25D.morfo(g, c.formasClave) : null;
@@ -61,8 +65,35 @@
         else for (let i = 0; i < ks.length - 1; i++) { const A = ks[i], B = ks[i + 1]; if (a < A.ang || a > B.ang) continue;
           const t = (a - A.ang) / (B.ang - A.ang || 1), f = (CURVAS[(a >= 0 ? B : A).curva || "suave"] || CURVAS.suave)(t); suma(A, 1 - f); suma(B, f); break; } }
       return out; }
+    // ---- FÍSICA POR HUESO (15 nov 2026): hueso.fisica = { rigidez 0…1, amortiguacion 0…1, peso, colgar }. El hueso se balancea sobre su
+    //   origen según la aceleración horizontal de ese punto en el mundo (péndulo amortiguado, el mismo que las piezas del muñeco). Con
+    //   «colgar» el hueso no hereda el giro de su padre: sigue apuntando hacia donde apuntaba en reposo (una bolsa, una borla, un cordón).
+    //   El tiempo llega en e.t; si salta hacia atrás o más de 0,25 s vuelve al reposo (las escenas precalculan el segundo anterior).
+    const FIS = huesos.filter((h) => h.fisica && h.fisica.activa !== false && h.padre && sk?.H[h.padre]).map((h) => ({ n: h.nombre, F: h.fisica, st: null }));
+    let TT = 0, MUNDO = [0, 0];
+    function pendulo(P, x) { const F = P.F, st = P.st, K = 20 + 380 * (F.rigidez ?? 0.4), C = 1 + 14 * (F.amortiguacion ?? 0.35), S = 0.006 * (F.peso ?? 1);
+      if (st && TT === st.t) return st.th;
+      if (!st || !(TT > st.t) || TT - st.t > 0.25) { P.st = { t: TT, x, vx: 0, th: 0, w: 0 }; return 0; }
+      const dt = TT - st.t, vx = (x - st.x) / dt, ax = Math.max(-25000, Math.min(25000, (vx - st.vx) / dt)), n = Math.ceil(dt * 240), hh = dt / n;
+      for (let i = 0; i < n; i++) { st.w += (-K * st.th - C * st.w + S * ax) * hh;   // + : al acelerar hacia +x la punta se queda atrás (giro horario)
+        st.th = Math.max(-1.2, Math.min(1.2, st.th + st.w * hh)); }
+      Object.assign(st, { t: TT, x, vx }); return st.th; }
+    // ---- CARA AUTOMÁTICA (15 nov 2026): formas clave con nombres reservados que se mueven solas, como la cara del muñeco:
+    //   «parpadeo» (el parpadeo de siempre), «abre» (la boca con la voz o los fonemas), «ancha» / «estrecha» (la anchura de los fonemas),
+    //   «dientes», y una por emoción con su nombre («alegre», «triste», «enfado», «sorpresa», «miedo», «pensativo», «verguenza», «risa»…)
+    //   que toma el peso de la cara de la escena. Un hueso con «habla: grados» (la mandíbula) se abre con la boca.
+    const HABLA = huesos.filter((h) => h.habla && sk?.H[h.nombre]);
+    function caraAuto(e) { const a = { parpadeo: 1 - Math.max(0, Math.min(1, e.parpadeo ?? 1)) }, v = e.visema;
+      for (const [k, w] of Object.entries(e.cara || {})) if (typeof w === "number") a[k] = w;
+      a.abre = (a.abre || 0) + (v ? v.abre * 0.95 : (e.boca || 0) * 0.75);
+      const an = v ? v.ancho : 1 - 0.3 * (e.boca || 0) + 0.25 * (e.bocaAncho || 0);
+      if (an > 1) a.ancha = (an - 1) / 0.3; else a.estrecha = (1 - an) / 0.45;
+      if (v?.dientes) a.dientes = v.dientes;
+      return a; }
     function dibujar(e = {}) {
-      const pose = poseDe(e.huesos);
+      TT = e.t ?? (typeof performance !== "undefined" ? performance.now() / 1000 : 0); MUNDO = e.mundo || [0, 0];
+      const pose = poseDe(e.huesos), AUTO = caraAuto(e);
+      for (const h of HABLA) pose[h.nombre] = (pose[h.nombre] || 0) + (Math.min(1.2, AUTO.abre || 0) * h.habla * Math.PI) / 180;
       // Smart Bones: con el giro de cada hueso con acción, giros de otros huesos (antes del IK) y desplazamientos de puntos
       const SM = SMART.length ? evalSmart(pose) : null; ultimoSmart = SM;
       if (SM) for (const [n, g] of Object.entries(SM.hs)) if (sk.H[n]) pose[n] = (pose[n] || 0) + (g * Math.PI) / 180;
@@ -70,6 +101,13 @@
       // aunque el cuerpo se mueva o se agache; su padre y él se doblan solos para llegar
       for (const n of clavados) ik2(pose, n, sk.H[n].e);
       T = sk ? sk.posar(pose) : null;
+      if (FIS.length) { for (const P of FIS) { const h = sk.H[P.n], o = sk.origen(T, P.n);
+          pose[P.n] = (pose[P.n] || 0) + pendulo(P, o[0] + MUNDO[0]) - (P.F.colgar ? T[h.padre].th : 0); }
+        T = sk.posar(pose); }
+      // VARIANTES (como las capas de cambio de Moho): una capa con «grupo» solo se ve si es la elegida de su grupo (j.variantes o las de la
+      // escena); así una mano abierta y la misma mano con el cayado se cambian con un clic
+      const vari = Object.assign({}, j.variantes || {}, e.variantes || {});
+      capas.forEach((c, i) => { const d = (L.capas || [])[i]; if (!d?.grupo) return; if (vari[d.grupo] === d.id) c.g.removeAttribute("display"); else c.g.setAttribute("display", "none"); });
       for (const c of capas) {
         if (c.rigida) { c.g.setAttribute("transform", c.hueso && T ? sk.matriz(T, c.hueso) : ""); continue; }
         // SMART BONES: una forma clave con conductor { hueso, desde, hasta } (grados) entra sola al girar ese hueso, de «desde» (0 %) a
@@ -78,7 +116,7 @@
           const ang = ((pose[cd.hueso] || 0) * 180) / Math.PI, r = (cd.hasta ?? 30) - (cd.desde ?? 0); if (Math.abs(r) < 0.5) return 0;
           const t = Math.max(0, Math.min(1, (ang - (cd.desde ?? 0)) / r)); return t * t * (3 - 2 * t); };
         const tieneSmart = SM && Object.keys(SM.pts).some((k) => k.startsWith(c.id + "/"));
-        if (c.morf || tieneSmart || c.conSmart) { const peso = (k) => Math.min(1.5, (+e.formas?.[c.id + "/" + k] || 0) + conducido(k));
+        if (c.morf || tieneSmart || c.conSmart) { const peso = (k) => Math.min(1.5, (+e.formas?.[c.id + "/" + k] || 0) + conducido(k) + (AUTO[k] || 0));
           const firma = (c.morf ? c.morf.claves.map((k) => (+peso(k.id) || 0).toFixed(3)).join(",") : "") + "|" + (tieneSmart ? SM.firma : "");
           if (firma !== c.firma) { c.firma = firma; c.conSmart = tieneSmart; const D = c.morf ? c.morf.ds(peso) : null, porE = D ? new Map(c.morf.base.map((b, i) => [b.e, D[i]])) : null;
             for (const M of c.mallas) { const dm = porE?.get(M.e); let P = dm ? Rig2D.parsear(dm).pts.map((p) => [p[0], p[1]]) : M.P0.map((p) => p.slice());

@@ -513,7 +513,8 @@
   $("#pz-editar").addEventListener("click", () => { const pz = pieza(); if (pz) abrirTaller(pz); });
 
   function pintarVariantes() {
-    const grupos = {}; for (const pz of j?.piezas || []) if (pz.grupo) (grupos[pz.grupo] = grupos[pz.grupo] || []).push(pz);
+    // también las capas de la marioneta libre con «grupo» (p. ej. el cayado de «Eliab»)
+    const grupos = {}; for (const pz of [...(j?.piezas || []), ...(j?.libre?.capas || [])]) if (pz.grupo) (grupos[pz.grupo] = grupos[pz.grupo] || []).push(pz);
     const fila = $("#fila-variantes"), c = $("#variantes"); fila.hidden = !Object.keys(grupos).length; c.replaceChildren();
     for (const [g, lista] of Object.entries(grupos)) {
       const actual = prueba.variantes[g] ?? j.variantes[g] ?? "";

@@ -362,7 +362,7 @@
       if ((esc.fondo?.tipo || "noche") !== "color") vivo(fondo, gDelante, esc.fondo, t, c.x, z);
       Titere25D.camara({ tilt: LH != null ? Math.max(0.1, Math.min(0.48, 0.18 * CAM.alto / 450)) + ((c.tilt ?? 0.18) - 0.18) * 0.35 : (c.tilt ?? 0.18) });   // con lámina, el ángulo de los títeres sale de la altura de la cámara
       const orden = [];
-      const conFisica = actores.some((A) => A.j && (A.j.piezas || []).some((pz) => pz.fisica && pz.fisica.activa !== false));
+      const conFisica = actores.some((A) => A.j && ((A.j.piezas || []).some((pz) => pz.fisica && pz.fisica.activa !== false) || (A.j.libre?.huesos || []).some((h) => h.fisica && h.fisica.activa !== false)));
       // física de las piezas: si el tiempo salta (vídeo renderizado por trozos, cabezal movido), se simula el segundo anterior para llegar
       // a t con la pieza en el mismo estado que si se hubiera reproducido seguido
       if (conFisica && !(t > tAnterior && t - tAnterior <= 0.25)) { for (let u = Math.max(0, t - 1); u < t - 1e-6; u += 1 / 30) for (const A of actores) if (A.m) actor(A, u); }
