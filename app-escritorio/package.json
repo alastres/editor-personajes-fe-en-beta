@@ -1,7 +1,7 @@
 {
   "name": "fe-en-beta-editor",
   "productName": "Fe en Beta Editor",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Editor de personajes, escenas y montaje de Fe en Beta, como app de escritorio",
   "main": "main.js",
   "private": true,
