@@ -74,17 +74,19 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
 - [x] *(13 nov 2026: restar con «Agujero», que hace de máscara; unir = agrupar formas del mismo color)* **Unir y restar formas** (operaciones booleanas) y agrupar formas.
 - [x] *(13 nov 2026)* **Calco:** importar un PNG o un boceto de Flow como plantilla semitransparente para dibujar encima.
 - [x] *(13 nov 2026: herramienta Texto con tamaño y color; va como texto, no convertido en curvas)* **Texto** convertido en formas (carteles, inscripciones).
-- [ ] *(pedido el 15 nov 2026)* **Selección de puntos con lazo:**
+- [x] *(pedido y hecho el 15 nov 2026: herramienta «Lazo de puntos», tecla A)* **Selección de puntos con lazo:**
   - rodear a mano alzada un grupo de puntos y tiradores, de una o varias formas, para moverlos, girarlos o escalarlos juntos;
   - sumar con Mayús y restar con Alt.
   - El lazo de ahora dibuja una forma nueva; este selecciona puntos de lo ya dibujado.
-- [ ] *(pedido el 15 nov 2026)* **Imán (selección suave, como licuar):**
+- [x] *(pedido y hecho el 15 nov 2026: herramienta «Imán y licuar», tecla M)* **Imán (selección suave, como licuar):**
   - se arrastra un punto y los vecinos le siguen menos cuanto más lejos están;
   - el grosor o radio del imán marca hasta dónde llega la influencia, con una caída suave;
   - se cambia con la rueda o con [ ] y, con tableta, con la presión;
   - un círculo en el lienzo enseña el alcance.
   - Que sirva en el taller, en las formas clave, en las correcciones por ángulo y en el editor de Smart Bones.
-- [ ] *(pedido el 15 nov 2026)* **Goma con varias formas de borrar.** La de ahora (X, y el otro extremo del lápiz) solo recorta con un trazo la forma elegida, como una máscara. Modos que añadir:
+  - [x] Hecho en el taller, que también es donde se editan las formas clave y las correcciones por ángulo.
+  - [ ] Pendiente: el imán en el lienzo del editor de Smart Bones (allí los puntos se arrastran uno a uno).
+- [x] *(pedido y hecho el 15 nov 2026: siete modos en el panel de la goma)* **Goma con varias formas de borrar.** La de ahora (X, y el otro extremo del lápiz) solo recorta con un trazo la forma elegida, como una máscara. Modos que añadir:
   - **Recortar el contorno de verdad:** que la forma quede con sus puntos nuevos y no con una máscara, para seguir editándola.
   - **Borrar en todas las formas** que toque el trazo, no solo en la elegida.
   - **Borrar el trazo entero:** un toque quita la forma o el trazo de debajo, como la goma vectorial.
@@ -93,6 +95,8 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
   - **Borrar puntos:** quitar los puntos que toca y que la curva se rehaga suave entre los que quedan.
   - **Goma suave:** hace transparente o adelgaza un trazo de pincel, con la presión de la tableta.
   - **Común a todos los modos:** tamaño y forma de la punta (redonda, cuadrada, pincel), presión de la tableta y un círculo de alcance en el lienzo.
+  - [x] Hecho: todos los modos, grosor con [ y ], círculo de alcance y presión en la goma suave.
+  - [ ] Pendiente: punta cuadrada o de pincel; la goma suave no adelgaza el trazo, solo lo aclara.
 
 ### Render
 - [x] *(13 nov 2026)* **Vista previa rápida** a baja resolución y render solo de un fragmento.
@@ -345,7 +349,7 @@ Por hacer:
   - Sin palma, y con dos dedos se mueve y se acerca la vista.
   - [ ] Pendiente: probarlo con una tableta real (Wacom, Huion, iPad con Sidecar) y afinar las curvas de presión. En el navegador de pruebas se simuló el lápiz.
   - [ ] Pendiente: más texturas (acuarela vectorial, carboncillo) y editar el grosor de un trazo ya hecho.
-  - [ ] *(pedido el 15 nov 2026)* **Brochas avanzadas sobre vectores, como las de Moho.**
+  - [x] *(pedido y hecho el 15 nov 2026)* **Brochas avanzadas sobre vectores, como las de Moho.**
     - **Qué es:** la brocha es un estilo que se aplica sobre el trazado vectorial. El trazo sigue siendo una curva con sus puntos, que se edita, se anima y se dobla con los huesos, y la brocha lo «pinta» al dibujarlo. Cambiar de brocha no rehace el dibujo.
     - **Brochas que simulen dibujo a mano**, empezando por las más útiles para el canal:
       - lápiz de grafito, con grano, borde irregular y presión que oscurece;
@@ -369,6 +373,13 @@ Por hacer:
     - **Biblioteca:** guardar brochas propias e importar texturas (PNG en escala de grises).
     - **Que salga igual en el vídeo:** con filtros SVG o un patrón por trazo, y sin hacer lento el lienzo.
     - Que sirva también en los rellenos: relleno sombreado a lápiz y trama.
+    - [x] Hecho (15 nov 2026):
+      - 8 brochas nuevas: grafito, lápiz de color, carboncillo, tiza y pastel, cera, plumilla, acuarela y aerógrafo;
+      - 13 texturas, con escala del grano, borde irregular y semilla fija;
+      - texturas propias en PNG;
+      - «Textura de la forma» para cambiar la brocha de cualquier forma ya dibujada, también en rellenos, con trama y trama cruzada.
+      - Las texturas van dentro del SVG de la pieza y salen igual en el vídeo.
+    - [ ] Pendiente: «hervor» a propósito (que la textura cambie de semilla en cada fotograma) y editar el grosor del trazo a lo largo después de dibujarlo.
 - [x] **App de escritorio** (Electron, `app-escritorio/`, versión 0.1).
   - Instalador de Windows de 93 MB.
   - Arranca el servidor por dentro, guarda los datos en Documentos/Fe en Beta Editor y la primera vez copia los ejemplos.

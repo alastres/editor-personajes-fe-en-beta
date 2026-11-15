@@ -899,3 +899,48 @@ Arreglos en la cabeza (`comun/titere25d.js`). Valen para todos los personajes co
 - Se ha vuelto a copiar la cabeza. Estaba desfasada tras cambiar el pelo a corto.
 - Revisado con la hoja en todas las vistas, poses y emociones.
 
+## Taller: lazo de puntos, imán y licuar, goma con modos y brochas (15 nov 2026)
+**Lazo de puntos (tecla A)**
+- Rodea puntos de una o varias formas para elegirlos.
+  - **Mayús** suma y **Alt** quita.
+  - Un clic en un punto lo elige solo.
+  - **Ctrl+A** elige todos y **Esc** los suelta.
+- Arrastra cualquiera de los elegidos y se mueven todos juntos, con sus tiradores.
+- Flechas, **Encoger, Agrandar, Girar 15° y Reflejar** actúan sobre los puntos elegidos, alrededor de su centro.
+- **Supr** los quita. Si una forma se queda con muy pocos puntos, se borra entera.
+
+**Imán y licuar (tecla M)**
+- **Imán (agarrar):** donde pulsas, los puntos se mueven del todo en el centro y cada vez menos hacia el borde del círculo, con una caída suave.
+- **Licuar (empujar):** el círculo va empujando los puntos que toca mientras lo mueves, como el licuar de Photoshop.
+- **Ajustes:**
+  - **Alcance:** con [ y ], con Alt + rueda o, con lápiz, con la presión.
+  - **Dureza:** hasta dónde se mueve en bloque.
+  - **Fuerza:** cuánto empuja el licuado.
+- Actúa sobre todas las formas visibles y sin candado. Si antes eliges puntos con el lazo de puntos, **solo mueve esos**.
+- Sirve también para retocar formas clave y correcciones por ángulo, que se editan en este mismo taller.
+
+**Goma (tecla X), siete modos**
+- **Recortar de verdad:** corta las formas que toca y les deja puntos nuevos, que se siguen editando. Las líneas se parten en dos.
+- **Recortar (máscara):** la de siempre. Recorta la forma elegida con un trazo que se puede mover o quitar.
+- **Trazo entero:** un toque borra la forma o línea entera.
+- **Hasta los cruces:** en una línea, borra solo el tramo entre los dos cruces más cercanos con otras líneas. Sirve para limpiar bocetos.
+- **Puntos:** quita los puntos que toca.
+- **Zona (lazo):** rodea una zona. Lo que queda dentro se borra y lo que cruza el borde se corta.
+- **Suave:** aclara sin borrar del todo, según la fuerza y la presión del lápiz.
+- **Común a los modos:** grosor con [ y ] y un círculo que enseña su alcance. El otro extremo del lápiz borra con el modo elegido.
+
+**Brochas sobre vectores (como en Moho)**
+- **El trazo sigue siendo una forma vectorial** (se edita, se dobla con los huesos y se anima). La brocha es su **textura**, un filtro SVG con semilla fija, así que no «hierve» en el vídeo.
+- **Brochas nuevas:** grafito, lápiz de color, carboncillo, tiza y pastel, cera, plumilla, acuarela (borde más oscuro y transparente) y aerógrafo.
+- **Ajustes de cada brocha:**
+  - textura;
+  - **escala del grano**;
+  - **borde irregular**;
+  - **semilla** (otra variación del mismo grano).
+- **Textura de la forma:** en el panel de cualquier forma elegida. Cambia la brocha **sin rehacer el dibujo** y sirve también para rellenos: sombreado a lápiz, **trama** y **trama cruzada**.
+- **Textura propia (PNG):** una imagen en escala de grises que se repite dentro del trazo. Lo oscuro es pintura y lo claro, papel. Se guarda en el navegador y va dentro de la pieza.
+- **Cómo funciona por dentro** (`pinceles.js`):
+  - `Pinceles.filtro(tipo, tx)` y `Pinceles.atributo(tipo, tx)`; las tramas y las texturas propias son máscaras con un patrón.
+  - La forma guarda `textura` y `tx: { e, b, s }`.
+  - Las formas antiguas con «grano» o «seco» se ven igual que antes.
+

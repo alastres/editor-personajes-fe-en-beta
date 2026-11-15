@@ -59,7 +59,7 @@
     const uno = (f, extra) => { if (f.tipo === "texto") { const q = f.puntos[0]; return `<text x="${f2(q.x)}" y="${f2(q.y)}" font-size="${f2(f.tam || 48)}" text-anchor="middle" dominant-baseline="central" font-family="Inter, Figtree, Segoe UI, sans-serif" font-weight="${f.peso || 800}" fill="${R(f.relleno || "{tinta}")}"${op(f)}${extra}>${escT(f.texto || "")}</text>`; }
       if (f.puntos.length < 2) return "";
       const st = f.trazo && f.grosor ? ` stroke="${R(f.trazo)}" stroke-width="${f2(f.grosor)}" stroke-linecap="round" stroke-linejoin="round"` : ed && !f.cerrada ? ` stroke="#888" stroke-width="2"` : "";
-      let tx = ""; if (f.textura && window.Pinceles) { const fl = Pinceles.filtro(f.textura); if (fl) { if (!defs.includes(fl)) defs.push(fl); tx = ` filter="url(#tx-${f.textura})"`; } }
+      let tx = ""; if (f.textura && window.Pinceles) { const fl = Pinceles.filtro(f.textura, f.tx); if (fl) { if (!defs.includes(fl)) defs.push(fl); tx = Pinceles.atributo(f.textura, f.tx); } }
       return `<path d="${d(f)}" fill="${f.cerrada ? relleno(f, R, defs) : "none"}"${st}${op(f)}${tx}${hz(f)}${f.ref != null ? ` data-ref="${escT(f.ref)}"` : ""}${extra}/>`; };
     const conEspejo = (f, extra) => uno(f, extra) + (f.simetrica && f.tipo !== "texto" ? `<g transform="scale(-1 1)"${ed ? ' pointer-events="none"' : ""}>${uno(f, "")}</g>` : "");
     // FORMAS LÍQUIDAS (como las de Moho): un grupo (f.liquido = { g, modo }) combina sus formas SIN perderlas; cada una sigue con sus
@@ -75,7 +75,7 @@
       const w = base.grosor || 0, sc = base.trazo ? R(base.trazo) : null, id = "lq" + hashTxt(M.map((m) => m.modo + d(m.f)).join("|"));
       const esp = (f, html) => html + (f.simetrica ? `<g transform="scale(-1 1)" pointer-events="none">${html}</g>` : "");
       const ex = (i) => (ed ? ` data-i="${i}" class="forma${ed.sel(i) ? " sel" : ""}"` : "");
-      const tx = (f) => { if (!f.textura || !window.Pinceles) return ""; const fl = Pinceles.filtro(f.textura); if (!fl) return ""; if (!defs.includes(fl)) defs.push(fl); return ` filter="url(#tx-${f.textura})"`; };
+      const tx = (f) => { if (!f.textura || !window.Pinceles) return ""; const fl = Pinceles.filtro(f.textura, f.tx); if (!fl) return ""; if (!defs.includes(fl)) defs.push(fl); return Pinceles.atributo(f.textura, f.tx); };
       // capa 1: contornos (cada una con su trazo o, si no tiene, el de la base); capa 2: rellenos encima
       const c1 = U.map(({ f }) => { const gw = f.grosor || w, col = f.trazo ? R(f.trazo) : sc; if (!gw || !col) return "";
         return esp(f, `<path d="${d(f)}" fill="${f.cerrada ? col : "none"}" stroke="${col}" stroke-width="${f2(gw)}" stroke-linejoin="round" stroke-linecap="round"${op(f)}${hz(f)} pointer-events="none"/>`); }).join("");
@@ -189,8 +189,13 @@
             <div class="deslizador"><label>Estabilizador <span class="tenue">(quita el temblor)</span></label><input type="range" id="tl-pz-estab" min="0" max="0.95" step="0.05"><output></output></div>
             <div class="deslizador"><label>Afinar las puntas</label><input type="range" id="tl-pz-afinar" min="0" max="1" step="0.05"><output></output></div>
             <div class="deslizador"><label>Opacidad del pincel</label><input type="range" id="tl-pz-opac" min="0.1" max="1" step="0.05"><output></output></div>
+            <div class="campo"><label>Textura <span class="tenue">(brocha)</span></label><select id="tl-pzt-tipo"></select></div>
+            <div id="tl-pzt-ajustes"><div class="deslizador"><label>Escala del grano</label><input type="range" id="tl-pzt-e" min="0.3" max="3" step="0.05"><output></output></div>
+            <div class="deslizador"><label>Borde irregular</label><input type="range" id="tl-pzt-b" min="0" max="3" step="0.05"><output></output></div>
+            <div class="deslizador"><label>Semilla <span class="tenue">(otra variación del grano)</span></label><input type="range" id="tl-pzt-s" min="1" max="60" step="1"><output></output></div></div>
             <label class="chk" title="Con el ratón o el dedo: cuanto más rápido, más fino"><input type="checkbox" id="tl-pz-simular"> Sin lápiz, la velocidad hace de presión</label>
             <label class="chk" title="Lápiz inclinado: el lápiz y el pincel seco ensanchan; la pluma caligráfica gira la punta"><input type="checkbox" id="tl-pz-incl"> Usar la inclinación del lápiz</label>
+            <div class="fila-botones dos"><button id="tl-pz-txpng" title="Una imagen en escala de grises (oscuro = pintura, claro = papel) que se repite dentro del trazo: papel, lienzo, esponja…">Textura propia (PNG)…</button><button id="tl-pz-txborrar" title="Quita de la lista la textura propia elegida">Quitar textura propia</button></div><input type="file" id="tl-pz-txf" accept="image/*" hidden>
             <div class="fila-botones dos"><button id="tl-pz-guardar" title="Guarda estos ajustes como un pincel tuyo (en este navegador)">Guardar como pincel propio</button><button id="tl-pz-reset" title="Vuelve a los ajustes de serie de este pincel">Ajustes de serie</button></div>
             <p class="ayuda">El color del pincel es el de <b>Contorno</b>. Cada trazo queda como una forma (se dobla con los huesos y se edita con Seleccionar). El otro extremo del lápiz borra. Con dos dedos se mueve y se acerca la vista.</p>
           </div>
@@ -220,6 +225,11 @@
           <h4>Contorno <span class="tenue">(y color del pincel)</span></h4><div class="paleta" id="tl-trazo-c"></div>
           <div class="deslizador"><label>Grosor del contorno o pincel</label><input type="range" id="tl-grosor" min="0" max="30" step="0.5"><output></output></div>
           <div class="deslizador"><label>Opacidad</label><input type="range" id="tl-opac" min="0.1" max="1" step="0.05"><output></output></div>
+          <div id="tl-ftx" hidden><h4>Textura de la forma <span class="tenue">(cambia la brocha sin rehacer el dibujo; en rellenos: sombreado a lápiz, trama)</span></h4>
+            <div class="campo"><label>Textura <span class="tenue">(brocha)</span></label><select id="tl-ftx-tipo"></select></div>
+            <div id="tl-ftx-ajustes"><div class="deslizador"><label>Escala del grano</label><input type="range" id="tl-ftx-e" min="0.3" max="3" step="0.05"><output></output></div>
+            <div class="deslizador"><label>Borde irregular</label><input type="range" id="tl-ftx-b" min="0" max="3" step="0.05"><output></output></div>
+            <div class="deslizador"><label>Semilla <span class="tenue">(otra variación del grano)</span></label><input type="range" id="tl-ftx-s" min="1" max="60" step="1"><output></output></div></div></div>
           <div class="deslizador"><label>Suavizado del pincel y del lazo</label><input type="range" id="tl-suave" min="0.5" max="8" step="0.5" value="2.2"><output>2.2</output></div>
           <h4>Formas <span class="tenue">(la de arriba se ve encima · doble clic en el nombre para cambiarlo)</span></h4><ul class="capas" id="tl-capas"></ul>
           <div class="deslizador"><label>Girar la selección</label><input type="range" id="tl-giro" min="-180" max="180" step="1" value="0"><output>0°</output></div>
@@ -307,6 +317,19 @@
     $("#tl-union", raiz).onclick = () => combinar("union"); $("#tl-resta", raiz).onclick = () => combinar("resta"); $("#tl-inter", raiz).onclick = () => combinar("inter");
     for (const k of ["tam", "sens", "curva", "estab", "afinar", "opac"]) $("#tl-pz-" + k, raiz).oninput = (ev) => { pz[k] = +ev.target.value; recordarPincel(); pintarPincel(); };
     $("#tl-pz-simular", raiz).onchange = (ev) => { pz.simular = ev.target.checked; recordarPincel(); };
+    enlazarTx("tl-pzt", () => ({ tipo: pz.textura, tx: pz.tx }), (tipo, tx) => { pz.textura = tipo; pz.tx = tipo ? tx : undefined; recordarPincel(); pintarPincel(); });
+    enlazarTx("tl-ftx", () => { const f = sel !== null ? D.formas[sel] : null; return { tipo: f?.textura, tx: f?.tx }; }, (tipo, tx, seguido) => {
+      const idx = [...selSet()]; if (!idx.length) return; if (!(seguido && ultClave === "ftx" && Date.now() - tClave < 800)) guardarHist(); ultClave = "ftx"; tClave = Date.now();
+      for (const i of idx) { const f = D.formas[i]; if (tipo) { f.textura = tipo; f.tx = tx && JSON.stringify(Object.assign({}, Pinceles.SERIE, tx)) !== JSON.stringify(Pinceles.SERIE) ? tx : undefined; } else { delete f.textura; delete f.tx; } } pintar(); });
+    $("#tl-pz-txpng", raiz).onclick = () => $("#tl-pz-txf", raiz).click();
+    $("#tl-pz-txf", raiz).onchange = (ev) => { const fi = ev.target.files[0]; ev.target.value = ""; if (!fi) return; const r = new FileReader();
+      r.onload = () => { const im = new Image(); im.onload = () => { const k = Math.min(1, 256 / Math.max(im.width, im.height)), cv = document.createElement("canvas"); cv.width = Math.max(1, Math.round(im.width * k)); cv.height = Math.max(1, Math.round(im.height * k));
+          const g2 = cv.getContext("2d"); g2.drawImage(im, 0, 0, cv.width, cv.height); const px = g2.getImageData(0, 0, cv.width, cv.height);
+          for (let i = 0; i < px.data.length; i += 4) { const a = px.data[i + 3] / 255, l = (0.3 * px.data[i] + 0.59 * px.data[i + 1] + 0.11 * px.data[i + 2]) * a + 255 * (1 - a), v = 255 - l; px.data[i] = px.data[i + 1] = px.data[i + 2] = v; px.data[i + 3] = 255; }
+          g2.putImageData(px, 0, 0); const id = "img-" + Date.now().toString(36), n = fi.name.replace(/\.[^.]+$/, "").slice(0, 24);
+          Pinceles.guardarTextura(id, { n, src: cv.toDataURL("image/png"), tam: 40 }); pz.textura = id; recordarPincel(); pintarPincel(); avisoT(`Textura «${n}» añadida: está en la lista de texturas del pincel y de las formas`); }; im.src = r.result; };
+      r.readAsDataURL(fi); };
+    $("#tl-pz-txborrar", raiz).onclick = () => { if (!pz.textura?.startsWith("img-")) return avisoT("Elige antes en la lista la textura propia que quieres quitar"); Pinceles.guardarTextura(pz.textura, null); pz.textura = null; recordarPincel(); pintarPincel(); };
     $("#tl-pz-incl", raiz).onchange = (ev) => { pz.inclinacion = ev.target.checked; recordarPincel(); };
     $("#tl-pz-reset", raiz).onclick = () => { const base = Pinceles.PRESETS[pzId] || Pinceles.propios()[pzId]; if (base) { pz = clon(base); recordarPincel(); pintarPincel(); } };
     $("#tl-pz-guardar", raiz).onclick = async () => { const n = window.Dialogo ? await Dialogo.pedir("Nombre del pincel", { valor: (pz.n || "Pincel") + " (mío)", aceptar: "Guardar" }) : prompt("Nombre del pincel", "Mi pincel"); if (!n) return;
@@ -376,7 +399,7 @@
     $("#tl-pz-ayuda", raiz).textContent = pz.ayuda || "";
     for (const [k, fmt] of [["tam", (v) => (+v).toFixed(1)], ["sens", (v) => Math.round(v * 100) + "%"], ["curva", (v) => (v > 0 ? "+" : "") + (+v).toFixed(1)], ["estab", (v) => Math.round(v * 100) + "%"], ["afinar", (v) => Math.round(v * 100) + "%"], ["opac", (v) => Math.round(v * 100) + "%"]]) {
       const i = $("#tl-pz-" + k, raiz); if (document.activeElement !== i) i.value = pz[k] ?? 0; i.nextElementSibling.textContent = fmt(pz[k] ?? 0); }
-    $("#tl-pz-simular", raiz).checked = !!pz.simular; $("#tl-pz-incl", raiz).checked = !!pz.inclinacion; }
+    $("#tl-pz-simular", raiz).checked = !!pz.simular; $("#tl-pz-incl", raiz).checked = !!pz.inclinacion; pintarTx("tl-pzt", pz.textura, pz.tx); }
   // una muestra del lápiz (o del ratón): posición, presión, inclinación (altitud y acimut, en radianes) y tiempo
   function muestra(e, p) { let alt = e.altitudeAngle, azi = e.azimuthAngle;
     if (alt == null && (e.tiltX || e.tiltY)) { const tx = Math.tan((e.tiltX * Math.PI) / 180), ty = Math.tan((e.tiltY * Math.PI) / 180); alt = Math.atan(1 / Math.hypot(tx, ty)); azi = Math.atan2(ty, tx); }
@@ -476,6 +499,14 @@
       D.formas.splice(i, j - i, ...nuevas, ...(nuevas.length ? cortes : [])); }
     if (!hechas) { hist.pop(); return avisoT(modo === "cruces" ? "«Hasta los cruces» es para líneas (trazos abiertos)" : "Nada que borrar ahí"); }
     sel = null; multi = new Set(); pSel = new Set(); pintar(); avisoT({ real: "Recortado", entero: "Borrado", cruces: "Borrado hasta los cruces", puntos: "Puntos quitados", zona: "Zona borrada" }[modo] + ` (${hechas} forma${hechas > 1 ? "s" : ""})`); }
+  // ---- TEXTURAS (brochas): el mismo control para el pincel (pz) y para las formas elegidas
+  function pintarTx(pre, tipo, tx) { const s = $("#" + pre + "-tipo", raiz), L = window.Pinceles ? Pinceles.texturas() : [];
+    if (s.dataset.firma !== L.map((x) => x[0]).join("|")) { s.dataset.firma = L.map((x) => x[0]).join("|"); s.replaceChildren(...L.map(([id, n]) => h("option", { value: id }, n))); }
+    s.value = tipo || ""; const o = Object.assign({}, window.Pinceles?.SERIE, tx || {}); $("#" + pre + "-ajustes", raiz).style.display = tipo ? "" : "none";
+    for (const k of ["e", "b", "s"]) { const i = $("#" + pre + "-" + k, raiz); if (document.activeElement !== i) i.value = o[k]; i.nextElementSibling.textContent = k === "s" ? o[k] : Math.round(o[k] * 100) + "%"; } }
+  function enlazarTx(pre, leer, poner) { const s = $("#" + pre + "-tipo", raiz);
+    s.onchange = () => poner(s.value || null, leer().tx);
+    for (const k of ["e", "b", "s"]) $("#" + pre + "-" + k, raiz).oninput = (ev) => { const cur = leer(); poner(cur.tipo, Object.assign({}, window.Pinceles.SERIE, cur.tx || {}, { [k]: +ev.target.value }), true); }; }
   function pintarIman() { if (!raiz) return; const c = $("#tl-iman-c", raiz); c.hidden = herr !== "iman"; $("#tl-puntos-c", raiz).hidden = herr !== "puntos";
     const n = clavesValidas().length; $("#tl-puntos-n", raiz).textContent = n ? `(${n} puntos elegidos)` : "(ninguno elegido)"; if (c.hidden) return;
     raiz.querySelectorAll("#tl-iman-modo button").forEach((b) => b.classList.toggle("activo", b.dataset.m === imanCfg.modo));
@@ -560,6 +591,7 @@
     $("#tl-sim", raiz).checked = f ? !!f.simetrica : !!estilo.simetrica; $("#tl-agujero", raiz).checked = !!f?.agujero; $("#tl-agujero", raiz).disabled = !f || f.tipo === "texto";
     const esT = f?.tipo === "texto"; $("#tl-texto-det", raiz).hidden = !esT; if (esT) { if (document.activeElement !== $("#tl-texto", raiz)) $("#tl-texto", raiz).value = f.texto || ""; const tm = $("#tl-tam", raiz); if (document.activeElement !== tm) tm.value = f.tam || 48; tm.nextElementSibling.textContent = Math.round(f.tam || 48); }
     pintarLiquido(f);
+    $("#tl-ftx", raiz).hidden = !f || f.tipo === "texto" || !window.Pinceles; if (f && !$("#tl-ftx", raiz).hidden) pintarTx("tl-ftx", f.textura, f.tx);
     { const hc = $("#tl-hueso-c", raiz), hs = cfg?.huesos || []; hc.hidden = !hs.length || !f || f.tipo === "texto";
       if (!hc.hidden) { const s = $("#tl-hueso-f", raiz); if (s.dataset.firma !== hs.join("|")) { s.dataset.firma = hs.join("|"); s.replaceChildren(h("option", { value: "" }, "— como la capa (se dobla con los huesos) —"), ...hs.map((n) => h("option", { value: n }, "🦴 " + n))); } s.value = f.hueso && hs.includes(f.hueso) ? f.hueso : ""; } }
     const n = selSet().size; raiz.querySelectorAll(".tl-multi button").forEach((b) => (b.disabled = !n)); $("#tl-dist-x", raiz).disabled = $("#tl-dist-y", raiz).disabled = n < 3;
@@ -672,7 +704,7 @@
         if (largo < escalaPx() * 1.5 && a.M.length < 3) { a.M.push(Object.assign({}, u, { x: u.x + 0.3 })); }   // un toque: un punto redondo
         const C = Pinceles.contorno(a.M, pz); if (C.length < 3) return;
         const P = rdp(C.concat([C[0]]), Math.max(0.08, escalaPx() * 0.3, pz.tam * 0.015)).slice(0, -1); if (P.length < 3) return; guardarHist();
-        nueva({ puntos: suavizar(P, true), cerrada: true, relleno: colorPincel(), trazo: null, grosor: 0, opacidad: (pz.opac ?? 1) < 1 ? pz.opac : undefined, pincel: pzId, textura: pz.textura || undefined });
+        nueva({ puntos: suavizar(P, true), cerrada: true, relleno: colorPincel(), trazo: null, grosor: 0, opacidad: (pz.opac ?? 1) < 1 ? pz.opac : undefined, pincel: pzId, textura: pz.textura || undefined, tx: pz.textura && pz.tx ? clon(pz.tx) : undefined });
         sel = D.formas.length - 1; pintar(); return; }
       if (a.dibujo && a.goma && gomaCfg.modo !== "mascara" && gomaCfg.modo !== "suave") { $("#tl-trazo", raiz).setAttribute("d", ""); borrarCon(a.dibujo, grosorGoma()); return; }
       if (a.dibujo) { $("#tl-trazo", raiz).setAttribute("d", ""); const lazo = herr === "lazo"; if (a.dibujo.length < 3) return;
