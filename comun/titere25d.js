@@ -289,6 +289,10 @@
     if (!largo) [-1, 1].forEach((sg) => { CF(elD(sg * 58, 4, 12, 17), OREJA, R_(C.piel), gAtras); CF(elD(sg * 59, 5, 5.5, 9), OREJA, R_(C.pielS), gAtras); });   // el pelo largo tapa las orejas
     // 3 · cráneo en «U»: laterales casi rectos, mentón redondo
     const caraF = CF("M-58 -30 C -58 -58 -34 -78 0 -78 C 34 -78 58 -58 58 -30 L 58 26 C 58 56 32 78 0 78 C -32 78 -58 56 -58 26 Z", CARA, R_(C.piel));
+    // 3b · PELO DEL LADO DE ATRÁS al girar: la silueta del pelo no gira, así que en perfil la mitad de atrás del cráneo quedaba de piel
+    // («calvo por detrás») y el flequillo se veía como una franja de casco. Esta masa crece con el giro en el lado que se aleja: de la
+    // coronilla a la nuca, por detrás de la oreja (que va encima). Se calcula en cada fotograma (dibujarCabeza).
+    const peloLado = !calvo && !largo ? el("path", { fill: C.pelo, "data-parte": "pelo" }, gC) : null, bajoLado = rizado ? 52 : 46;
     // 4 · del lado que se acerca: su oreja y su patilla pasan por encima de la cara (opacidad según la profundidad, en dibujar)
     const lados = [-1, 1].map((sg) => {
       const oreja = el("g", {}, gC), patilla = el("g", {}, gC);
@@ -336,6 +340,8 @@
       if (Math.abs(x) > 6) return [Math.sign(x) * (L.an + 1.5), L.com]; return y < 51 ? [0, L.arriba - 1] : [0, L.abajo + 1.5]; });   // labios
     if (barba) CF("M-26 38 C -13 29 13 29 26 38", { k: 1, z: 9 }, T_(C.pelo, 12));
     CF(elD(0, 25, 10, 7.5), { k: 1, z: 12 }, R_(C.nariz));
+    // la oreja del lado cercano, ENCIMA de la barba (en perfil la barba la tapaba entera) y debajo del flequillo
+    for (const o of lados) gC.appendChild(o.oreja);
     // 8 · flequillo: anclado arriba, su borde (la línea de la frente, ~⅓) corre con la cara sin salirse del cráneo
     if (largo) CF("M-58 -6 C -60 -14 -62 -24 -62 -36 C -62 -62 -40 -85 0 -85 C 40 -85 62 -62 62 -36 C 62 -24 60 -14 58 -6 C 54 -30 40 -54 5 -62 L 0 -56 L -5 -62 C -40 -54 -54 -30 -58 -6 Z", FLEQ, R_(C.pelo));   // raya en medio: la frente en arco
     else if (!calvo) CF("M-58 -6 C -60 -14 -62 -24 -62 -36 C -62 -62 -40 -85 0 -85 C 40 -85 62 -62 62 -36 C 62 -24 60 -14 58 -6 C 55 -26 44 -40 28 -40 C 18 -48 6 -45 -2 -39 C -14 -45 -34 -44 -44 -38 C -53 -30 -57 -18 -58 -6 Z", FLEQ, R_(C.pelo));   // el contorno de fuera tapa el cráneo y no se mueve
@@ -350,7 +356,7 @@
     const gNuca = el("g", { display: "none" }, gC), NUCA = { k: 0, z: 0, w: 1 }; NUCA_ = NUCA;
     if (!largo) [-1, 1].forEach((sg) => { CF(elD(sg * 58, 4, 12, 17), NUCA, R_(C.piel), gNuca); CF(elD(sg * 59, 5, 5.5, 9), NUCA, R_(C.pielS), gNuca); });
     CF("M-58 -30 C -58 -58 -34 -78 0 -78 C 34 -78 58 -58 58 -30 L 58 26 C 58 56 32 78 0 78 C -32 78 -58 56 -58 26 Z", NUCA, R_(mix(C.piel, C.pielS, 0.25)), gNuca);
-    const bajoPelo = largo ? 80 : rizado ? 52 : 44;
+    const bajoPelo = largo ? 80 : rizado ? 52 : 58;   // corto: el pelo cubre la nuca casi hasta abajo (con 44 quedaba media cabeza de piel)
     if (calvo) CF("M-30 -60 Q 0 -72 30 -60", NUCA, T_(C.pielL, 8, 0.4), gNuca);   // brillo de la calva
     if (!calvo) CF(`M0 -86 C 40 -86 62 -62 62 -36 C 62 0 60 ${bajoPelo - 26} 50 ${bajoPelo - 8} C 34 ${bajoPelo + 4} 12 ${bajoPelo} 0 ${bajoPelo + 2} C -12 ${bajoPelo} -34 ${bajoPelo + 4} -50 ${bajoPelo - 8} C -60 ${bajoPelo - 26} -62 0 -62 -36 C -62 -62 -40 -86 0 -86 Z`, NUCA, R_(C.pelo), gNuca);
     if (rizado) [[-61, -20, 9], [-62, -42, 10], [-54, -64, 10], [-36, -80, 10], [-12, -87, 10], [12, -87, 10], [36, -80, 10], [54, -64, 10], [62, -42, 10], [61, -20, 9], [-58, 4, 9], [58, 4, 9], [-48, 28, 10], [48, 28, 10], [-24, 44, 10], [0, 48, 10], [24, 44, 10]]
@@ -463,7 +469,15 @@
     // matriz afín de un plano 3D (origen O, ejes ex, ey) proyectado con la cámara
     const planoA = (O, ex, ey) => { const o = PR(O), a = PR(add(O, ex)), b = PR(add(O, ey)); return [a[0] - o[0], a[1] - o[1], b[0] - o[0], b[1] - o[1], o[0], o[1]]; };
     const visto = (pz, cara) => { const v = pz.vista || "siempre"; return v === "siempre" || (v === "frente" ? cara > 0.05 : cara < -0.05); };
-    function dibujarCabeza(c, a, aOjo) {
+    function pintarPeloLado(c, a) { if (!peloLado) return; const r = Math.min(1, Math.max(0, (Math.abs(a) - 0.28) / 0.8)), s = r * r * (3 - 2 * r);
+      if (s < 0.01 || OCULTO.has("pelo")) { peloLado.setAttribute("d", ""); return; } const t = a > 0 ? 1 : -1, X = (x) => f1(c[0] - t * x), Y = (y) => f1(c[1] + y);
+      // de frente hacia la derecha (a > 0) el lado que se aleja es el izquierdo: x negativas (-t·x lo refleja para el otro lado)
+      const b = bajoLado, xT = 62 - s * 50, xE = 62 - s * 31, xN = 62 - s * 17;
+      // el borde de atrás sigue a la silueta del pelo (MASA, corrida desp·sen a) y baja en curva hasta la nuca: sin escalón donde acaba la masa
+      const dm = 16 * Math.abs(Math.sin(a));
+      peloLado.setAttribute("d", `M${X(62 + dm)} ${Y(-52)} L${X(xT)} ${Y(-52)} C${X(xT)} ${Y(-26)} ${X(xE - 5)} ${Y(-20)} ${X(xE)} ${Y(-3)} C${X(xE + 4)} ${Y(16)} ${X(xN - 4)} ${Y(b - 16)} ${X(xN)} ${Y(b)} `
+        + `C${X(xN + 6)} ${Y(b + 5)} ${X(54)} ${Y(b + 4)} ${X(57)} ${Y(b - 4)} C${X(59 + dm * 0.2)} ${Y(20)} ${X(58 + dm)} ${Y(4)} ${X(58 + dm)} ${Y(-6)} C${X(60 + dm)} ${Y(-18)} ${X(62 + dm)} ${Y(-30)} ${X(62 + dm)} ${Y(-52)} Z`); }
+    function dibujarCabeza(c, a, aOjo) { pintarPeloLado(c, a);
       CTRL.cabeza = difG((a * 180) / Math.PI, 0); const corrC = CORR.filter((x) => x.control === "cabeza" && x.d && !Array.isArray(x.d)).map((x) => [x, pesoCorr(x)]).filter((x) => x[1] > 0.001);
       CABF.forEach((fz, fi) => { fz._ci = fi; });
       // EXPRESIONES DIBUJADAS (fase 4): una emoción del personaje puede llevar la cara retocada a mano (emociones[n].dibujo, hecha de
@@ -471,12 +485,20 @@
       const exD = Object.entries(PESOS_CARA).map(([n, w]) => [(op.emociones || {})[n]?.dibujo, w]).filter((x) => x[0] && x[1] > 0.001), kx = Math.max(0, Math.cos(a));
       for (const fz of CABF) {
         const aa = fz.prof.ojo ? aOjo : a, pr = fz.prof;
-        const pts = fz.pts.map(([x, y]) => { if (fz.pre) [x, y] = fz.pre(x, y);
+        // OREJAS: un disco que mira hacia el lado; al girar se DESPLAZA con la cabeza (su centro sigue el cráneo) pero no se aplasta:
+        // en perfil se ve entera, como es (antes se estrechaba con el coseno y quedaba una astilla)
+        // (las PATILLAS igual: antes en perfil quedaban como una raya vertical en mitad de la cara)
+        let rig = null; if ((pr === OREJA || pr === PATILLA) && fz.pts.length) { const cx = fz.pts.reduce((s, p) => s + p[0], 0) / fz.pts.length, sup = Math.sqrt(Math.max(0, RC * RC - cx * cx)), z = pr.k * sup + pr.z;
+          rig = { dx: cx * Math.cos(aa) + z * Math.sin(aa) - cx, dy: TILT_H * (-cx * Math.sin(aa) + z * Math.cos(aa)) }; }
+        const pts = rig ? fz.pts.map(([x, y]) => [c[0] + x + rig.dx, c[1] + y + rig.dy]) : fz.pts.map(([x, y]) => { if (fz.pre) [x, y] = fz.pre(x, y);
           const sup = Math.sqrt(Math.max(0, RC * RC - x * x)), z = pr.f ? pr.f(x, sup) : pr.k * sup + pr.z;
           const zr = -x * Math.sin(aa) + z * Math.cos(aa), w = typeof pr.w === "function" ? pr.w(x, y) : pr.w || 0;
           let xg = x * Math.cos(aa) + z * Math.sin(aa);          // lo que gira; el límite solo frena esto, no el contorno fijo
           if (pr.lim) { const l0 = pr.lim * 0.75, ax = Math.abs(xg); if (ax > l0) xg = Math.sign(xg) * (l0 + (pr.lim - l0) * Math.tanh((ax - l0) / (pr.lim - l0))); }
           const xr = lerp(xg, x, w) + (pr.desp || 0) * Math.sin(aa);
+          // BARBA: el rincón de arriba del lado que se aleja (junto a la oreja lejana) quedaba en perfil delante de la cara, como una
+          // astilla que subía hasta el ojo; cuanto más se esconde, más baja hacia la mandíbula
+          if (pr === BARBA && y < 40 && zr < 0) y += 30 * (zr / RC) * (zr / RC);
           return [c[0] + xr, c[1] + y + TILT_H * zr * (1 - w) + EXP.miraY * 9 * Math.min(1, pr.k || 0) * (1 - w)]; });
         for (const [cc, w] of corrC) { const dd = cc.d[fz._ci]; if (dd && dd.length === pts.length) for (let k = 0; k < pts.length; k++) { pts[k][0] += w * dd[k][0]; pts[k][1] += w * dd[k][1]; } }
         for (const [ex, w] of exD) { const dd = ex[fz._ci]; if (dd && dd.length === pts.length) for (let k = 0; k < pts.length; k++) { pts[k][0] += w * kx * dd[k][0]; pts[k][1] += w * dd[k][1]; } }

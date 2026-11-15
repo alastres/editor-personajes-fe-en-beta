@@ -306,6 +306,12 @@ Por hacer:
   - [ ] Pendiente: lo mismo en el muñeco con las piezas (conducidas por codo, rodilla, giro o cabeza) y unificarlo con las correcciones por ángulo de la marioneta vectorial.
   - [ ] Pendiente: correcciones por ángulo con alcance ajustable y elección de vista.
   - [ ] Pendiente: avisar cuando la cabeza vectorial está desfasada y poder corregir la parte automática (ojos, cejas, boca y barba).
+- [x] **Pedro (vectorial) sin roturas en ninguna vista** (15 nov 2026). La hoja de revisión `hoja.html` dibuja un personaje en 16 giros, 9 poses y 8 caras. Arreglos de la cabeza para todos los personajes:
+  - pelo del lado de atrás en perfil, sin escalón;
+  - orejas y patillas que se desplazan enteras en vez de aplastarse;
+  - la barba ya no sube como una astilla hasta el ojo en perfil;
+  - más pelo en la nuca.
+  - [ ] Pendiente, por el estilo 2,5D: a 67,5° el ojo lejano queda cortado por el borde de la cara.
 - [x] **Cada forma, su hueso** en la marioneta libre (15 nov 2026): dentro de una capa, cada forma puede seguir a un hueso sin doblarse (mandíbula, ojo, ala), también en grupos líquidos y con formas clave.
 - [x] **Formas clave** (animar los puntos de un dibujo, como en Moho; 15 nov 2026).
   - Otras versiones de una pieza o capa con los mismos puntos movidos, que se mezclan con deslizadores, claves y curvas. Las formas líquidas se recalculan con ellas: una boca que resta se abre.

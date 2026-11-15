@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hoja de revisión · Fe en Beta</title>
+  <style>
+    body { margin: 0; background: #1a1722; color: #ece8f3; font: 13px "Segoe UI", system-ui, sans-serif; }
+    header { padding: 8px 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    header select, header button { font: inherit; padding: 4px 8px; }
+    .rejilla { display: grid; grid-template-columns: repeat(var(--cols, 8), 1fr); gap: 3px; padding: 0 6px 10px; }
+    .celda { background: #3a3556; position: relative; }
+    .celda svg { width: 100%; height: auto; display: block; }
+    .celda span { position: absolute; left: 4px; top: 2px; font-size: 11px; color: #fff; text-shadow: 0 1px 2px #000; }
+    h3 { margin: 8px 12px 4px; font-size: 13px; color: #a39bb3; }
+  </style>
+</head>
+<body>
+  <header><b>Hoja de revisión</b><select id="p"></select><label>Encuadre <select id="enc"><option value="cuerpo">Cuerpo</option><option value="cabeza">Cabeza</option></select></label><span id="info"></span></header>
+  <h3>Giro (sin pose)</h3><div class="rejilla" id="vistas"></div>
+  <h3>Poses a 0°, 45° y 90°</h3><div class="rejilla" id="poses" style="--cols:9"></div>
+  <h3>Emociones y boca (de frente y a 45°)</h3><div class="rejilla" id="caras" style="--cols:8"></div>
+  <script src="/comun/titere25d.js"></script>
+  <script src="/comun/rig2d.js"></script>
+  <script src="/comun/libre.js"></script>
+  <script src="/comun/personajes.js"></script>
+  <script src="/acciones/todas.js"></script>
+  <script>
+  // HOJA DE REVISIÓN: un personaje en todas las vistas, en varias poses y con varias caras, para cazar roturas (hoja.html?p=id).
+  (async () => {
+    const NS = "http://www.w3.org/2000/svg", q = new URLSearchParams(location.search), $ = (s) => document.querySelector(s), P = window.Personajes, T = window.Titere25D;
+    const lista = await (await fetch("/api/personajes")).json(), sel = $("#p"); sel.innerHTML = lista.map((x) => `<option value="${x.id}">${x.nombre}</option>`).join(""); sel.value = q.get("p") || "pedro-vectorial";
+    $("#enc").value = q.get("enc") || "cuerpo";
+    const ir = () => { const u = new URL(location); u.searchParams.set("p", sel.value); u.searchParams.set("enc", $("#enc").value); location = u; }; sel.onchange = ir; $("#enc").onchange = ir;
+    const j = await (await fetch("/api/personajes/" + sel.value)).json(), cab = $("#enc").value === "cabeza";
+    const VB = cab ? (q.get("vb") || "-120 -600 240 240") : (q.get("vb") || "-200 -600 400 640");
+    let n = 0; const celda = (cont, et, pose, giro, extra = {}) => { const d = document.createElement("div"); d.className = "celda"; const s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", VB); d.append(s); cont.append(d);
+      const g = document.createElementNS(NS, "g"); s.append(g); T.camara({ tilt: 0.22 }); const m = P.crear(g, j, { id: "h" + n++ }); m.dibujar(Object.assign(P.pose(P.completa(pose), { giro }), { parpadeo: 1 }, extra));
+      const sp = document.createElement("span"); sp.textContent = et; d.append(sp); return m; };
+    // ajusta el encuadre de la cabeza a la altura real
+    const vistas = [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180, -157.5, -135, -112.5, -90, -67.5, -45, -22.5];
+    for (const a of vistas) celda($("#vistas"), a + "°", {}, a);
+    const ac = window.ACCIONES || {}, poseDe = (id, t) => (ac[id] ? P.accionPose(ac[id], t) : {});
+    const POSES = [["saludo", poseDe("saludo", 0.5)], ["explicar", poseDe("explicar", 1)], ["manos arriba", poseDe("manos-arriba", 1)], ["mano al pecho", poseDe("mano-pecho", 1)], ["sentarse", poseDe("sentarse", 1)], ["arrodillarse", poseDe("arrodillarse", 1)], ["agacharse", poseDe("agacharse", 1)], ["codos 120°", { bIzqK: 1, bIzqCodo: 2.1, bDerK: 1, bDerCodo: 2.1, bIzqFrente: 0.6, bDerFrente: 0.6 }], ["inclinado", { inclina: 0.25, ladeo: 8, cabeza: 25 }]];
+    for (const g of [0, 45, 90]) for (const [et, p] of POSES) celda($("#poses"), `${et} · ${g}°`, p, g);
+    for (const g of [0, 45]) for (const e of ["neutra", "alegre", "triste", "enfado", "sorpresa", "miedo", "risa", "boca"]) celda($("#caras"), `${e} · ${g}°`, e === "neutra" || e === "boca" ? {} : { cara: { [e]: 1 } }, g, e === "boca" ? { boca: 1 } : {});
+    $("#info").textContent = `${j.nombre} · ${j.opciones?.proporciones || ""} · pelo ${j.opciones?.pelo || ""}${j.vector?.activo ? " · marioneta vectorial" : ""}`;
+    if (q.get("cols")) for (const r of document.querySelectorAll(".rejilla")) r.style.setProperty("--cols", q.get("cols"));
+    window.HOJA_LISTA = true;
+  })();
+  </script>
+</body>
+</html>

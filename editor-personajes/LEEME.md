@@ -861,3 +861,34 @@ Un hueso con Smart Bone lleva una **acción entera atada a su ángulo**: una lí
   - Funciona en Personajes, Escenas, Montaje y en el vídeo.
 - **Lo de antes:** el «conductor» simple de las formas clave (un hueso entre dos ángulos) sigue funcionando y se suma.
 
+## Hoja de revisión y Pedro (vectorial) sin roturas (15 nov 2026)
+**`hoja.html?p=<id>`** dibuja un personaje en todas las vistas para cazar roturas de un vistazo:
+- 16 giros, de 22,5° en 22,5°;
+- 9 poses a 0°, 45° y 90°: saludo, explicar, manos arriba, mano al pecho, sentarse, arrodillarse, agacharse, codos a 120° e inclinado;
+- 7 emociones y la boca abierta, de frente y a 45°.
+
+Parámetros:
+- `enc=cabeza` encuadra solo la cabeza.
+- `cols=N` cambia el número de columnas.
+- `vb=x,y,an,al` pone un encuadre propio, para ampliar una zona.
+
+Arreglos en la cabeza (`comun/titere25d.js`). Valen para todos los personajes con la cabeza automática y para las cabezas vectoriales.
+
+**Pelo**
+- **Pelo del lado de atrás al girar.** En perfil, la mitad de atrás del cráneo se quedaba de piel («calvo por detrás») y el flequillo parecía un casco. Ahora una masa de pelo crece con el giro, de la coronilla a la nuca.
+- **Contorno del pelo.** Su borde de atrás sigue a la silueta del pelo, sin escalón donde esta acababa.
+- **Nuca.** Más pelo en las vistas de espaldas con pelo corto.
+
+**Orejas y patillas**
+- Al girar se desplazan enteras con la cabeza, en vez de estrecharse.
+- Antes, en perfil, la oreja quedaba como una astilla y la patilla como una raya en mitad de la cara. Ahora la patilla queda delante de la oreja.
+- La oreja va por encima de la barba y del pelo del lado.
+
+**Barba**
+- El rincón del lado que se aleja ya no sube hasta el ojo como una astilla en perfil: baja hacia la mandíbula según se esconde.
+
+**«Pedro (vectorial)»**
+- Se ha vuelto a copiar el cuerpo en vectores. La copia era anterior a los últimos cambios del motor y el cinturón colgaba como un aro.
+- Se ha vuelto a copiar la cabeza. Estaba desfasada tras cambiar el pelo a corto.
+- Revisado con la hoja en todas las vistas, poses y emociones.
+
