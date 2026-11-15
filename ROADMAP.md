@@ -84,6 +84,15 @@ Cuando una línea se haga, se marca `[x]` con la fecha y se explica en `editor-p
   - se cambia con la rueda o con [ ] y, con tableta, con la presión;
   - un círculo en el lienzo enseña el alcance.
   - Que sirva en el taller, en las formas clave, en las correcciones por ángulo y en el editor de Smart Bones.
+- [ ] *(pedido el 15 nov 2026)* **Goma con varias formas de borrar.** La de ahora (X, y el otro extremo del lápiz) solo recorta con un trazo la forma elegida, como una máscara. Modos que añadir:
+  - **Recortar el contorno de verdad:** que la forma quede con sus puntos nuevos y no con una máscara, para seguir editándola.
+  - **Borrar en todas las formas** que toque el trazo, no solo en la elegida.
+  - **Borrar el trazo entero:** un toque quita la forma o el trazo de debajo, como la goma vectorial.
+  - **Borrar hasta los cruces:** quita solo el tramo de línea entre dos cruces con otras líneas, para limpiar bocetos.
+  - **Borrar con lazo o rectángulo:** rodear una zona y quitar todo lo de dentro, con la opción de cortar las formas por el borde.
+  - **Borrar puntos:** quitar los puntos que toca y que la curva se rehaga suave entre los que quedan.
+  - **Goma suave:** hace transparente o adelgaza un trazo de pincel, con la presión de la tableta.
+  - **Común a todos los modos:** tamaño y forma de la punta (redonda, cuadrada, pincel), presión de la tableta y un círculo de alcance en el lienzo.
 
 ### Render
 - [x] *(13 nov 2026)* **Vista previa rápida** a baja resolución y render solo de un fragmento.
