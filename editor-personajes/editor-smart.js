@@ -45,13 +45,20 @@
       h("p", { class: "ayuda" }, "Gira el hueso (deslizador, la línea o arrastrando su punta) y, en ese ángulo, arrastra los puntos del dibujo o las puntas de otros huesos: se graba en una clave de ese ángulo. Funciona hacia los dos lados; el reposo (0°) es la forma de partida."));
     // la línea se dibuja con SVG de verdad (h() crea elementos HTML)
     const svgL = c.querySelector("#sb-linea"), nuevo = document.createElementNS(NS, "svg"); for (const a of svgL.attributes) nuevo.setAttribute(a.name, a.value); svgL.replaceWith(nuevo);
-    nuevo.addEventListener("pointerdown", (ev) => { const r = nuevo.getBoundingClientRect(), mover = (e2) => { const v = Math.round(((e2.clientX - r.left) / r.width) * 360 - 180); S.ang = Math.max(-180, Math.min(180, v)); const ri = $("#sb-ang"); if (ri) ri.value = S.ang; pintarLinea(); pintarBotones(); };
+    nuevo.addEventListener("pointerdown", (ev) => { const r = nuevo.getBoundingClientRect(), rombo = ev.target.closest?.("[data-ang]");
+      // arrastrar un rombo: la clave cambia de ángulo (sin pisar otra ni el reposo)
+      if (rombo) { let desde = +rombo.dataset.ang; const mv = (e2) => { const v = Math.max(-180, Math.min(180, Math.round(((e2.clientX - r.left) / r.width) * 360 - 180)));
+          if (v === desde || v === 0 || claves().some((k) => Math.abs(k.ang - v) < 0.5)) return; const de = desde;
+          E.cambio((x) => { const b = x.libre.huesos.find((y) => y.nombre === S.hueso), k = b?.smart?.claves.find((q) => Math.abs(q.ang - de) < 0.5); if (k) { k.ang = v; b.smart.claves.sort((p, q) => p.ang - q.ang); } }, "sb-mover-" + S.hueso);
+          desde = v; S.ang = v; const ri = $("#sb-ang"); if (ri) ri.value = v; pintarLinea(); };
+        const up2 = () => { window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up2); pintarPanel(); }; window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up2); S.ang = desde; pintarLinea(); return; }
+      const mover = (e2) => { const v = Math.round(((e2.clientX - r.left) / r.width) * 360 - 180); S.ang = Math.max(-180, Math.min(180, v)); const ri = $("#sb-ang"); if (ri) ri.value = S.ang; pintarLinea(); pintarBotones(); };
       mover(ev); const up = () => { window.removeEventListener("pointermove", mover); window.removeEventListener("pointerup", up); pintarPanel(); }; window.addEventListener("pointermove", mover); window.addEventListener("pointerup", up); });
     pintarLinea(); pintarBotones(); }
   function pintarLinea() { const s = $("#sb-linea"); if (!s) return; s.replaceChildren(); const X = (a) => a + 180;
     sv("rect", { x: 0, y: 14, width: 360, height: 16, rx: 4, fill: "#ffffff0d" }, s);
     for (let a = -180; a <= 180; a += 45) { sv("line", { x1: X(a), y1: a % 90 ? 18 : 12, x2: X(a), y2: a % 90 ? 26 : 32, stroke: "#ffffff40", "stroke-width": a === 0 ? 1.6 : 0.8, "vector-effect": "non-scaling-stroke" }, s); sv("text", { x: X(a), y: 42, "font-size": 7, fill: "#a39bb3", "text-anchor": "middle" }, s).textContent = a + "°"; }
-    for (const k of claves()) sv("path", { d: `M${X(k.ang)} 16 l6 6 l-6 6 l-6 -6 Z`, fill: Math.abs(k.ang - S.ang) < 0.5 ? "#fff" : "#f2a541", stroke: "#13111f", "stroke-width": 0.8, "vector-effect": "non-scaling-stroke" }, s);
+    for (const k of claves()) sv("path", { d: `M${X(k.ang)} 16 l6 6 l-6 6 l-6 -6 Z`, fill: Math.abs(k.ang - S.ang) < 0.5 ? "#fff" : "#f2a541", stroke: "#13111f", "stroke-width": 0.8, "vector-effect": "non-scaling-stroke", "data-ang": k.ang, style: "cursor:grab" }, s).append(Object.assign(document.createElementNS(NS, "title"), { textContent: `Clave a ${k.ang}°: arrastra para cambiar su ángulo` }));
     sv("line", { x1: X(S.ang), y1: 4, x2: X(S.ang), y2: 36, stroke: "#ff6a4a", "stroke-width": 2, "vector-effect": "non-scaling-stroke" }, s); }
   function pintarBotones() { const k = claveEn(Math.round(S.ang)), b1 = $("#sb-clave"), b2 = $("#sb-borrar"); if (b1) b1.disabled = !!k || Math.round(S.ang) === 0; if (b2) b2.disabled = !k; }
   function saltar(dir) { const ks = [...claves().map((k) => k.ang), 0].sort((a, b) => a - b), cand = dir > 0 ? ks.find((a) => a > S.ang + 0.5) : [...ks].reverse().find((a) => a < S.ang - 0.5); if (cand != null) { S.ang = cand; pintarPanel(); } }

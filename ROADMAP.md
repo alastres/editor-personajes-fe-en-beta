@@ -298,7 +298,11 @@ Por hacer:
   - Barra con las secciones y un menú ⋯; lista con buscador y ＋; panel en pestañas.
   - En el teléfono, el lienzo con la lista y los ajustes como hojas.
   - [ ] Pendiente: el taller de dibujo y las ventanas (curvas, correcciones) con el mismo aspecto, y la línea de tiempo de Escenas más cómoda en el teléfono.
-- [x] **Smart Bones en la marioneta libre** (15 nov 2026): una forma clave puede ir conducida por un hueso (entra sola entre dos ángulos, con curva suave; el deslizador se suma).
+- [x] **Smart Bones como en Moho** en la marioneta libre (15 nov 2026). Cada hueso lleva una acción en grados:
+  - varias claves con curva y los dos sentidos;
+  - edición sobre el lienzo: puntos de todas las capas, también formas líquidas, y giros de otros huesos;
+  - varias acciones sumadas y diales.
+- [x] Antes, versión simple: una forma clave conducida por un hueso entre dos ángulos (sigue disponible y se suma).
   - [ ] Pendiente: lo mismo en el muñeco con las piezas (conducidas por codo, rodilla, giro o cabeza) y unificarlo con las correcciones por ángulo de la marioneta vectorial.
   - [ ] Pendiente: correcciones por ángulo con alcance ajustable y elección de vista.
   - [ ] Pendiente: avisar cuando la cabeza vectorial está desfasada y poder corregir la parte automática (ojos, cejas, boca y barba).

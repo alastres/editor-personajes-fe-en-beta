@@ -74,7 +74,8 @@
   function fotograma(m) { if (!esLibre() || !m?.libre) { capaE?.remove(); capaE = null; return; } const cuerpo = m.g.lastChild;
     if (!capaE || capaE.parentNode !== cuerpo) { capaE?.remove(); capaE = sv("g", { class: "lb-esqueleto" }, cuerpo); }
     capaE.replaceChildren(); const anim = document.body.classList.contains("modo-anim");
-    for (const b of m.esqueleto()) { const elegido = b.nombre === sel, col = elegido ? "#ffd27a" : "#f0a33a";
+    const diales = new Set(L().huesos.filter((x) => x.dial).map((x) => x.nombre));   // los diales (Smart Bones mando) se ven distintos
+    for (const b of m.esqueleto()) { const elegido = b.nombre === sel, col = diales.has(b.nombre) ? (elegido ? "#b9dcff" : "#7ab8ff") : elegido ? "#ffd27a" : "#f0a33a";
       const dx = b.e[0] - b.o[0], dy = b.e[1] - b.o[1], L2 = Math.hypot(dx, dy) || 1, nx = (-dy / L2) * 9, ny = (dx / L2) * 9;
       sv("path", { d: `M${b.o[0]} ${b.o[1]} L${b.o[0] + dx * 0.2 + nx} ${b.o[1] + dy * 0.2 + ny} L${b.e[0]} ${b.e[1]} L${b.o[0] + dx * 0.2 - nx} ${b.o[1] + dy * 0.2 - ny} Z`, fill: col, "fill-opacity": 0.55, stroke: col, "stroke-width": 2, "data-hueso": b.nombre }, capaE);
       sv("circle", { cx: b.o[0], cy: b.o[1], r: 7, fill: "#13111f", stroke: col, "stroke-width": 3, "data-hueso": b.nombre, "data-punto": "o" }, capaE);

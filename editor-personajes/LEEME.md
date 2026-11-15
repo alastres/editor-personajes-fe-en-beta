@@ -832,3 +832,32 @@ Como los Smart Bones de Moho: al girar un hueso, una forma clave entra sola. Por
   - cada capa va en dos líneas: nombre y botones arriba, y debajo cómo se dobla;
   - antes, las filas de las capas medían el doble que el panel y los botones quedaban fuera.
 
+## Smart Bones como en Moho (marioneta libre, 15 nov 2026)
+Un hueso con Smart Bone lleva una **acción entera atada a su ángulo**: una línea de tiempo en **grados**, no en segundos. En cada ángulo puedes cambiar lo que quieras del personaje, y al girar el hueso todo pasa por esas claves.
+
+- **Entrar:** en Diseño → Marioneta libre → Huesos, pulsa **⚡** en un hueso (🎛 si es un dial). Arriba aparece el recuadro **«⚡ Smart Bone «hueso»»**. El ⚡ se ve naranja en los huesos que ya tienen claves.
+- **Elegir el ángulo:**
+  - con el deslizador o la casilla de grados;
+  - con un clic o arrastre en la línea de tiempo (de −180° a 180°);
+  - arrastrando la punta del propio hueso en el lienzo.
+  - 0° es el reposo, la forma de partida. ◀ ▶ saltan entre claves.
+- **Grabar, sobre el lienzo y sin abrir el taller:**
+  - **Puntos del dibujo:** los blancos son anclas y los azules tiradores, unidos a su ancla con una línea. Un ancla arrastra sus dos tiradores. Vale para todas las capas, también las formas líquidas, porque sus máscaras y recortes son trazados más.
+  - **Puntas de otros huesos:** se graba su giro en ese ángulo, para movimientos secundarios o para que un hueso mande en otros.
+  - Si en ese ángulo no había clave, se crea con lo que se ve en ese momento, interpolado entre las vecinas, y sigues desde ahí.
+- **Claves:** rombos en la línea de tiempo.
+  - Se arrastran para cambiar su ángulo.
+  - «◆ Clave aquí» crea una con lo que se ve.
+  - «Borrar clave».
+  - **Curva** de cada clave (suave, lineal, acelerar, frenar, mantener): cómo se llega a ella desde la vecina más cercana al reposo.
+- **Los dos sentidos** en la misma línea: claves negativas y positivas, con el reposo en medio. Fuera de la última clave se mantiene esa clave.
+- **Varias acciones se suman:** si giras dos huesos con Smart Bone, se suman sus desplazamientos y sus giros.
+- **Diales** (como en Moho): marca **«Dial (mando que no se dibuja)»**. Ese hueso no deforma el dibujo por sí mismo, solo conduce su acción. En el lienzo se ve en azul. Se anima como cualquier hueso, con su deslizador en Animación o arrastrando su punta, y sirve de mando: girar la cara, abrir la boca, fonemas.
+- **Cómo funciona por dentro** (`comun/libre.js`):
+  - `hueso.smart = { claves: [{ ang, curva, puntos: { capa: { trazado: [dx, dy, …] } }, huesos: { otro: grados } }] }`.
+  - El giro del hueso (de la pose, antes del IK) es el cabezal.
+  - Los giros de otros huesos se suman antes del IK y los pies clavados.
+  - Los desplazamientos se suman en el **reposo** de cada punto (`malla.fijar`, sin recalcular pesos), así que siguen a los huesos como en Moho.
+  - Funciona en Personajes, Escenas, Montaje y en el vídeo.
+- **Lo de antes:** el «conductor» simple de las formas clave (un hueso entre dos ángulos) sigue funcionando y se suma.
+
