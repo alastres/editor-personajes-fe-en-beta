@@ -817,3 +817,18 @@ Dentro de una capa de la marioneta libre, cada forma puede **seguir a su propio 
 - **Con las formas clave:** también se mezclan, y la malla de cada trazado se rehace con su propio hueso.
 - **Datos:** la forma guarda `hueso: "nombre"`. En el SVG, cada trazado suyo (rellenos, contornos, máscaras y recortes) lleva `data-hueso`, y `comun/libre.js` ata ese trazado rígido al hueso.
 
+## Smart Bones en la marioneta libre: un hueso mueve formas clave (15 nov 2026)
+Como los Smart Bones de Moho: al girar un hueso, una forma clave entra sola. Por ejemplo: el hueso de la mandíbula abre la boca, el del brazo hincha el músculo, o el gusano se infla al doblarse.
+
+- **Cómo:** en Diseño → Marioneta libre → Capas, cada capa con formas clave muestra **«Formas clave: ¿qué hueso las mueve?»**. En cada una se elige:
+  - el hueso, o «a mano (deslizador)»;
+  - el ángulo en que empieza («de», 0 %) y en el que está entera («a», 100 %).
+  - Vale al revés, de 0° a −30°.
+- **Entre medias entra con una curva suave.** Cuenta el giro final del hueso, después del IK y de los pies clavados, así que también funciona al arrastrar con IK.
+- **En Animación → Pose → Formas clave**, la etiqueta dice «la mueve 🦴hueso: de°→a°; esto se suma». El deslizador sigue sumando encima, para exagerar o para animar a mano a la vez (hasta 150 % en total).
+- **Datos:** `formasClave[i].conductor = { hueso, desde, hasta }` (grados). El cálculo está en `comun/libre.js`.
+- **Panel de la marioneta libre arreglado:**
+  - los nombres de los huesos ya no se cortan;
+  - cada capa va en dos líneas: nombre y botones arriba, y debajo cómo se dobla;
+  - antes, las filas de las capas medían el doble que el panel y los botones quedaban fuera.
+

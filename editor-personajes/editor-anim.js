@@ -321,7 +321,7 @@
   // libre); se guarda en la pose como formas: { "pieza/forma": peso } y se anima con claves y en la gráfica como lo demás
   function pintarFormasClave() { const c = $("#fc-posar"); if (!c) return; const jj = j(), fuentes = [];
     for (const pz of jj.piezas || []) for (const k of pz.formasClave || []) fuentes.push([pz.id + "/" + k.id, (pz.nombre || pz.id) + " · " + k.nombre]);
-    for (const ca of jj.libre?.capas || []) for (const k of ca.formasClave || []) fuentes.push([ca.id + "/" + k.id, (ca.nombre || ca.id) + " · " + k.nombre]);
+    for (const ca of jj.libre?.capas || []) for (const k of ca.formasClave || []) fuentes.push([ca.id + "/" + k.id, (ca.nombre || ca.id) + " · " + k.nombre + (k.conductor?.hueso ? ` (la mueve 🦴${k.conductor.hueso}: ${k.conductor.desde ?? 0}°→${k.conductor.hasta ?? 30}°; esto se suma)` : "")]);
     c.closest("details").hidden = !fuentes.length; const firma = fuentes.map((f) => f.join("=")).join("|");
     if (c.dataset.firma !== firma) { c.dataset.firma = firma; c.replaceChildren(...fuentes.map(([k, et]) => { const inp = h("input", { type: "range", min: 0, max: 1, step: 0.01, "data-fc": k }), out = h("output");
         inp.addEventListener("input", () => { out.textContent = Math.round(inp.value * 100) + "%"; editar((p) => { p.formas = Object.assign({}, p.formas, { [k]: +inp.value }); if (+inp.value < 0.005) delete p.formas[k]; }, "fc-" + k); });

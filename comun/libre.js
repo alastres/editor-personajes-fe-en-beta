@@ -30,7 +30,7 @@
       const mallas = [...g.querySelectorAll("path")].map((e) => { const d = e.getAttribute("d") || "", op = opDe(e); try { return { e, d0: d, op, m: Rig2D.malla(sk, d, op) }; } catch { return null; } }).filter(Boolean);
       // FORMAS CLAVE (comun/titere25d.js, morfo): con otros pesos, la malla de cada trazado se rehace sobre su forma mezclada
       const morf = c.formasClave?.length && window.Titere25D?.morfo ? Titere25D.morfo(g, c.formasClave) : null;
-      return { g, mallas, morf, opM, id: c.id, firma: "" }; });
+      return { g, mallas, morf, opM, id: c.id, firma: "", fcs: c.formasClave || [] }; });
     let alto = 0; for (const h of huesos) alto = Math.max(alto, -h.o[1], -h.e[1]);
     const puntos = { pies: [0, 0], alto: Math.max(120, alto + 40), cabeza: [0, -alto] };
     let T = null;
@@ -51,7 +51,12 @@
       T = sk ? sk.posar(pose) : null;
       for (const c of capas) {
         if (c.rigida) { c.g.setAttribute("transform", c.hueso && T ? sk.matriz(T, c.hueso) : ""); continue; }
-        if (c.morf) { const peso = (k) => e.formas?.[c.id + "/" + k], firma = c.morf.claves.map((k) => (+peso(k.id) || 0).toFixed(3)).join(",");
+        // SMART BONES: una forma clave con conductor { hueso, desde, hasta } (grados) entra sola al girar ese hueso, de «desde» (0 %) a
+        // «hasta» (100 %), con una curva suave; se suma a lo que diga su deslizador. Cuenta el giro final, después del IK y los pies clavados.
+        const conducido = (kid) => { const cd = c.fcs.find((x) => x.id === kid)?.conductor; if (!cd?.hueso || !sk?.H[cd.hueso]) return 0;
+          const ang = ((pose[cd.hueso] || 0) * 180) / Math.PI, r = (cd.hasta ?? 30) - (cd.desde ?? 0); if (Math.abs(r) < 0.5) return 0;
+          const t = Math.max(0, Math.min(1, (ang - (cd.desde ?? 0)) / r)); return t * t * (3 - 2 * t); };
+        if (c.morf) { const peso = (k) => Math.min(1.5, (+e.formas?.[c.id + "/" + k] || 0) + conducido(k)), firma = c.morf.claves.map((k) => (+peso(k.id) || 0).toFixed(3)).join(",");
           if (firma !== c.firma) { c.firma = firma; const D = c.morf.ds(peso), porE = new Map(c.morf.base.map((b, i) => [b.e, D[i] ?? b.d]));
             for (const M of c.mallas) { const d = porE.get(M.e) ?? M.d0; try { M.m = Rig2D.malla(sk, d, M.op); } catch {} } } }
         for (const { e: pe, m } of c.mallas) pe.setAttribute("d", m.d(T)); }

@@ -26,7 +26,15 @@
         h("button", { title: "Borrar el hueso (sus hijos pasan a su padre)", onclick: () => borrarHueso(b.nombre) }, "✕")); }));
     uc.replaceChildren(...l.capas.map((c, i) => { const hs = h("select", { title: "Con qué hueso se mueve" }, h("option", { value: "" }, c.imagen ? "Rígida, al hueso más cercano" : "Se dobla con todos los huesos"), ...l.huesos.map((x) => h("option", { value: x.nombre }, "Pegada a «" + x.nombre + "»")));
       hs.value = c.hueso || ""; hs.addEventListener("change", () => E.cambio((x) => { const q = x.libre.capas[i]; if (hs.value) q.hueso = hs.value; else delete q.hueso; }));
-      return h("li", {}, h("span", {}, c.imagen ? "🖼" : "◆"), h("span", {}, c.nombre || c.id), hs,
+      // SMART BONES: cada forma clave de la capa puede ir conducida por un hueso (entra sola al girarlo, entre dos ángulos)
+      const fcBloque = c.formasClave?.length ? h("div", { class: "lb-fc" }, h("div", { class: "lb-fc-tit" }, "Formas clave: ¿qué hueso las mueve?"), ...c.formasClave.map((k, n) => {
+        const cd = k.conductor || {}, sh = h("select", { title: "El hueso que, al girar, mete esta forma clave (como los Smart Bones de Moho)" }, h("option", { value: "" }, "a mano (deslizador)"), ...l.huesos.map((x) => h("option", { value: x.nombre }, "🦴 " + x.nombre)));
+        sh.value = cd.hueso || ""; const num = (v, t) => { const inp = h("input", { type: "number", step: 5, value: v, title: t, style: "width:4.2em" }); inp.disabled = !cd.hueso; return inp; };
+        const de = num(cd.desde ?? 0, "Ángulo del hueso en que la forma clave empieza (0 %)"), ha = num(cd.hasta ?? 30, "Ángulo del hueso en que la forma clave está entera (100 %)");
+        const guarda = () => E.cambio((x) => { const q = x.libre.capas[i].formasClave[n]; if (sh.value) q.conductor = { hueso: sh.value, desde: +de.value || 0, hasta: +ha.value || 0 }; else delete q.conductor; });
+        sh.addEventListener("change", guarda); de.addEventListener("change", guarda); ha.addEventListener("change", guarda);
+        return h("div", { class: "lb-fc-fila" }, h("span", { title: k.nombre }, k.nombre), sh, h("span", { class: "tenue" }, "de"), de, h("span", { class: "tenue" }, "a"), ha, h("span", { class: "tenue" }, "°")); })) : null;
+      return h("li", {}, h("span", {}, c.imagen ? "🖼" : "◆"), h("span", {}, c.nombre || c.id), hs, ...(fcBloque ? [fcBloque] : []),
         ...(c.imagen ? [] : [h("button", { title: "Editar en el taller", onclick: () => editarCapa(i) }, "✎")]),
         h("button", { title: "Más atrás", onclick: () => mover(i, -1) }, "↑"), h("button", { title: "Más delante", onclick: () => mover(i, 1) }, "↓"),
         h("button", { title: "Borrar la capa", onclick: async () => { if (await Dialogo.confirmar(`Se borra la capa «${c.nombre || c.id}».`, { titulo: "¿Borrar la capa?", aceptar: "Borrar", peligro: true })) E.cambio((x) => { x.libre.capas.splice(i, 1); }); } }, "✕")); }));
